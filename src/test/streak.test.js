@@ -18,6 +18,10 @@ describe('getPreviousWeekday', () => {
     const result = getPreviousWeekday(new Date('2026-04-12')) // Sunday
     expect(result.toISOString().slice(0, 10)).toBe('2026-04-10')
   })
+  it('Friday → Thursday', () => {
+    const result = getPreviousWeekday(new Date('2026-04-10')) // Friday
+    expect(result.toISOString().slice(0, 10)).toBe('2026-04-09')
+  })
 })
 
 describe('computeNewStreak', () => {
@@ -47,8 +51,15 @@ describe('computeNewStreak', () => {
     expect(result.current_streak).toBe(0)
   })
 
-  it('does not increment if there are no high tasks (no-op)', () => {
+  it('increments streak when no high tasks defined (automatic success)', () => {
     const result = computeNewStreak(profile, [], [])
     expect(result.current_streak).toBe(6)
+  })
+
+  it('updates longest_streak when no high tasks defined and streak exceeds record', () => {
+    const atRecord = { current_streak: 10, longest_streak: 10 }
+    const result = computeNewStreak(atRecord, [], [])
+    expect(result.current_streak).toBe(11)
+    expect(result.longest_streak).toBe(11)
   })
 })

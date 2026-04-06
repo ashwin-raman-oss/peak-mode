@@ -1,3 +1,9 @@
+/**
+ * Returns the most recent previous weekday (Mon–Fri), skipping weekends.
+ * All date arithmetic is performed in UTC to avoid timezone-dependent results.
+ * @param {Date} [today=new Date()] - reference date (injectable for testing)
+ * @returns {Date}
+ */
 export function getPreviousWeekday(today = new Date()) {
   const d = new Date(today)
   const day = d.getUTCDay() // 0=Sun, 1=Mon, ..., 6=Sat

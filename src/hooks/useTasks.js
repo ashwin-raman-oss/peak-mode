@@ -76,6 +76,7 @@ export function useTasks(userId, arenaSlug = null) {
   }
 
   async function completeTask(task) {
+    if (!userId) throw new Error('No authenticated user')
     const effectivePriority = task.priority_override ?? task.priority
     const xp = getXpForPriority(effectivePriority)
 
@@ -90,7 +91,7 @@ export function useTasks(userId, arenaSlug = null) {
     setCompletions(prev => [...prev, optimisticCompletion])
 
     // Persist to Supabase
-    const { data, error } = await supabase
+    const { data, error: insertErr } = await supabase
       .from('task_completions')
       .insert({
         user_id: userId,
@@ -101,10 +102,10 @@ export function useTasks(userId, arenaSlug = null) {
       .select()
       .single()
 
-    if (error) {
+    if (insertErr) {
       // Rollback optimistic update
       setCompletions(prev => prev.filter(c => c.id !== optimisticCompletion.id))
-      throw error
+      throw insertErr
     }
 
     // Replace temp with real
@@ -114,7 +115,8 @@ export function useTasks(userId, arenaSlug = null) {
   }
 
   async function addMiscTask(arenaId, title, priority) {
-    const { data, error } = await supabase
+    if (!userId) throw new Error('No authenticated user')
+    const { data, error: insertErr } = await supabase
       .from('tasks')
       .insert({
         user_id: userId,
@@ -128,7 +130,7 @@ export function useTasks(userId, arenaSlug = null) {
       .select('*, arenas(id, name, emoji, slug, default_priority)')
       .single()
 
-    if (error) throw error
+    if (insertErr) throw insertErr
     setTasks(prev => [...prev, data])
     return data
   }
@@ -136,10 +138,6 @@ export function useTasks(userId, arenaSlug = null) {
   // Week-level stats per arena
   function getArenaStats(arenaSlugFilter) {
     const arenaTasks = tasks.filter(t => t.arenas?.slug === arenaSlugFilter)
-    const relevantTasks = arenaTasks.filter(t =>
-      t.recurrence === 'weekly' || t.recurrence === 'none' ||
-      (t.recurrence === 'daily')  // count daily as 1 per day in the week
-    )
     // For simplicity: total = unique tasks, completed = tasks where isTaskDone
     const completed = arenaTasks.filter(t => isTaskDone(t)).length
     const total = arenaTasks.length
@@ -151,7 +149,7 @@ export function useTasks(userId, arenaSlug = null) {
 
   function getTodaysFocusTasks() {
     const today = new Date()
-    const dayOfWeek = today.getUTCDay()
+    const dayOfWeek = today.getDay()
     if (dayOfWeek === 0 || dayOfWeek === 6) return [] // weekend
 
     const highTasks = tasks.filter(t => {

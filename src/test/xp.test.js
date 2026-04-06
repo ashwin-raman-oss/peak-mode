@@ -28,4 +28,5 @@ describe('getXpForPriority', () => {
   it('medium = 60', () => expect(getXpForPriority('medium')).toBe(60))
   it('optional = 30', () => expect(getXpForPriority('optional')).toBe(30))
   it('falls back to 30 for unknown', () => expect(getXpForPriority('unknown')).toBe(30))
+  it('falls back to 30 for null', () => expect(getXpForPriority(null)).toBe(30))
 })

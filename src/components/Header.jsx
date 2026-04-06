@@ -1,18 +1,21 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import ProgressBar from './ui/ProgressBar'
-import { getXpInLevel, getXpToNextLevel } from '../lib/xp'
+import { getXpInLevel } from '../lib/xp'
 
 export default function Header({ profile }) {
   const navigate = useNavigate()
 
   async function handleLogout() {
-    await supabase.auth.signOut()
+    try {
+      await supabase.auth.signOut()
+    } catch (err) {
+      console.error('Logout error:', err)
+    }
     navigate('/login')
   }
 
   const xpInLevel = profile ? getXpInLevel(profile.total_xp) : 0
-  const xpToNext  = profile ? getXpToNextLevel(profile.total_xp) : 1000
 
   return (
     <header className="sticky top-0 z-40 bg-peak-bg/95 backdrop-blur border-b border-peak-border">
@@ -47,8 +50,8 @@ export default function Header({ profile }) {
           <Link to="/report" className="text-slate-500 hover:text-white text-xs transition-colors">
             Report
           </Link>
-          <button onClick={handleLogout} className="text-slate-600 hover:text-slate-400 text-xs transition-colors">
-            Out
+          <button onClick={handleLogout} aria-label="Log out" className="text-slate-600 hover:text-slate-400 text-xs transition-colors">
+            Log out
           </button>
         </div>
       </div>

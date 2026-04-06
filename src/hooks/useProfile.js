@@ -45,7 +45,7 @@ export function useProfile(userId) {
           .select('task_id')
           .eq('user_id', userId)
           .gte('completed_at', prevDayStr + 'T00:00:00Z')
-          .lt('completed_at', prevDayStr + 'T23:59:59Z')
+          .lt('completed_at', prevDayStr + 'T24:00:00Z')
 
         const prevTaskIds = (prevCompletions || []).map(c => c.task_id)
 
@@ -67,7 +67,6 @@ export function useProfile(userId) {
 
         if (!updateErr) {
           setProfile(updated)
-          setLoading(false)
           return
         }
       }
@@ -90,7 +89,7 @@ export function useProfile(userId) {
     const newLevel = getLevel(newTotalXp)
     const prevLevel = getLevel(profile.total_xp)
 
-    const { data, error } = await supabase
+    const { data, error: xpErr } = await supabase
       .from('profiles')
       .update({
         total_xp: newTotalXp,
@@ -101,7 +100,8 @@ export function useProfile(userId) {
       .select()
       .single()
 
-    if (!error) setProfile(data)
+    if (xpErr) throw xpErr
+    setProfile(data)
     return { leveledUp: newLevel > prevLevel, newLevel }
   }
 

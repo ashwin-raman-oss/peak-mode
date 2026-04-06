@@ -11,7 +11,7 @@ export default function Button({ children, variant = 'primary', size = 'md', cla
     lg: 'text-sm px-6 py-3.5',
   }
   return (
-    <button className={`${base} ${variants[variant]} ${sizes[size]} ${className}`} {...props}>
+    <button type="button" className={`${base} ${variants[variant]} ${sizes[size]} ${className}`} {...props}>
       {children}
     </button>
   )

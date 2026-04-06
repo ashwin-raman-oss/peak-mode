@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { getWeekStart, toDateStr } from '../lib/dates'
 
@@ -9,7 +9,10 @@ export function useWeeklyReport(userId, weekDateParam = null) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const weekStartStr = weekDateParam ?? toDateStr(getWeekStart(new Date()))
+  const weekStartStr = useMemo(
+    () => weekDateParam ?? toDateStr(getWeekStart(new Date())),
+    [weekDateParam]
+  )
 
   const fetchReports = useCallback(async () => {
     if (!userId) return
@@ -17,22 +20,24 @@ export function useWeeklyReport(userId, weekDateParam = null) {
       setLoading(true)
 
       // Fetch all reports for browsing
-      const { data: all } = await supabase
+      const { data: all, error: allErr } = await supabase
         .from('weekly_reports')
         .select('week_start_date, tasks_completed, tasks_total, xp_earned, streak_held')
         .eq('user_id', userId)
         .order('week_start_date', { ascending: false })
 
+      if (allErr) throw allErr
       setAllReports(all || [])
 
-      // Fetch specific week's report
-      const { data: existing } = await supabase
+      // Fetch specific week's report — PGRST116 = no rows found (expected, not an error)
+      const { data: existing, error: reportErr } = await supabase
         .from('weekly_reports')
         .select('*')
         .eq('user_id', userId)
         .eq('week_start_date', weekStartStr)
         .single()
 
+      if (reportErr && reportErr.code !== 'PGRST116') throw reportErr
       setReport(existing ?? null)
     } catch (err) {
       setError(err.message)
@@ -82,6 +87,9 @@ export function useWeeklyReport(userId, weekDateParam = null) {
       if (saveErr) throw saveErr
       setReport(saved)
       return saved
+    } catch (err) {
+      setError(err.message)
+      throw err
     } finally {
       setGenerating(false)
     }

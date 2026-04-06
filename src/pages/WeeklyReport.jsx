@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
@@ -21,25 +22,33 @@ export default function WeeklyReport() {
 
   const weekStartStr = weekDate ?? toDateStr(getWeekStart(new Date()))
   const weekRange = formatWeekRange(new Date(weekStartStr + 'T00:00:00Z'))
-  const isCurrentWeek = !weekDate
+  const isCurrentWeek = weekStartStr === toDateStr(getWeekStart(new Date()))
 
   const currentIdx = allReports.findIndex(r => r.week_start_date === weekStartStr)
-  const prevReport = currentIdx < allReports.length - 1 ? allReports[currentIdx + 1] : null
+  const prevReport = currentIdx === -1 ? null : (currentIdx < allReports.length - 1 ? allReports[currentIdx + 1] : null)
   const nextReport = currentIdx > 0 ? allReports[currentIdx - 1] : null
 
+  const [generateError, setGenerateError] = useState(null)
+
   async function handleGenerate() {
+    setGenerateError(null)
     const breakdown = {}
     ARENA_SLUGS.forEach(slug => {
       const stats = getArenaStats(slug)
       breakdown[ARENA_LABELS[slug]] = { completed: stats.completed, total: stats.total, xp: stats.xpEarned }
     })
-    await generateReport({
-      tasksCompleted: Object.values(breakdown).reduce((s, a) => s + a.completed, 0),
-      tasksTotal:     Object.values(breakdown).reduce((s, a) => s + a.total, 0),
-      xpEarned:       getWeekXp(),
-      streakHeld:     (profile?.current_streak ?? 0) > 0,
-      arenaBreakdown: breakdown,
-    })
+    try {
+      await generateReport({
+        tasksCompleted: Object.values(breakdown).reduce((s, a) => s + a.completed, 0),
+        tasksTotal:     Object.values(breakdown).reduce((s, a) => s + a.total, 0),
+        xpEarned:       getWeekXp(),
+        streakHeld:     (profile?.current_streak ?? 0) > 0,
+        arenaBreakdown: breakdown,
+      })
+    } catch (err) {
+      console.error('Failed to generate report:', err)
+      setGenerateError('Could not generate report. Try again.')
+    }
   }
 
   if (loading || profileLoading || tasksLoading) {
@@ -76,6 +85,12 @@ export default function WeeklyReport() {
             Next →
           </button>
         </div>
+
+        {generateError && (
+          <p role="alert" className="text-red-400 text-xs font-medium bg-red-950/40 border border-red-900/50 rounded-lg px-3 py-2">
+            {generateError}
+          </p>
+        )}
 
         {/* No report yet */}
         {!report && isCurrentWeek && (

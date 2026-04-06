@@ -1,6 +1,6 @@
 import Badge from './ui/Badge'
 
-export default function TodaysFocus({ tasks, onComplete, completing }) {
+export default function TodaysFocus({ tasks = [], onComplete, completing }) {
   const today = new Date()
   const dayOfWeek = today.getUTCDay()
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
@@ -33,8 +33,9 @@ export default function TodaysFocus({ tasks, onComplete, completing }) {
             className="flex items-center gap-3 group"
           >
             <button
-              onClick={() => onComplete(task)}
+              onClick={() => onComplete?.(task)}
               disabled={completing === task.id}
+              aria-label={completing === task.id ? 'Completing...' : `Complete: ${task.title}`}
               className="w-5 h-5 rounded-full border-2 border-slate-600 hover:border-peak-accent transition-colors shrink-0 flex items-center justify-center disabled:opacity-50"
             >
               {completing === task.id && (

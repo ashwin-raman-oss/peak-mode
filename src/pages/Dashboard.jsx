@@ -59,6 +59,8 @@ export default function Dashboard() {
       }
 
       setToast({ xp, hypeMessage })
+    } catch (err) {
+      console.error('Failed to complete task:', err)
     } finally {
       setCompleting(null)
     }

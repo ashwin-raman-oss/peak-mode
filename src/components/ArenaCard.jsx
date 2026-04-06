@@ -8,6 +8,7 @@ export default function ArenaCard({ arena, stats }) {
   return (
     <button
       onClick={() => navigate(`/arena/${arena.slug}`)}
+      aria-label={`${arena.name} — ${completed} of ${total} tasks complete, ${xpEarned} XP this week`}
       className="bg-peak-surface border border-peak-border rounded-xl p-4 text-left hover:border-peak-accent/50 transition-colors group w-full"
     >
       <div className="flex items-center justify-between mb-3">

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
@@ -27,6 +27,14 @@ export default function ArenaDetail() {
   const [newPriority, setNewPriority] = useState('medium')
   const [addingTask, setAddingTask] = useState(false)
   const [levelUpMsg, setLevelUpMsg] = useState(null)
+  const [actionError, setActionError] = useState(null)
+
+  // Fallback: clear level-up overlay if animationend never fires
+  useEffect(() => {
+    if (!levelUpMsg) return
+    const t = setTimeout(() => setLevelUpMsg(null), 3000)
+    return () => clearTimeout(t)
+  }, [levelUpMsg])
 
   const arena = arenas.find(a => a.slug === slug)
 
@@ -54,6 +62,7 @@ export default function ArenaDetail() {
     setCompleting(task.id)
     try {
       const xp = await completeTask(task)
+      if (xp == null) return
       const { leveledUp, newLevel } = await addXp(xp)
 
       if (leveledUp) setLevelUpMsg(`LEVEL ${newLevel}`)
@@ -78,6 +87,7 @@ export default function ArenaDetail() {
       setToast({ xp, hypeMessage })
     } catch (err) {
       console.error('Failed to complete task:', err)
+      setActionError('Could not save completion. Try again.')
     } finally {
       setCompleting(null)
     }
@@ -94,6 +104,7 @@ export default function ArenaDetail() {
       setShowAddModal(false)
     } catch (err) {
       console.error('Failed to add task:', err)
+      setActionError('Could not add task. Try again.')
     } finally {
       setAddingTask(false)
     }
@@ -118,6 +129,12 @@ export default function ArenaDetail() {
           </div>
           <ProgressBar value={stats.completed} max={Math.max(stats.total, 1)} />
         </div>
+
+        {actionError && (
+          <p role="alert" className="text-red-400 text-xs font-medium bg-red-950/40 border border-red-900/50 rounded-lg px-3 py-2 mb-4">
+            {actionError}
+          </p>
+        )}
 
         {/* Recurring tasks */}
         {recurringTasks.length > 0 && (

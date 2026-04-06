@@ -22,8 +22,8 @@ export default function App() {
   }, [])
 
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
         {isOffline && (
           <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-slate-800 border border-slate-700 text-slate-300 text-xs font-medium px-4 py-2 rounded-full shadow-lg">
             You're offline — showing cached data
@@ -36,7 +36,7 @@ export default function App() {
           <Route path="/report" element={<ProtectedRoute><WeeklyReport /></ProtectedRoute>} />
           <Route path="/report/:weekDate" element={<ProtectedRoute><WeeklyReport /></ProtectedRoute>} />
         </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+      </AuthProvider>
+    </BrowserRouter>
   )
 }

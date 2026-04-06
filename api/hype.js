@@ -1,11 +1,20 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 
+if (!process.env.ANTHROPIC_API_KEY) throw new Error('Missing ANTHROPIC_API_KEY')
+if (!process.env.VITE_SUPABASE_URL) throw new Error('Missing VITE_SUPABASE_URL')
+if (!process.env.VITE_SUPABASE_ANON_KEY) throw new Error('Missing VITE_SUPABASE_ANON_KEY')
+
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 const supabase  = createClient(
   process.env.VITE_SUPABASE_URL,
   process.env.VITE_SUPABASE_ANON_KEY
 )
+
+function sanitize(str, maxLen = 100) {
+  if (typeof str !== 'string') return ''
+  return str.replace(/[\n\r`]/g, ' ').slice(0, maxLen).trim()
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -22,13 +31,16 @@ export default async function handler(req, res) {
   const { taskTitle, arenaName } = req.body
   if (!taskTitle) return res.status(400).json({ error: 'taskTitle required' })
 
+  const safeTitle = sanitize(taskTitle)
+  const safeArena = sanitize(arenaName ?? 'General', 50)
+
   try {
     const message = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 60,
       messages: [{
         role: 'user',
-        content: `You are a high-energy performance coach. The user just completed this task: "${taskTitle}" (arena: ${arenaName}). Give them a single punchy hype sentence — second person, specific to what they did, under 12 words, no emojis, no exclamation mark spam. Just one clean sentence.`
+        content: `You are a high-energy performance coach. The user just completed this task: "${safeTitle}" (arena: ${safeArena}). Give them a single punchy hype sentence — second person, specific to what they did, under 12 words, no emojis, no exclamation mark spam. Just one clean sentence.`
       }]
     })
 

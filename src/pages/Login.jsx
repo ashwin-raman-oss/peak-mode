@@ -1,14 +1,21 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const [mode, setMode] = useState('login') // 'login' | 'signup'
+
+  if (user) {
+    navigate('/', { replace: true })
+    return null
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -26,7 +33,11 @@ export default function Login() {
       if (result.error) {
         setError(result.error.message)
       } else {
-        navigate('/')
+        if (mode === 'signup' && result.data?.session === null) {
+          setError('Check your email to confirm your account before signing in.')
+        } else {
+          navigate('/')
+        }
       }
     } finally {
       setLoading(false)
@@ -47,11 +58,13 @@ export default function Login() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold tracking-widest text-slate-400 uppercase mb-1.5">
+            <label htmlFor="email" className="block text-xs font-bold tracking-widest text-slate-400 uppercase mb-1.5">
               Email
             </label>
             <input
+              id="email"
               type="email"
+              autoComplete="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
@@ -61,22 +74,24 @@ export default function Login() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold tracking-widest text-slate-400 uppercase mb-1.5">
+            <label htmlFor="password" className="block text-xs font-bold tracking-widest text-slate-400 uppercase mb-1.5">
               Password
             </label>
             <input
+              id="password"
               type="password"
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
-              minLength={6}
+              minLength={mode === 'signup' ? 6 : undefined}
               className="w-full bg-peak-surface border border-peak-border rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-peak-accent transition-colors placeholder-slate-600"
               placeholder="••••••••"
             />
           </div>
 
           {error && (
-            <p className="text-red-400 text-xs font-medium bg-red-950/40 border border-red-900/50 rounded-lg px-3 py-2">
+            <p role="alert" className="text-red-400 text-xs font-medium bg-red-950/40 border border-red-900/50 rounded-lg px-3 py-2">
               {error}
             </p>
           )}

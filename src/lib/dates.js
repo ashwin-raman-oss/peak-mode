@@ -27,10 +27,13 @@ export function formatWeekRange(weekStart) {
   return `${sm} ${start.getUTCDate()} – ${em} ${end.getUTCDate()}`
 }
 
-export function isCompletedToday(completions, taskId) {
-  const today = new Date().toISOString().slice(0, 10)
+// `today` is injectable for deterministic testing; defaults to current UTC date
+export function isCompletedToday(completions, taskId, today = new Date()) {
+  const todayStr = today.toISOString().slice(0, 10)
   return completions.some(
-    c => c.task_id === taskId && c.completed_at.slice(0, 10) === today
+    c => c.task_id === taskId &&
+         typeof c.completed_at === 'string' &&
+         c.completed_at.slice(0, 10) === todayStr
   )
 }
 

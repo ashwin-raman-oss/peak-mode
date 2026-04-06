@@ -22,6 +22,10 @@ describe('getWeekStart', () => {
     const sun = new Date('2026-04-12') // Sunday
     expect(toDateStr(getWeekStart(sun))).toBe('2026-04-06')
   })
+  it('returns Monday for Saturday', () => {
+    const sat = new Date('2026-04-11') // Saturday
+    expect(toDateStr(getWeekStart(sat))).toBe('2026-04-06')
+  })
 })
 
 describe('isWeekday', () => {
@@ -35,22 +39,29 @@ describe('formatWeekRange', () => {
   it('formats week range from Monday', () => {
     expect(formatWeekRange(new Date('2026-04-06'))).toBe('Apr 6 – Apr 10')
   })
+  it('formats week range crossing a month boundary', () => {
+    expect(formatWeekRange(new Date('2026-03-30'))).toBe('Mar 30 – Apr 3')
+  })
 })
 
 describe('isCompletedToday', () => {
+  const fakeToday = new Date('2026-04-06T12:00:00Z')
+
   it('returns true when task has completion today', () => {
-    const today = new Date().toISOString().slice(0, 10)
-    const completions = [{ task_id: 'abc', completed_at: today + 'T10:00:00Z' }]
-    expect(isCompletedToday(completions, 'abc')).toBe(true)
+    const completions = [{ task_id: 'abc', completed_at: '2026-04-06T10:00:00Z' }]
+    expect(isCompletedToday(completions, 'abc', fakeToday)).toBe(true)
   })
   it('returns false when no completion today', () => {
     const completions = [{ task_id: 'abc', completed_at: '2020-01-01T10:00:00Z' }]
-    expect(isCompletedToday(completions, 'abc')).toBe(false)
+    expect(isCompletedToday(completions, 'abc', fakeToday)).toBe(false)
   })
   it('returns false for different task_id', () => {
-    const today = new Date().toISOString().slice(0, 10)
-    const completions = [{ task_id: 'xyz', completed_at: today + 'T10:00:00Z' }]
-    expect(isCompletedToday(completions, 'abc')).toBe(false)
+    const completions = [{ task_id: 'xyz', completed_at: '2026-04-06T10:00:00Z' }]
+    expect(isCompletedToday(completions, 'abc', fakeToday)).toBe(false)
+  })
+  it('returns false for null completed_at without throwing', () => {
+    const completions = [{ task_id: 'abc', completed_at: null }]
+    expect(isCompletedToday(completions, 'abc', fakeToday)).toBe(false)
   })
 })
 
@@ -62,6 +73,13 @@ describe('getWeeklyCompletionCount', () => {
       { task_id: 'str', week_start_date: '2026-03-30' },
     ]
     expect(getWeeklyCompletionCount(completions, 'str', '2026-04-06')).toBe(2)
+  })
+  it('excludes completions with a different task_id', () => {
+    const completions = [
+      { task_id: 'str', week_start_date: '2026-04-06' },
+      { task_id: 'other', week_start_date: '2026-04-06' },
+    ]
+    expect(getWeeklyCompletionCount(completions, 'str', '2026-04-06')).toBe(1)
   })
 })
 

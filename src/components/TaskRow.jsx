@@ -16,7 +16,7 @@ export default function TaskRow({ task, completionCount, isDone, onComplete, com
           className={`shrink-0 w-14 h-7 rounded-lg border text-[10px] font-black tracking-wider transition-colors
             ${isDone
               ? 'bg-peak-accent/20 border-peak-accent/40 text-peak-accent'
-              : 'bg-peak-surface border-peak-border text-slate-400 hover:border-peak-accent/50'
+              : 'bg-peak-surface border-peak-border text-peak-muted hover:border-peak-accent/50'
             } disabled:cursor-not-allowed`}
         >
           {completionCount} / {task.weekly_target}
@@ -29,7 +29,7 @@ export default function TaskRow({ task, completionCount, isDone, onComplete, com
           className={`shrink-0 w-5 h-5 rounded-full border-2 transition-colors flex items-center justify-center
             ${isDone
               ? 'bg-peak-accent border-peak-accent'
-              : 'border-slate-600 hover:border-peak-accent'
+              : 'border-peak-border hover:border-peak-accent'
             } disabled:cursor-not-allowed`}
         >
           {isDone && <span className="text-peak-bg text-[10px] font-black">✓</span>}
@@ -38,7 +38,7 @@ export default function TaskRow({ task, completionCount, isDone, onComplete, com
       )}
 
       {/* Title */}
-      <span className={`text-sm flex-1 ${isDone ? 'line-through text-slate-500' : 'text-slate-200'}`}>
+      <span className={`text-sm flex-1 ${isDone ? 'line-through text-peak-muted' : 'text-peak-primary'}`}>
         {task.title}
       </span>
 

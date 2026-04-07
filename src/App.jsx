@@ -25,7 +25,7 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         {isOffline && (
-          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-slate-800 border border-slate-700 text-slate-300 text-xs font-medium px-4 py-2 rounded-full shadow-lg">
+          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-peak-elevated border border-peak-border text-peak-primary text-xs font-medium px-4 py-2 rounded-full shadow-lg">
             You're offline — showing cached data
           </div>
         )}

@@ -1,8 +1,8 @@
 export default function Button({ children, variant = 'primary', size = 'md', className = '', ...props }) {
   const base = 'font-bold tracking-wider uppercase transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-lg'
   const variants = {
-    primary: 'bg-peak-accent text-peak-bg hover:bg-sky-300',
-    ghost: 'text-slate-400 hover:text-white border border-peak-border hover:border-slate-500',
+    primary: 'bg-peak-accent text-peak-bg hover:bg-peak-primary',
+    ghost: 'text-peak-muted hover:text-peak-primary border border-peak-border hover:border-peak-text',
     danger: 'bg-red-900/30 text-red-400 hover:bg-red-900/50 border border-red-900/50',
   }
   const sizes = {

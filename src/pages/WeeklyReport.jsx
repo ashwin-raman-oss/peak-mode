@@ -69,18 +69,18 @@ export default function WeeklyReport() {
           <button
             onClick={() => prevReport && navigate(`/report/${prevReport.week_start_date}`)}
             disabled={!prevReport}
-            className="text-xs text-slate-500 hover:text-white disabled:opacity-30 transition-colors"
+            className="text-xs text-peak-muted hover:text-peak-primary disabled:opacity-30 transition-colors"
           >
             ← Prev
           </button>
           <div className="text-center">
             <p className="text-xs font-black tracking-widest uppercase text-peak-accent">Weekly Report</p>
-            <p className="text-sm font-bold text-white">{weekRange}</p>
+            <p className="text-sm font-bold text-peak-primary">{weekRange}</p>
           </div>
           <button
             onClick={() => nextReport ? navigate(`/report/${nextReport.week_start_date}`) : navigate('/report')}
             disabled={!nextReport && isCurrentWeek}
-            className="text-xs text-slate-500 hover:text-white disabled:opacity-30 transition-colors"
+            className="text-xs text-peak-muted hover:text-peak-primary disabled:opacity-30 transition-colors"
           >
             Next →
           </button>
@@ -95,7 +95,7 @@ export default function WeeklyReport() {
         {/* No report yet */}
         {!report && isCurrentWeek && (
           <div className="bg-peak-surface border border-peak-border rounded-xl p-6 text-center space-y-3">
-            <p className="text-slate-400 text-sm">No report generated yet for this week.</p>
+            <p className="text-peak-muted text-sm">No report generated yet for this week.</p>
             <Button onClick={handleGenerate} size="lg" disabled={generating}>
               {generating ? 'Generating...' : 'Generate Report'}
             </Button>
@@ -104,7 +104,7 @@ export default function WeeklyReport() {
 
         {!report && !isCurrentWeek && (
           <div className="bg-peak-surface border border-peak-border rounded-xl p-6 text-center">
-            <p className="text-slate-500 text-sm">No report for this week.</p>
+            <p className="text-peak-muted text-sm">No report for this week.</p>
           </div>
         )}
 
@@ -114,27 +114,27 @@ export default function WeeklyReport() {
             {/* Stats summary */}
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-peak-surface border border-peak-border rounded-xl p-4 text-center">
-                <p className="text-2xl font-black text-white">{report.tasks_completed}<span className="text-slate-600 text-base">/{report.tasks_total}</span></p>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-slate-500 mt-1">Tasks</p>
+                <p className="text-2xl font-black text-peak-primary">{report.tasks_completed}<span className="text-peak-muted text-base">/{report.tasks_total}</span></p>
+                <p className="text-[10px] font-bold tracking-widest uppercase text-peak-muted mt-1">Tasks</p>
               </div>
               <div className="bg-peak-surface border border-peak-border rounded-xl p-4 text-center">
-                <p className="text-2xl font-black text-peak-accent">{report.xp_earned}</p>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-slate-500 mt-1">XP</p>
+                <p className="text-2xl font-black text-peak-xp">{report.xp_earned}</p>
+                <p className="text-[10px] font-bold tracking-widest uppercase text-peak-muted mt-1">XP</p>
               </div>
               <div className="bg-peak-surface border border-peak-border rounded-xl p-4 text-center">
-                <p className="text-2xl font-black text-white">{report.streak_held ? '✓' : '✗'}</p>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-slate-500 mt-1">Streak</p>
+                <p className="text-2xl font-black text-peak-primary">{report.streak_held ? '✓' : '✗'}</p>
+                <p className="text-[10px] font-bold tracking-widest uppercase text-peak-muted mt-1">Streak</p>
               </div>
             </div>
 
             {/* Arena breakdown */}
             <div className="bg-peak-surface border border-peak-border rounded-xl p-4">
-              <p className="text-[10px] font-black tracking-widest uppercase text-slate-500 mb-3">Arena Breakdown</p>
+              <p className="text-[10px] font-black tracking-widest uppercase text-peak-muted mb-3">Arena Breakdown</p>
               <div className="space-y-3">
                 {Object.entries(report.arena_breakdown || {}).map(([name, stats]) => (
                   <div key={name}>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm text-slate-300">{name}</span>
+                      <span className="text-sm text-peak-primary">{name}</span>
                       <span className="text-xs text-peak-accent font-bold">{stats.xp} XP · {stats.completed}/{stats.total}</span>
                     </div>
                     <ProgressBar value={stats.completed} max={Math.max(stats.total, 1)} />
@@ -147,7 +147,7 @@ export default function WeeklyReport() {
             {report.ai_summary && (
               <div className="bg-peak-accent-dim border border-peak-accent/30 rounded-xl p-5">
                 <p className="text-[10px] font-black tracking-widest uppercase text-peak-accent mb-2">AI Coach</p>
-                <p className="text-sm text-slate-300 leading-relaxed">{report.ai_summary}</p>
+                <p className="text-sm text-peak-primary leading-relaxed">{report.ai_summary}</p>
               </div>
             )}
 

@@ -49,16 +49,16 @@ export default function Login() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-black tracking-widest text-white uppercase">
+          <h1 className="text-3xl font-black tracking-widest text-peak-primary uppercase">
             PEAK <span className="text-peak-accent">MODE</span>
           </h1>
-          <p className="text-slate-500 text-sm mt-1 tracking-wide">Elite performance tracking</p>
+          <p className="text-peak-muted text-sm mt-1 tracking-wide">Elite performance tracking</p>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-xs font-bold tracking-widest text-slate-400 uppercase mb-1.5">
+            <label htmlFor="email" className="block text-xs font-bold tracking-widest text-peak-muted uppercase mb-1.5">
               Email
             </label>
             <input
@@ -68,13 +68,13 @@ export default function Login() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
-              className="w-full bg-peak-surface border border-peak-border rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-peak-accent transition-colors placeholder-slate-600"
+              className="w-full bg-peak-surface border border-peak-border rounded-lg px-4 py-3 text-peak-primary text-sm focus:outline-none focus:border-peak-accent transition-colors placeholder-slate-600"
               placeholder="you@example.com"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-xs font-bold tracking-widest text-slate-400 uppercase mb-1.5">
+            <label htmlFor="password" className="block text-xs font-bold tracking-widest text-peak-muted uppercase mb-1.5">
               Password
             </label>
             <input
@@ -85,7 +85,7 @@ export default function Login() {
               onChange={e => setPassword(e.target.value)}
               required
               minLength={mode === 'signup' ? 6 : undefined}
-              className="w-full bg-peak-surface border border-peak-border rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-peak-accent transition-colors placeholder-slate-600"
+              className="w-full bg-peak-surface border border-peak-border rounded-lg px-4 py-3 text-peak-primary text-sm focus:outline-none focus:border-peak-accent transition-colors placeholder-slate-600"
               placeholder="••••••••"
             />
           </div>
@@ -107,7 +107,7 @@ export default function Login() {
 
         <button
           onClick={() => { setMode(m => m === 'login' ? 'signup' : 'login'); setError(null) }}
-          className="w-full mt-4 text-slate-500 text-xs hover:text-slate-400 transition-colors"
+          className="w-full mt-4 text-peak-muted text-xs hover:text-peak-muted transition-colors"
         >
           {mode === 'login' ? "Don't have an account? Sign up" : 'Already have an account? Log in'}
         </button>

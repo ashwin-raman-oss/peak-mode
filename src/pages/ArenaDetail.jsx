@@ -49,7 +49,7 @@ export default function ArenaDetail() {
   if (!arena) {
     return (
       <div className="min-h-screen bg-peak-bg flex items-center justify-center">
-        <p className="text-slate-500">Arena not found.</p>
+        <p className="text-peak-muted">Arena not found.</p>
       </div>
     )
   }
@@ -117,14 +117,14 @@ export default function ArenaDetail() {
       <main className="max-w-2xl mx-auto px-4 py-5">
         {/* Arena header */}
         <div className="mb-6">
-          <button onClick={() => navigate('/')} className="text-slate-600 text-xs mb-3 hover:text-slate-400 transition-colors">
+          <button onClick={() => navigate('/')} className="text-peak-muted text-xs mb-3 hover:text-peak-text transition-colors">
             ← Dashboard
           </button>
           <div className="flex items-center gap-3 mb-3">
             <span className="text-3xl">{arena.emoji}</span>
             <div>
-              <h1 className="text-xl font-black tracking-wide text-white">{arena.name}</h1>
-              <p className="text-xs text-slate-500">{stats.completed} / {stats.total} tasks · {stats.xpEarned} XP this week</p>
+              <h1 className="text-xl font-black tracking-wide text-peak-primary">{arena.name}</h1>
+              <p className="text-xs text-peak-muted">{stats.completed} / {stats.total} tasks · {stats.xpEarned} XP this week</p>
             </div>
           </div>
           <ProgressBar value={stats.completed} max={Math.max(stats.total, 1)} />
@@ -139,7 +139,7 @@ export default function ArenaDetail() {
         {/* Recurring tasks */}
         {recurringTasks.length > 0 && (
           <section className="bg-peak-surface border border-peak-border rounded-xl p-4 mb-4">
-            <p className="text-[10px] font-black tracking-widest uppercase text-slate-500 mb-3">Recurring</p>
+            <p className="text-[10px] font-black tracking-widest uppercase text-peak-muted mb-3">Recurring</p>
             {recurringTasks.map(task => (
               <TaskRow
                 key={task.id}
@@ -156,11 +156,11 @@ export default function ArenaDetail() {
         {/* Misc tasks */}
         <section className="bg-peak-surface border border-peak-border rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-[10px] font-black tracking-widest uppercase text-slate-500">This Week</p>
+            <p className="text-[10px] font-black tracking-widest uppercase text-peak-muted">This Week</p>
             <Button size="sm" onClick={() => setShowAddModal(true)}>+ Add Task</Button>
           </div>
           {miscTasks.length === 0 && (
-            <p className="text-slate-600 text-xs py-2">No tasks added yet this week.</p>
+            <p className="text-peak-muted text-xs py-2">No tasks added yet this week.</p>
           )}
           {miscTasks.map(task => (
             <TaskRow
@@ -180,7 +180,7 @@ export default function ArenaDetail() {
         <Modal title="Add Task" onClose={() => setShowAddModal(false)}>
           <form onSubmit={handleAddTask} className="space-y-4">
             <div>
-              <label htmlFor="task-title" className="block text-xs font-bold tracking-widest text-slate-400 uppercase mb-1.5">Title</label>
+              <label htmlFor="task-title" className="block text-xs font-bold tracking-widest text-peak-muted uppercase mb-1.5">Title</label>
               <input
                 id="task-title"
                 type="text"
@@ -188,17 +188,17 @@ export default function ArenaDetail() {
                 onChange={e => setNewTitle(e.target.value)}
                 required
                 autoFocus
-                className="w-full bg-peak-bg border border-peak-border rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-peak-accent transition-colors"
+                className="w-full bg-peak-bg border border-peak-border rounded-lg px-3 py-2.5 text-peak-primary text-sm focus:outline-none focus:border-peak-accent transition-colors"
                 placeholder="Task title..."
               />
             </div>
             <div>
-              <label htmlFor="task-priority" className="block text-xs font-bold tracking-widest text-slate-400 uppercase mb-1.5">Priority</label>
+              <label htmlFor="task-priority" className="block text-xs font-bold tracking-widest text-peak-muted uppercase mb-1.5">Priority</label>
               <select
                 id="task-priority"
                 value={newPriority}
                 onChange={e => setNewPriority(e.target.value)}
-                className="w-full bg-peak-bg border border-peak-border rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-peak-accent transition-colors"
+                className="w-full bg-peak-bg border border-peak-border rounded-lg px-3 py-2.5 text-peak-primary text-sm focus:outline-none focus:border-peak-accent transition-colors"
               >
                 <option value="high">🔴 High</option>
                 <option value="medium">🟡 Medium</option>
@@ -230,7 +230,7 @@ export default function ArenaDetail() {
         >
           <div className="animate-level-up text-center">
             <p className="text-[10px] font-black tracking-widest text-peak-accent uppercase mb-1">Level Up</p>
-            <p className="text-5xl font-black text-white tracking-widest">{levelUpMsg}</p>
+            <p className="text-5xl font-black text-peak-primary tracking-widest">{levelUpMsg}</p>
           </div>
         </div>
       )}

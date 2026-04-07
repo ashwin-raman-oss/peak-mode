@@ -1,0 +1,90 @@
+<h2>How do you check off tasks?</h2>
+<p class="subtitle">The arena cards are on the dashboard — but where does the actual task list live, and how do you interact with it?</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="A" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0a0a0a;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:8px;min-height:200px;">
+      <!-- Dashboard with expandable arena -->
+      <div style="background:#111;border-radius:6px;padding:8px 12px;border:1px solid #38bdf8;cursor:pointer;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;">💼 Career</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:60px;height:3px;background:#222;border-radius:2px;overflow:hidden;"><div style="width:60%;height:100%;background:#38bdf8;"></div></div>
+            <span style="color:#38bdf8;font-size:10px;">▲</span>
+          </div>
+        </div>
+        <!-- Expanded task list inline -->
+        <div style="margin-top:8px;display:flex;flex-direction:column;gap:5px;padding-left:4px;border-left:2px solid #1e3a5f;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="width:14px;height:14px;border-radius:50%;background:#38bdf8;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="font-size:8px;color:#0a0a0a;">✓</span></div>
+            <span style="color:#555;font-size:9px;text-decoration:line-through;">Reach out to 3 hiring managers</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="width:14px;height:14px;border-radius:50%;border:1px solid #333;flex-shrink:0;"></div>
+            <span style="color:#ccc;font-size:9px;">Apply to 3 jobs</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="width:14px;height:14px;border-radius:50%;border:1px solid #333;flex-shrink:0;"></div>
+            <span style="color:#ccc;font-size:9px;">Comment on 1 LinkedIn post</span>
+          </div>
+        </div>
+      </div>
+      <div style="background:#111;border-radius:6px;padding:8px 12px;border:1px solid #1e293b;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;">💪 Health</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:60px;height:3px;background:#222;border-radius:2px;overflow:hidden;"><div style="width:40%;height:100%;background:#38bdf8;"></div></div>
+            <span style="color:#555;font-size:10px;">▼</span>
+          </div>
+        </div>
+      </div>
+      <div style="color:#555;font-size:9px;text-align:center;margin-top:2px;">Click arena card to expand / collapse task list</div>
+    </div>
+    <div class="card-body">
+      <h3>A — Expand In Place</h3>
+      <p>Tap an arena card to expand it inline on the dashboard, revealing its tasks. Everything stays on one screen. No navigation needed.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="B" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0a0a0a;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:8px;min-height:200px;">
+      <!-- Dashboard -->
+      <div style="background:#111;border-radius:6px;padding:8px 12px;border:1px solid #1e293b;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:12px;">💼 Career</span>
+        <span style="color:#38bdf8;font-size:9px;font-weight:700;">→ VIEW</span>
+      </div>
+      <!-- Arrow indicating navigation -->
+      <div style="text-align:center;color:#555;font-size:11px;">tap → navigates to Arena page</div>
+      <!-- Arena detail page preview -->
+      <div style="background:#111;border-radius:6px;padding:10px 12px;border:1px solid #38bdf8;display:flex;flex-direction:column;gap:5px;">
+        <div style="color:#38bdf8;font-size:9px;font-weight:700;letter-spacing:0.1em;margin-bottom:4px;">💼 CAREER ARENA</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div style="width:14px;height:14px;border-radius:50%;background:#38bdf8;flex-shrink:0;display:flex;align-items:center;justify-content:center;"><span style="font-size:8px;color:#0a0a0a;">✓</span></div>
+          <span style="color:#555;font-size:9px;text-decoration:line-through;">Reach out to 3 hiring managers</span>
+          <span style="margin-left:auto;color:#38bdf8;font-size:9px;">+100</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div style="width:14px;height:14px;border-radius:50%;border:1px solid #333;flex-shrink:0;"></div>
+          <span style="color:#ccc;font-size:9px;">Apply to 3 jobs</span>
+          <span style="color:#ef4444;font-size:8px;margin-left:auto;">🔴 HIGH</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div style="width:14px;height:14px;border-radius:50%;border:1px solid #333;flex-shrink:0;"></div>
+          <span style="color:#ccc;font-size:9px;">Comment on LinkedIn</span>
+          <span style="color:#ef4444;font-size:8px;margin-left:auto;">🔴 HIGH</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div style="width:14px;height:14px;border-radius:50%;border:1px solid #333;flex-shrink:0;"></div>
+          <span style="color:#ccc;font-size:9px;">List dream companies</span>
+          <span style="color:#eab308;font-size:8px;margin-left:auto;">🟡 MED</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Arena Detail Page</h3>
+      <p>Tapping an arena card navigates to a dedicated page for that arena. Full task list with priority badges, add misc task button. Back button returns to dashboard.</p>
+    </div>
+  </div>
+
+</div>

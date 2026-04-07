@@ -1,0 +1,75 @@
+<h2>Which accent color for Peak Mode?</h2>
+<p class="subtitle">This sets the entire visual tone — affects XP bars, task checkmarks, CTAs, level badges, and hover states</p>
+
+<div class="cards">
+  <div class="card" data-choice="lime" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0a0a0a;padding:24px;border-radius:8px;display:flex;flex-direction:column;gap:12px;">
+      <div style="height:6px;background:#a3e635;border-radius:3px;width:70%;"></div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div style="width:20px;height:20px;border-radius:50%;background:#a3e635;"></div>
+        <div style="height:10px;background:#222;border-radius:4px;flex:1;"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div style="width:20px;height:20px;border-radius:50%;border:2px solid #333;"></div>
+        <div style="height:10px;background:#222;border-radius:4px;flex:1;"></div>
+      </div>
+      <div style="padding:8px 16px;background:#a3e635;color:#0a0a0a;border-radius:6px;font-weight:700;font-size:13px;width:fit-content;letter-spacing:0.05em;">COMPLETE TASK +100 XP</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="color:#a3e635;font-size:12px;font-weight:700;letter-spacing:0.1em;">LVL 4 · 340 / 1000 XP</span>
+        <span style="background:#1a2e05;color:#a3e635;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;">🔥 7 DAY STREAK</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Lime Green <span style="color:#a3e635;">#a3e635</span></h3>
+      <p>High energy, gym-meets-tech. Feels like Nike Training. Punchy and assertive — great for gamification. Can read as "hacker" / neon aesthetic on dark.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="blue" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0a0a0a;padding:24px;border-radius:8px;display:flex;flex-direction:column;gap:12px;">
+      <div style="height:6px;background:#38bdf8;border-radius:3px;width:70%;"></div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div style="width:20px;height:20px;border-radius:50%;background:#38bdf8;"></div>
+        <div style="height:10px;background:#222;border-radius:4px;flex:1;"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div style="width:20px;height:20px;border-radius:50%;border:2px solid #333;"></div>
+        <div style="height:10px;background:#222;border-radius:4px;flex:1;"></div>
+      </div>
+      <div style="padding:8px 16px;background:#38bdf8;color:#0a0a0a;border-radius:6px;font-weight:700;font-size:13px;width:fit-content;letter-spacing:0.05em;">COMPLETE TASK +100 XP</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="color:#38bdf8;font-size:12px;font-weight:700;letter-spacing:0.1em;">LVL 4 · 340 / 1000 XP</span>
+        <span style="background:#0c1a2e;color:#38bdf8;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;">🔥 7 DAY STREAK</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Electric Blue <span style="color:#38bdf8;">#38bdf8</span></h3>
+      <p>Sleek, premium, clinical precision. Feels like Whoop or Levels Health. Cooler and more sophisticated — great for analytics/health data vibe.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="both" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0a0a0a;padding:24px;border-radius:8px;display:flex;flex-direction:column;gap:12px;">
+      <div style="height:6px;background:linear-gradient(90deg,#a3e635,#38bdf8);border-radius:3px;width:70%;"></div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div style="width:20px;height:20px;border-radius:50%;background:#a3e635;"></div>
+        <div style="height:10px;background:#222;border-radius:4px;flex:1;"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div style="width:20px;height:20px;border-radius:50%;background:#38bdf8;"></div>
+        <div style="height:10px;background:#222;border-radius:4px;flex:1;"></div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <div style="padding:8px 12px;background:#a3e635;color:#0a0a0a;border-radius:6px;font-weight:700;font-size:11px;">💼 CAREER</div>
+        <div style="padding:8px 12px;background:#38bdf8;color:#0a0a0a;border-radius:6px;font-weight:700;font-size:11px;">💪 HEALTH</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="background:linear-gradient(90deg,#a3e635,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:12px;font-weight:700;letter-spacing:0.1em;">LVL 4 · 340 / 1000 XP</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Both — Arena-Based</h3>
+      <p>Each arena gets its own color: lime for Career + Misc, blue for Health + Learning. More visual richness, slightly more complex to implement, but premium feel.</p>
+    </div>
+  </div>
+</div>

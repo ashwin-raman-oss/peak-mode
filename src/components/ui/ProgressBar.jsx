@@ -6,7 +6,7 @@ export default function ProgressBar({ value, max, className = '' }) {
       aria-valuenow={pct}
       aria-valuemin={0}
       aria-valuemax={100}
-      className={`h-1.5 bg-peak-border rounded-full overflow-hidden ${className}`}
+      className={`h-px bg-peak-border rounded-full overflow-hidden ${className}`}
     >
       <div
         className="h-full bg-peak-accent rounded-full transition-all duration-500"

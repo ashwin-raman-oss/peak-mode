@@ -81,11 +81,11 @@ export default function Dashboard() {
       <main className="max-w-2xl mx-auto px-4 py-5 space-y-4">
         {/* Week strip */}
         <div className="flex items-center justify-between">
-          <p className="text-xs font-bold text-slate-500 tracking-wider uppercase">
+          <p className="text-[10px] font-bold text-peak-muted tracking-widest uppercase">
             Week of {weekRange}
           </p>
-          <span className="text-xs font-black text-peak-accent">
-            {weekXp} XP this week
+          <span className="text-[10px] font-bold text-peak-xp tabular-nums">
+            {weekXp} XP
           </span>
         </div>
 

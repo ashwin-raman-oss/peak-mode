@@ -99,7 +99,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-peak-accent text-peak-bg font-black text-sm tracking-widest uppercase py-3.5 rounded-lg hover:bg-sky-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-peak-accent text-peak-bg font-black text-sm tracking-widest uppercase py-3.5 rounded-lg hover:bg-peak-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? '...' : mode === 'login' ? 'ENTER PEAK MODE' : 'CREATE ACCOUNT'}
           </button>

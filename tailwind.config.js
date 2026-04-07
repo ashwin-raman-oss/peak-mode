@@ -5,14 +5,16 @@ export default {
     extend: {
       colors: {
         peak: {
-          bg: '#0a0a0a',
-          accent: '#38bdf8',
-          high: '#ef4444',
-          medium: '#eab308',
-          optional: '#22c55e',
-          surface: '#111111',
-          border: '#1e293b',
-          'accent-dim': '#0c1a2e',
+          bg:         '#080808',
+          surface:    '#111111',
+          elevated:   '#1A1A1A',
+          border:     '#222222',
+          muted:      '#555555',
+          text:       '#999999',
+          primary:    '#F0EDE8',
+          accent:     '#E8E0D0',   // warm off-white — primary accent
+          xp:         '#C9A84C',   // muted gold — XP/level only
+          'accent-dim': '#1C1A17',
         },
       },
       animation: {

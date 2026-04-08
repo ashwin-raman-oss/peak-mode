@@ -17,7 +17,8 @@ export default function ArenaDetail() {
   const { user } = useAuth()
   const { profile, loading: profileLoading, addXp } = useProfile(user?.id)
   const {
-    tasks, arenas, loading, isTaskDone, getCompletionCount, completeTask, addMiscTask, getArenaStats,
+    tasks, arenas, loading, isTaskDone, getCompletionCount, completeTask, addMiscTask,
+    updateTask, deleteTask, getArenaStats,
   } = useTasks(user?.id, slug)
 
   const [toast, setToast] = useState(null)
@@ -28,6 +29,12 @@ export default function ArenaDetail() {
   const [addingTask, setAddingTask] = useState(false)
   const [levelUpMsg, setLevelUpMsg] = useState(null)
   const [actionError, setActionError] = useState(null)
+  const [taskToEdit, setTaskToEdit] = useState(null)
+  const [editTitle, setEditTitle] = useState('')
+  const [editPriority, setEditPriority] = useState('medium')
+  const [saving, setSaving] = useState(false)
+  const [taskToDelete, setTaskToDelete] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   // Fallback: clear level-up overlay if animationend never fires
   useEffect(() => {
@@ -110,6 +117,44 @@ export default function ArenaDetail() {
     }
   }
 
+  function handleEditOpen(task) {
+    setTaskToEdit(task)
+    setEditTitle(task.title)
+    setEditPriority(task.priority_override ?? task.priority)
+  }
+
+  async function handleEditSave(e) {
+    e.preventDefault()
+    if (!editTitle.trim()) return
+    setSaving(true)
+    try {
+      await updateTask(taskToEdit.id, { title: editTitle.trim(), priority_override: editPriority })
+      setTaskToEdit(null)
+    } catch (err) {
+      console.error('Failed to update task:', err)
+      setActionError('Could not update task. Try again.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function handleDeleteOpen(task) {
+    setTaskToDelete(task)
+  }
+
+  async function handleDeleteConfirm() {
+    setDeleting(true)
+    try {
+      await deleteTask(taskToDelete.id)
+      setTaskToDelete(null)
+    } catch (err) {
+      console.error('Failed to delete task:', err)
+      setActionError('Could not delete task. Try again.')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-peak-bg">
       <Header profile={profile} />
@@ -148,6 +193,8 @@ export default function ArenaDetail() {
                 isDone={isTaskDone(task)}
                 onComplete={handleComplete}
                 completing={completing === task.id}
+                onEdit={handleEditOpen}
+                onDelete={handleDeleteOpen}
               />
             ))}
           </section>
@@ -170,6 +217,8 @@ export default function ArenaDetail() {
               isDone={isTaskDone(task)}
               onComplete={handleComplete}
               completing={completing === task.id}
+              onEdit={handleEditOpen}
+              onDelete={handleDeleteOpen}
             />
           ))}
         </section>
@@ -214,6 +263,73 @@ export default function ArenaDetail() {
               </Button>
             </div>
           </form>
+        </Modal>
+      )}
+
+      {/* Edit task modal */}
+      {taskToEdit && (
+        <Modal title="Edit Task" onClose={() => setTaskToEdit(null)}>
+          {taskToEdit.task_type === 'recurring' && (
+            <p className="text-xs bg-[#1E1A10] border border-[#3A2E10] text-[#8A7040] rounded-lg px-3 py-2 mb-4">
+              This is a recurring task — changes apply permanently
+            </p>
+          )}
+          <form onSubmit={handleEditSave} className="space-y-4">
+            <div>
+              <label htmlFor="edit-title" className="block text-xs font-bold tracking-widest text-peak-muted uppercase mb-1.5">Title</label>
+              <input
+                id="edit-title"
+                type="text"
+                value={editTitle}
+                onChange={e => setEditTitle(e.target.value)}
+                required
+                autoFocus
+                className="w-full bg-peak-bg border border-peak-border rounded-lg px-3 py-2.5 text-peak-primary text-sm focus:outline-none focus:border-peak-accent transition-colors"
+              />
+            </div>
+            <div>
+              <label htmlFor="edit-priority" className="block text-xs font-bold tracking-widest text-peak-muted uppercase mb-1.5">Priority</label>
+              <select
+                id="edit-priority"
+                value={editPriority}
+                onChange={e => setEditPriority(e.target.value)}
+                className="w-full bg-peak-bg border border-peak-border rounded-lg px-3 py-2.5 text-peak-primary text-sm focus:outline-none focus:border-peak-accent transition-colors"
+              >
+                <option value="high">🔴 High</option>
+                <option value="medium">🟡 Medium</option>
+                <option value="optional">🟢 Optional</option>
+              </select>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <Button type="submit" size="lg" className="flex-1" disabled={saving}>
+                {saving ? 'Saving...' : 'Save Changes'}
+              </Button>
+              <Button type="button" variant="ghost" size="lg" onClick={() => setTaskToEdit(null)}>
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* Delete confirm modal */}
+      {taskToDelete && (
+        <Modal title="Delete Task" onClose={() => setTaskToDelete(null)}>
+          <p className="text-sm text-peak-primary mb-1 font-medium">{taskToDelete.title}</p>
+          <p className="text-xs text-peak-muted mb-5">Delete this task? This will also remove all completion history.</p>
+          <div className="flex gap-2">
+            <Button
+              size="lg"
+              className="flex-1 !bg-red-950 !border-red-900 hover:!bg-red-900 !text-red-300"
+              onClick={handleDeleteConfirm}
+              disabled={deleting}
+            >
+              {deleting ? 'Deleting...' : 'Delete'}
+            </Button>
+            <Button type="button" variant="ghost" size="lg" onClick={() => setTaskToDelete(null)}>
+              Cancel
+            </Button>
+          </div>
         </Modal>
       )}
 

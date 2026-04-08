@@ -1,12 +1,32 @@
 import Badge from './ui/Badge'
 
-export default function TaskRow({ task, completionCount, isDone, onComplete, completing }) {
+function PencilIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </svg>
+  )
+}
+
+function TrashIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+      <path d="M10 11v6M14 11v6" />
+      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+    </svg>
+  )
+}
+
+export default function TaskRow({ task, completionCount, isDone, onComplete, completing, onEdit, onDelete }) {
   const effectivePriority = task.priority_override ?? task.priority
   const isCounter = task.weekly_target > 1
   const canComplete = !isDone && !completing
 
   return (
-    <div className={`flex items-center gap-3 py-2.5 px-1 border-b border-peak-border/50 last:border-0 ${isDone ? 'opacity-50' : ''}`}>
+    <div className={`group flex items-center gap-3 py-2.5 px-1 border-b border-peak-border/50 last:border-0 ${isDone ? 'opacity-50' : ''}`}>
       {/* Checkbox or counter */}
       {isCounter ? (
         <button
@@ -44,6 +64,30 @@ export default function TaskRow({ task, completionCount, isDone, onComplete, com
 
       {/* Priority badge */}
       <Badge priority={effectivePriority} />
+
+      {/* Action buttons — always visible on mobile, hover-only on desktop */}
+      {(onEdit || onDelete) && (
+        <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+          {onEdit && (
+            <button
+              onClick={() => onEdit(task)}
+              aria-label={`Edit: ${task.title}`}
+              className="p-1.5 text-peak-muted hover:text-peak-primary transition-colors rounded"
+            >
+              <PencilIcon />
+            </button>
+          )}
+          {onDelete && task.task_type !== 'recurring' && (
+            <button
+              onClick={() => onDelete(task)}
+              aria-label={`Delete: ${task.title}`}
+              className="p-1.5 text-peak-muted hover:text-red-400 transition-colors rounded"
+            >
+              <TrashIcon />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 }

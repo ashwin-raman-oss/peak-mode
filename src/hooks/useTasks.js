@@ -135,6 +135,61 @@ export function useTasks(userId, arenaSlug = null) {
     return data
   }
 
+  async function updateTask(taskId, { title, priority_override }) {
+    if (!userId) throw new Error('No authenticated user')
+    const updates = {}
+    if (title !== undefined) updates.title = title
+    if (priority_override !== undefined) updates.priority_override = priority_override
+
+    // Optimistic update
+    setTasks(prev => prev.map(t =>
+      t.id === taskId ? { ...t, ...updates } : t
+    ))
+
+    const { data, error: updateErr } = await supabase
+      .from('tasks')
+      .update(updates)
+      .eq('id', taskId)
+      .select('*, arenas(id, name, emoji, slug, default_priority)')
+      .single()
+
+    if (updateErr) {
+      await fetchData()
+      throw updateErr
+    }
+
+    setTasks(prev => prev.map(t => t.id === taskId ? data : t))
+    return data
+  }
+
+  async function deleteTask(taskId) {
+    if (!userId) throw new Error('No authenticated user')
+
+    // Optimistic remove
+    setTasks(prev => prev.filter(t => t.id !== taskId))
+    setCompletions(prev => prev.filter(c => c.task_id !== taskId))
+
+    const { error: compErr } = await supabase
+      .from('task_completions')
+      .delete()
+      .eq('task_id', taskId)
+
+    if (compErr) {
+      await fetchData()
+      throw compErr
+    }
+
+    const { error: taskErr } = await supabase
+      .from('tasks')
+      .delete()
+      .eq('id', taskId)
+
+    if (taskErr) {
+      await fetchData()
+      throw taskErr
+    }
+  }
+
   // Week-level stats per arena
   function getArenaStats(arenaSlugFilter) {
     const arenaTasks = tasks.filter(t => t.arenas?.slug === arenaSlugFilter)
@@ -179,6 +234,8 @@ export function useTasks(userId, arenaSlug = null) {
     getCompletionCount,
     completeTask,
     addMiscTask,
+    updateTask,
+    deleteTask,
     getArenaStats,
     getTodaysFocusTasks,
     getWeekXp,

@@ -141,6 +141,8 @@ export function useTasks(userId, arenaSlug = null) {
     if (title !== undefined) updates.title = title
     if (priority_override !== undefined) updates.priority_override = priority_override
 
+    if (Object.keys(updates).length === 0) return
+
     // Optimistic update
     setTasks(prev => prev.map(t =>
       t.id === taskId ? { ...t, ...updates } : t
@@ -150,6 +152,7 @@ export function useTasks(userId, arenaSlug = null) {
       .from('tasks')
       .update(updates)
       .eq('id', taskId)
+      .eq('user_id', userId)
       .select('*, arenas(id, name, emoji, slug, default_priority)')
       .single()
 
@@ -173,6 +176,7 @@ export function useTasks(userId, arenaSlug = null) {
       .from('task_completions')
       .delete()
       .eq('task_id', taskId)
+      .eq('user_id', userId)
 
     if (compErr) {
       await fetchData()
@@ -183,6 +187,7 @@ export function useTasks(userId, arenaSlug = null) {
       .from('tasks')
       .delete()
       .eq('id', taskId)
+      .eq('user_id', userId)
 
     if (taskErr) {
       await fetchData()

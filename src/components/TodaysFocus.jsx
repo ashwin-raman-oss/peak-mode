@@ -4,19 +4,39 @@ const PRIORITY_DOT = {
   optional: 'bg-peak-muted',
 }
 
-export default function TodaysFocus({ tasks = [], onComplete, completing }) {
+const cardClass = 'rounded-xl px-5 py-4'
+const cardStyle = { borderLeft: '3px solid #2D5BE3', backgroundColor: '#F0F4FF' }
+const labelStyle = { color: '#2D5BE3' }
+
+export default function TodaysFocus({ tasks = [], onComplete, completing, weekSummary }) {
   const today = new Date()
   const dayOfWeek = today.getUTCDay()
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
 
-  const cardClass = 'rounded-xl px-5 py-4 border-l-[3px]'
-  const cardStyle = { borderLeftColor: '#2D5BE3', backgroundColor: '#F0F4FF', border: 'none', borderLeft: '3px solid #2D5BE3' }
-
   if (isWeekend) {
     return (
       <section className={cardClass} style={cardStyle}>
-        <p className="text-[10px] font-bold tracking-widest uppercase mb-1" style={{ color: '#2D5BE3' }}>Today's Focus</p>
-        <p className="text-peak-text text-sm">Rest day. Back Monday.</p>
+        <p className="text-[10px] font-bold tracking-widest uppercase mb-3" style={labelStyle}>Week in Review</p>
+        {weekSummary ? (
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <p className="text-[9px] font-bold tracking-widest uppercase text-peak-muted mb-0.5">Tasks</p>
+              <p className="text-lg font-extrabold text-peak-primary tabular-nums leading-tight">
+                {weekSummary.completed}<span className="text-peak-muted font-normal text-xs">/{weekSummary.total}</span>
+              </p>
+            </div>
+            <div>
+              <p className="text-[9px] font-bold tracking-widest uppercase text-peak-muted mb-0.5">XP Earned</p>
+              <p className="text-lg font-extrabold text-peak-xp tabular-nums leading-tight">{weekSummary.weekXp}</p>
+            </div>
+            <div>
+              <p className="text-[9px] font-bold tracking-widest uppercase text-peak-muted mb-0.5">Best Arena</p>
+              <p className="text-sm font-bold text-peak-primary leading-tight truncate">{weekSummary.bestArena}</p>
+            </div>
+          </div>
+        ) : (
+          <p className="text-peak-text text-sm">Rest day. Back Monday.</p>
+        )}
       </section>
     )
   }
@@ -24,7 +44,7 @@ export default function TodaysFocus({ tasks = [], onComplete, completing }) {
   if (tasks.length === 0) {
     return (
       <section className={cardClass} style={cardStyle}>
-        <p className="text-[10px] font-bold tracking-widest uppercase mb-1" style={{ color: '#2D5BE3' }}>Today's Focus</p>
+        <p className="text-[10px] font-bold tracking-widest uppercase mb-1" style={labelStyle}>Today's Focus</p>
         <p className="text-peak-text text-sm">All priority tasks done.</p>
       </section>
     )
@@ -32,7 +52,7 @@ export default function TodaysFocus({ tasks = [], onComplete, completing }) {
 
   return (
     <section className={cardClass} style={cardStyle}>
-      <p className="text-[10px] font-bold tracking-widest uppercase mb-3" style={{ color: '#2D5BE3' }}>Today's Focus</p>
+      <p className="text-[10px] font-bold tracking-widest uppercase mb-3" style={labelStyle}>Today's Focus</p>
       <div className="space-y-0">
         {tasks.map(task => {
           const priority = task.priority_override ?? task.priority

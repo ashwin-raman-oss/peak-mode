@@ -9,11 +9,14 @@ const ARENA_CONFIG = {
   misc:     { icon: 'misc',     accentColor: '#D97706' },
 }
 
-export default function ArenaCard({ arena, stats }) {
+export default function ArenaCard({ arena, stats, tasks = [], isTaskDone }) {
   const navigate = useNavigate()
   const { completed, total, xpEarned } = stats
   const pct = total > 0 ? Math.round((completed / total) * 100) : 0
   const config = ARENA_CONFIG[arena.slug] ?? ARENA_CONFIG.misc
+
+  const nextTask = tasks.find(t => !isTaskDone?.(t))
+  const allDone = total > 0 && completed >= total
 
   return (
     <button
@@ -39,7 +42,17 @@ export default function ArenaCard({ arena, stats }) {
           <span className="text-peak-muted font-normal">/{total}</span>
         </span>
       </div>
-      <ProgressBar value={completed} max={Math.max(total, 1)} className="mb-3" />
+      <ProgressBar value={completed} max={Math.max(total, 1)} className="mb-2.5" />
+
+      {/* Next task preview */}
+      <div className="mb-3 min-h-[16px]">
+        {allDone ? (
+          <p className="text-xs font-medium text-peak-success">✓ All complete</p>
+        ) : nextTask ? (
+          <p className="text-xs text-peak-muted italic truncate">Next: {nextTask.title}</p>
+        ) : null}
+      </div>
+
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-semibold text-peak-xp tabular-nums">{xpEarned} XP this week</span>
         <span className="text-[11px] font-semibold text-peak-muted tabular-nums">{pct}% done</span>

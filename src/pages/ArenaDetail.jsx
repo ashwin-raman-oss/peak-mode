@@ -159,7 +159,7 @@ export default function ArenaDetail() {
     <div className="min-h-screen bg-peak-bg">
       <Header profile={profile} />
 
-      <main className="max-w-2xl mx-auto px-4 py-5">
+      <main className="max-w-3xl mx-auto px-6 py-5">
         {/* Arena header */}
         <div className="mb-6">
           <button onClick={() => navigate('/')} className="text-peak-muted text-xs mb-3 hover:text-peak-text transition-colors">
@@ -249,9 +249,9 @@ export default function ArenaDetail() {
                 onChange={e => setNewPriority(e.target.value)}
                 className="w-full bg-peak-bg border border-peak-border rounded-lg px-3 py-2.5 text-peak-primary text-sm focus:outline-none focus:border-peak-accent transition-colors"
               >
-                <option value="high">🔴 High</option>
-                <option value="medium">🟡 Medium</option>
-                <option value="optional">🟢 Optional</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="optional">Optional</option>
               </select>
             </div>
             <div className="flex gap-2 pt-1">
@@ -295,9 +295,9 @@ export default function ArenaDetail() {
                 onChange={e => setEditPriority(e.target.value)}
                 className="w-full bg-peak-bg border border-peak-border rounded-lg px-3 py-2.5 text-peak-primary text-sm focus:outline-none focus:border-peak-accent transition-colors"
               >
-                <option value="high">🔴 High</option>
-                <option value="medium">🟡 Medium</option>
-                <option value="optional">🟢 Optional</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="optional">Optional</option>
               </select>
             </div>
             <div className="flex gap-2 pt-1">

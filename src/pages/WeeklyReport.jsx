@@ -63,7 +63,7 @@ export default function WeeklyReport() {
     <div className="min-h-screen bg-peak-bg">
       <Header profile={profile} />
 
-      <main className="max-w-2xl mx-auto px-4 py-5 space-y-5">
+      <main className="max-w-3xl mx-auto px-6 py-5 space-y-5">
         {/* Week navigation */}
         <div className="flex items-center justify-between">
           <button

@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { getXpInLevel } from '../lib/xp'
+import Icon from './ui/Icon'
 
 export default function Header({ profile }) {
   const navigate = useNavigate()
@@ -19,32 +20,37 @@ export default function Header({ profile }) {
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-peak-border shadow-sm">
-      <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <div className="max-w-3xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
         {/* Logo */}
-        <Link to="/" className="text-sm font-black tracking-tight text-peak-accent uppercase shrink-0">
+        <Link
+          to="/"
+          className="text-sm font-extrabold text-peak-primary uppercase shrink-0"
+          style={{ letterSpacing: '-0.02em', fontWeight: 800 }}
+        >
           PEAK MODE
         </Link>
 
-        {/* Level + streak */}
-        <div className="flex items-center gap-3 shrink-0">
+        {/* Right: level, streak, nav */}
+        <div className="flex items-center gap-4 shrink-0">
           {profile && (
-            <span className="bg-peak-accent text-white text-[10px] font-bold tracking-wider px-2.5 py-0.5 rounded-full">
+            <span className="text-[11px] font-bold tracking-wide text-peak-accent border border-peak-accent rounded-full px-2.5 py-0.5">
               LVL {profile.level}
             </span>
           )}
           {profile && profile.current_streak > 0 && (
-            <span className="text-peak-primary text-[10px] font-medium tracking-wide">
-              🔥 {profile.current_streak} day streak
+            <span className="flex items-center gap-1 text-[11px] font-semibold text-peak-primary">
+              <Icon name="streak" className="w-3.5 h-3.5 text-peak-xp" />
+              {profile.current_streak}d
             </span>
           )}
-        </div>
-
-        {/* Nav */}
-        <div className="flex items-center gap-3 shrink-0">
-          <Link to="/report" className="text-peak-text hover:text-peak-accent text-xs transition-colors tracking-wide">
+          <Link to="/report" className="text-peak-text hover:text-peak-accent text-xs font-medium transition-colors">
             Report
           </Link>
-          <button onClick={handleLogout} aria-label="Log out" className="text-peak-muted hover:text-peak-text text-xs transition-colors tracking-wide">
+          <button
+            onClick={handleLogout}
+            aria-label="Log out"
+            className="text-peak-muted hover:text-peak-text text-xs font-medium transition-colors"
+          >
             Sign out
           </button>
         </div>

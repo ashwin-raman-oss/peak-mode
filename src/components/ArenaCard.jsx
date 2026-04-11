@@ -19,7 +19,7 @@ export default function ArenaCard({ arena, stats }) {
     <button
       onClick={() => navigate(`/arena/${arena.slug}`)}
       aria-label={`${arena.name} — ${completed} of ${total} tasks complete, ${xpEarned} XP this week`}
-      className="bg-peak-surface border border-peak-border rounded-xl p-5 text-left w-full group transition-all duration-200 hover:-translate-y-px border-l-[3px]"
+      className="bg-peak-surface border border-peak-border rounded-xl p-5 text-left w-full group transition-all duration-200 hover:-translate-y-px border-l-4"
       style={{
         borderLeftColor: config.accentColor,
         boxShadow: '0 2px 8px rgba(0,0,0,0.06)',

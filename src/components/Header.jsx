@@ -18,7 +18,7 @@ export default function Header({ profile }) {
   const xpPct = Math.min(100, Math.round((xpInLevel / 1000) * 100))
 
   return (
-    <header className="sticky top-0 z-40 bg-peak-bg/98 backdrop-blur border-b border-peak-border">
+    <header className="sticky top-0 z-40 bg-white border-b border-peak-border shadow-sm">
       <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
         {/* Logo */}
         <Link to="/" className="text-sm font-black tracking-tight text-peak-accent uppercase shrink-0">
@@ -28,20 +28,20 @@ export default function Header({ profile }) {
         {/* Level + streak */}
         <div className="flex items-center gap-3 shrink-0">
           {profile && (
-            <span className="text-peak-xp text-xs font-bold tracking-wider">
+            <span className="bg-peak-accent text-white text-[10px] font-bold tracking-wider px-2.5 py-0.5 rounded-full">
               LVL {profile.level}
             </span>
           )}
           {profile && profile.current_streak > 0 && (
-            <span className="text-peak-muted text-[10px] tracking-wider">
-              {profile.current_streak} day streak
+            <span className="text-peak-primary text-[10px] font-medium tracking-wide">
+              🔥 {profile.current_streak} day streak
             </span>
           )}
         </div>
 
         {/* Nav */}
         <div className="flex items-center gap-3 shrink-0">
-          <Link to="/report" className="text-peak-muted hover:text-peak-text text-xs transition-colors tracking-wide">
+          <Link to="/report" className="text-peak-text hover:text-peak-accent text-xs transition-colors tracking-wide">
             Report
           </Link>
           <button onClick={handleLogout} aria-label="Log out" className="text-peak-muted hover:text-peak-text text-xs transition-colors tracking-wide">
@@ -50,11 +50,11 @@ export default function Header({ profile }) {
         </div>
       </div>
 
-      {/* XP progress line — ultra-thin, sits flush under the header bar */}
+      {/* XP progress line */}
       {profile && (
-        <div className="h-px bg-peak-border">
+        <div className="h-[2px] bg-peak-border">
           <div
-            className="h-full bg-peak-accent/40 transition-all duration-700"
+            className="h-full bg-peak-accent transition-all duration-700"
             style={{ width: `${xpPct}%` }}
           />
         </div>

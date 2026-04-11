@@ -4,8 +4,8 @@ export default function FormDipBanner({ count }) {
   if (hour < 18) return null
 
   return (
-    <div className="animate-form-dip bg-[#1E1A10] border border-[#3A2E10] text-[#8A7040] text-xs font-medium px-4 py-2.5 rounded-lg flex items-center gap-2">
-      <span aria-hidden="true" className="text-[#C9A84C]">—</span>
+    <div className="animate-form-dip border-l-4 bg-[#FFFBEB] border border-[#FDE68A] text-[#92400E] text-xs font-medium px-4 py-2.5 rounded-lg flex items-center gap-2" style={{ borderLeftColor: '#D97706' }}>
+      <span aria-hidden="true">⚠️</span>
       <span>{count} high-priority {count === 1 ? 'task' : 'tasks'} remaining today</span>
     </div>
   )

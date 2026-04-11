@@ -176,7 +176,7 @@ export default function ArenaDetail() {
         </div>
 
         {actionError && (
-          <p role="alert" className="text-red-400 text-xs font-medium bg-red-950/40 border border-red-900/50 rounded-lg px-3 py-2 mb-4">
+          <p role="alert" className="text-[#DC2626] text-xs font-medium bg-[#FEF2F2] border border-[#FCA5A5] rounded-lg px-3 py-2 mb-4">
             {actionError}
           </p>
         )}
@@ -320,7 +320,7 @@ export default function ArenaDetail() {
           <div className="flex gap-2">
             <Button
               size="lg"
-              className="flex-1 !bg-red-950 !border-red-900 hover:!bg-red-900 !text-red-300"
+              className="flex-1 !bg-[#FEF2F2] !border-[#FCA5A5] hover:!bg-[#FEE2E2] !text-[#DC2626]"
               onClick={handleDeleteConfirm}
               disabled={deleting}
             >

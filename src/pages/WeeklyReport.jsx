@@ -87,7 +87,7 @@ export default function WeeklyReport() {
         </div>
 
         {generateError && (
-          <p role="alert" className="text-red-400 text-xs font-medium bg-red-950/40 border border-red-900/50 rounded-lg px-3 py-2">
+          <p role="alert" className="text-[#DC2626] text-xs font-medium bg-[#FEF2F2] border border-[#FCA5A5] rounded-lg px-3 py-2">
             {generateError}
           </p>
         )}
@@ -145,7 +145,7 @@ export default function WeeklyReport() {
 
             {/* AI Summary */}
             {report.ai_summary && (
-              <div className="bg-peak-accent-dim border border-peak-accent/30 rounded-xl p-5">
+              <div className="bg-peak-accent-light border border-peak-accent/30 rounded-xl p-5">
                 <p className="text-[10px] font-black tracking-widest uppercase text-peak-accent mb-2">AI Coach</p>
                 <p className="text-sm text-peak-primary leading-relaxed">{report.ai_summary}</p>
               </div>

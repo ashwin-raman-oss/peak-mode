@@ -21,7 +21,7 @@ export default function XPToast({ xp, hypeMessage, onDone }) {
         </div>
       )}
       {phase === 'hype' && hypeMessage && (
-        <div className="animate-fade-in bg-peak-accent-dim border border-peak-accent/40 text-peak-accent text-sm font-medium px-5 py-3 rounded-xl max-w-xs text-center shadow-lg">
+        <div className="animate-fade-in bg-peak-accent-light border border-peak-accent/30 text-peak-accent text-sm font-medium px-5 py-3 rounded-xl max-w-xs text-center shadow-lg">
           {hypeMessage}
         </div>
       )}

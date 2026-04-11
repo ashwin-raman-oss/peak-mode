@@ -35,8 +35,8 @@ export default function TaskRow({ task, completionCount, isDone, onComplete, com
           aria-label={`${task.title} — ${completionCount} of ${task.weekly_target} complete`}
           className={`shrink-0 w-14 h-7 rounded-lg border text-[10px] font-black tracking-wider transition-colors
             ${isDone
-              ? 'bg-peak-accent/20 border-peak-accent/40 text-peak-accent'
-              : 'bg-peak-surface border-peak-border text-peak-muted hover:border-peak-accent/50'
+              ? 'bg-peak-accent-light border-peak-accent text-peak-accent'
+              : 'bg-peak-elevated border-peak-border text-peak-muted hover:border-peak-accent'
             } disabled:cursor-not-allowed`}
         >
           {completionCount} / {task.weekly_target}
@@ -48,11 +48,11 @@ export default function TaskRow({ task, completionCount, isDone, onComplete, com
           aria-label={completing ? 'Completing...' : isDone ? `${task.title} — done` : `Complete: ${task.title}`}
           className={`shrink-0 w-5 h-5 rounded-full border-2 transition-colors flex items-center justify-center
             ${isDone
-              ? 'bg-peak-accent border-peak-accent'
+              ? 'bg-peak-success border-peak-success'
               : 'border-peak-border hover:border-peak-accent'
             } disabled:cursor-not-allowed`}
         >
-          {isDone && <span className="text-peak-bg text-[10px] font-black">✓</span>}
+          {isDone && <span className="text-white text-[10px] font-black">✓</span>}
           {completing && !isDone && <div className="w-1.5 h-1.5 rounded-full bg-peak-accent animate-pulse" />}
         </button>
       )}
@@ -72,7 +72,7 @@ export default function TaskRow({ task, completionCount, isDone, onComplete, com
             <button
               onClick={() => onEdit(task)}
               aria-label={`Edit: ${task.title}`}
-              className="p-1.5 text-peak-muted hover:text-peak-primary transition-colors rounded"
+              className="p-1.5 text-peak-muted hover:text-peak-accent transition-colors rounded"
             >
               <PencilIcon />
             </button>
@@ -81,7 +81,7 @@ export default function TaskRow({ task, completionCount, isDone, onComplete, com
             <button
               onClick={() => onDelete(task)}
               aria-label={`Delete: ${task.title}`}
-              className="p-1.5 text-peak-muted hover:text-red-400 transition-colors rounded"
+              className="p-1.5 text-peak-muted hover:text-[#DC2626] transition-colors rounded"
             >
               <TrashIcon />
             </button>

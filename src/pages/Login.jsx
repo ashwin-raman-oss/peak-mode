@@ -46,13 +46,13 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-peak-bg flex flex-col items-center justify-center px-4">
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-sm bg-peak-surface rounded-2xl shadow-sm border border-peak-border p-8">
         {/* Logo */}
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-black tracking-widest text-peak-primary uppercase">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-black tracking-widest text-peak-primary uppercase">
             PEAK <span className="text-peak-accent">MODE</span>
           </h1>
-          <p className="text-peak-muted text-sm mt-1 tracking-wide">Elite performance tracking</p>
+          <p className="text-peak-muted text-sm mt-1">Elite performance tracking</p>
         </div>
 
         {/* Form */}
@@ -68,7 +68,7 @@ export default function Login() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
-              className="w-full bg-peak-surface border border-peak-border rounded-lg px-4 py-3 text-peak-primary text-sm focus:outline-none focus:border-peak-accent transition-colors placeholder-slate-600"
+              className="w-full bg-peak-elevated border border-peak-border rounded-lg px-4 py-3 text-peak-primary text-sm focus:outline-none focus:border-peak-accent transition-colors placeholder-peak-muted"
               placeholder="you@example.com"
             />
           </div>
@@ -85,13 +85,13 @@ export default function Login() {
               onChange={e => setPassword(e.target.value)}
               required
               minLength={mode === 'signup' ? 6 : undefined}
-              className="w-full bg-peak-surface border border-peak-border rounded-lg px-4 py-3 text-peak-primary text-sm focus:outline-none focus:border-peak-accent transition-colors placeholder-slate-600"
+              className="w-full bg-peak-elevated border border-peak-border rounded-lg px-4 py-3 text-peak-primary text-sm focus:outline-none focus:border-peak-accent transition-colors placeholder-peak-muted"
               placeholder="••••••••"
             />
           </div>
 
           {error && (
-            <p role="alert" className="text-red-400 text-xs font-medium bg-red-950/40 border border-red-900/50 rounded-lg px-3 py-2">
+            <p role="alert" className="text-[#DC2626] text-xs font-medium bg-[#FEF2F2] border border-[#FCA5A5] rounded-lg px-3 py-2">
               {error}
             </p>
           )}
@@ -99,15 +99,15 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-peak-accent text-peak-bg font-black text-sm tracking-widest uppercase py-3.5 rounded-lg hover:bg-peak-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-peak-accent text-white font-bold text-sm tracking-widest uppercase py-3.5 rounded-lg hover:bg-[#1D4ED8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? '...' : mode === 'login' ? 'ENTER PEAK MODE' : 'CREATE ACCOUNT'}
+            {loading ? '...' : mode === 'login' ? 'Sign In' : 'Create Account'}
           </button>
         </form>
 
         <button
           onClick={() => { setMode(m => m === 'login' ? 'signup' : 'login'); setError(null) }}
-          className="w-full mt-4 text-peak-muted text-xs hover:text-peak-muted transition-colors"
+          className="w-full mt-4 text-peak-muted text-xs hover:text-peak-text transition-colors"
         >
           {mode === 'login' ? "Don't have an account? Sign up" : 'Already have an account? Log in'}
         </button>

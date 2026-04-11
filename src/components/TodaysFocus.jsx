@@ -7,8 +7,8 @@ export default function TodaysFocus({ tasks = [], onComplete, completing }) {
 
   if (isWeekend) {
     return (
-      <section className="card-premium bg-peak-surface border border-peak-border rounded-xl px-5 py-4">
-        <p className="text-[10px] font-bold tracking-widest uppercase text-peak-muted mb-1">Today's Focus</p>
+      <section className="bg-peak-surface border border-peak-border border-l-4 rounded-xl px-5 py-4" style={{ borderLeftColor: '#2D5BE3' }}>
+        <p className="text-[10px] font-bold tracking-widest uppercase text-peak-accent mb-1">Today's Focus</p>
         <p className="text-peak-text text-sm">Rest day. Back Monday.</p>
       </section>
     )
@@ -16,26 +16,27 @@ export default function TodaysFocus({ tasks = [], onComplete, completing }) {
 
   if (tasks.length === 0) {
     return (
-      <section className="card-premium bg-peak-surface border border-peak-border rounded-xl px-5 py-4">
-        <p className="text-[10px] font-bold tracking-widest uppercase text-peak-muted mb-1">Today's Focus</p>
+      <section className="bg-peak-surface border border-peak-border border-l-4 rounded-xl px-5 py-4" style={{ borderLeftColor: '#2D5BE3' }}>
+        <p className="text-[10px] font-bold tracking-widest uppercase text-peak-accent mb-1">Today's Focus</p>
         <p className="text-peak-text text-sm">All priority tasks done.</p>
       </section>
     )
   }
 
   return (
-    <section className="card-premium bg-peak-surface border border-peak-border border-l-2 rounded-xl px-5 py-4"
-      style={{ borderLeftColor: '#E8E0D0' }}>
-      <p className="text-[10px] font-bold tracking-widest uppercase text-peak-muted mb-4">Today's Focus</p>
-      <div className="space-y-4">
+    <section
+      className="bg-peak-surface border border-peak-border border-l-4 rounded-xl px-5 py-4"
+      style={{ borderLeftColor: '#2D5BE3' }}
+    >
+      <p className="text-[10px] font-bold tracking-widest uppercase text-peak-accent mb-4">Today's Focus</p>
+      <div className="space-y-3">
         {tasks.map(task => (
           <div key={task.id} className="flex items-center gap-4">
             <button
               onClick={() => onComplete?.(task)}
               disabled={completing === task.id}
               aria-label={completing === task.id ? 'Completing...' : `Complete: ${task.title}`}
-              className={`shrink-0 w-4 h-4 rounded-full border transition-colors flex items-center justify-center disabled:opacity-40
-                border-peak-border hover:border-peak-accent`}
+              className="shrink-0 w-4 h-4 rounded-full border-2 border-peak-border hover:border-peak-accent transition-colors flex items-center justify-center disabled:opacity-40"
             >
               {completing === task.id && (
                 <div className="w-1.5 h-1.5 rounded-full bg-peak-accent animate-pulse" />

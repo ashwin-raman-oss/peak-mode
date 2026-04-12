@@ -107,7 +107,19 @@ export default function WeeklyReport() {
         }),
       })
       if (res.ok) {
-        const data = await res.json()
+        let data = await res.json()
+        // Defensive: if pattern looks like raw JSON/fenced, try to re-parse
+        if (typeof data.pattern === 'string' && (data.pattern.trim().startsWith('{') || data.pattern.trim().startsWith('```'))) {
+          try {
+            const cleaned = data.pattern.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
+            const inner = JSON.parse(cleaned)
+            data = {
+              pattern: inner.pattern ?? data.pattern,
+              actionPlan: Array.isArray(inner.actionPlan) ? inner.actionPlan : data.actionPlan,
+              trend: ['up', 'down', 'flat'].includes(inner.trend) ? inner.trend : data.trend,
+            }
+          } catch { /* use data as-is */ }
+        }
         setDeepDiveData(prev => ({ ...prev, [arenaName]: data }))
       }
     } catch (err) {
@@ -207,7 +219,18 @@ export default function WeeklyReport() {
                     <div key={name}>
                       <div className="py-2">
                         <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-sm font-medium text-peak-primary">{name}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-peak-primary">{name}</span>
+                            {dive && (
+                              <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
+                                dive.trend === 'up'   ? 'bg-[#D1FAE5] text-[#059669]' :
+                                dive.trend === 'down' ? 'bg-[#FEE2E2] text-[#DC2626]' :
+                                                        'bg-peak-elevated text-[#D97706]'
+                              }`}>
+                                {dive.trend === 'up' ? '↑' : dive.trend === 'down' ? '↓' : '→'}
+                              </span>
+                            )}
+                          </div>
                           <div className="flex items-center gap-3">
                             <span className="text-xs text-peak-accent font-bold">{stats.xp} XP · {stats.completed}/{stats.total}</span>
                             <button
@@ -224,20 +247,15 @@ export default function WeeklyReport() {
                       {/* Deep dive panel */}
                       {isExpanded && dive && (
                         <div className="mb-2 bg-peak-elevated border border-peak-border rounded-lg p-4 space-y-3">
-                          <div className="flex items-center gap-2">
-                            <span className={`text-lg font-bold ${TREND_COLOR[dive.trend] ?? 'text-peak-muted'}`}>
-                              {TREND_ICON[dive.trend] ?? '→'}
-                            </span>
-                            <p className="text-xs text-peak-text leading-relaxed">{dive.pattern}</p>
-                          </div>
+                          <p className="text-sm text-peak-text leading-relaxed">{dive.pattern}</p>
                           {dive.actionPlan?.length > 0 && (
                             <div>
                               <p className="text-[9px] font-bold tracking-widest uppercase text-peak-muted mb-2">Action Plan</p>
-                              <ol className="space-y-1">
+                              <ol className="space-y-2">
                                 {dive.actionPlan.map((step, i) => (
-                                  <li key={i} className="text-xs text-peak-primary flex gap-2">
-                                    <span className="shrink-0 text-peak-accent font-bold">{i + 1}.</span>
-                                    <span>{step.replace(/^\d+\.\s*/, '')}</span>
+                                  <li key={i} className="flex gap-2.5">
+                                    <span className="shrink-0 text-sm font-bold text-peak-accent">{i + 1}.</span>
+                                    <span className="text-sm text-peak-primary leading-snug">{step.replace(/^\d+\.\s*/, '')}</span>
                                   </li>
                                 ))}
                               </ol>

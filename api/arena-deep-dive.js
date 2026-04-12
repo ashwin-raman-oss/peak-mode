@@ -18,12 +18,8 @@ function sanitize(str, maxLen = 80) {
 
 const SYSTEM_PROMPT = `You are a performance coach. Analyze this arena's weekly performance with brutal honesty. Identify patterns — not just this week in isolation. Give a concrete 3-step action plan.
 
-Respond ONLY with valid JSON:
-{
-  "pattern": "1-2 sentences identifying the underlying pattern or habit causing these results",
-  "actionPlan": ["1. Specific action", "2. Specific action", "3. Specific action"],
-  "trend": "up|down|flat"
-}`
+Respond ONLY with valid JSON. No markdown, no code fences, no preamble. Just the raw JSON object:
+{"pattern":"1-2 sentences identifying the underlying pattern or habit causing these results","actionPlan":["Specific action","Specific action","Specific action"],"trend":"up|down|flat"}`
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -66,13 +62,15 @@ What's the pattern and what should they do about it?`
     })
 
     const raw = message.content[0]?.text?.trim() ?? ''
+    // Strip markdown code fences if present (```json ... ``` or ``` ... ```)
+    const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
     let parsed
     try {
-      parsed = JSON.parse(raw)
+      parsed = JSON.parse(cleaned)
     } catch {
       parsed = {
-        pattern: raw || 'Inconsistent execution. The tasks exist but completion is sporadic.',
-        actionPlan: ['1. Schedule these tasks at a fixed time each day.', '2. Remove one barrier that prevents starting.', '3. Track completion daily — what gets measured gets done.'],
+        pattern: 'Inconsistent execution. The tasks exist but completion is sporadic.',
+        actionPlan: ['Schedule these tasks at a fixed time each day.', 'Remove one barrier that prevents starting.', 'Track completion daily — what gets measured gets done.'],
         trend: 'flat',
       }
     }

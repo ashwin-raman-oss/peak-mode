@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 import { useTasks } from '../hooks/useTasks'
 import { supabase } from '../lib/supabase'
+import { toDateStr, getWeekStart } from '../lib/dates'
 import Header from '../components/Header'
 import TaskRow from '../components/TaskRow'
 import XPToast from '../components/XPToast'
@@ -11,15 +12,28 @@ import Modal from '../components/ui/Modal'
 import Button from '../components/ui/Button'
 import ProgressBar from '../components/ui/ProgressBar'
 
+const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+function StatusDot({ status }) {
+  if (status === 'future')  return <span className="text-[8px] text-peak-muted leading-none">✕</span>
+  if (status === 'full')    return <span className="w-1.5 h-1.5 rounded-full bg-[#059669] block" />
+  if (status === 'partial') return <span className="w-1.5 h-1.5 rounded-full bg-[#D97706] block" />
+  if (status === 'missed')  return <span className="w-1.5 h-1.5 rounded-full border border-gray-300 block" />
+  return <span className="w-1.5 h-1.5 block" />
+}
+
 export default function ArenaDetail() {
   const { slug } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
   const { profile, loading: profileLoading, addXp } = useProfile(user?.id)
   const {
-    tasks, arenas, loading, isTaskDone, getCompletionCount, completeTask, addMiscTask,
-    updateTask, deleteTask, getArenaStats,
+    tasks, arenas, loading, isTaskDone, getCompletionCount, completeTask, uncompleteTask,
+    addMiscTask, updateTask, deleteTask, getArenaStats, getDailyStatsForDate,
   } = useTasks(user?.id, slug)
+
+  const todayStr = toDateStr(new Date())
+  const [selectedDate, setSelectedDate] = useState(todayStr)
 
   const [toast, setToast] = useState(null)
   const [completing, setCompleting] = useState(null)
@@ -36,12 +50,39 @@ export default function ArenaDetail() {
   const [taskToDelete, setTaskToDelete] = useState(null)
   const [deleting, setDeleting] = useState(false)
 
-  // Fallback: clear level-up overlay if animationend never fires
   useEffect(() => {
     if (!levelUpMsg) return
     const t = setTimeout(() => setLevelUpMsg(null), 3000)
     return () => clearTimeout(t)
   }, [levelUpMsg])
+
+  // Build Mon–Sun tabs for the current week
+  const weekDays = useMemo(() => {
+    const weekStart = getWeekStart(new Date())
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(weekStart)
+      d.setUTCDate(d.getUTCDate() + i)
+      const dateStr = toDateStr(d)
+      return {
+        dateStr,
+        label: DAY_LABELS[i],
+        num: d.getUTCDate(),
+        isToday: dateStr === todayStr,
+        isFuture: dateStr > todayStr,
+        isWeekend: i >= 5,
+      }
+    })
+  }, [todayStr])
+
+  function getDotStatus(day) {
+    if (day.isFuture) return 'future'
+    if (day.isWeekend) return 'neutral'
+    const { completed, total } = getDailyStatsForDate(day.dateStr)
+    if (total === 0) return 'neutral'
+    if (completed === total) return 'full'
+    if (completed > 0) return 'partial'
+    return 'missed'
+  }
 
   const arena = arenas.find(a => a.slug === slug)
 
@@ -62,16 +103,48 @@ export default function ArenaDetail() {
   }
 
   const stats = getArenaStats(slug)
+  const isRetroactiveMode = selectedDate !== todayStr
+  const selectedDay = weekDays.find(d => d.dateStr === selectedDate)
+  const isSelectedWeekend = selectedDay?.isWeekend ?? false
+
   const recurringTasks = tasks.filter(t => t.task_type === 'recurring')
   const miscTasks = tasks.filter(t => t.task_type === 'misc')
 
+  // On weekend tabs, hide daily recurring
+  const visibleRecurring = isSelectedWeekend
+    ? recurringTasks.filter(t => t.recurrence !== 'daily')
+    : recurringTasks
+
+  // Editing label for retroactive banner
+  const editingLabel = (() => {
+    if (!isRetroactiveMode) return null
+    const d = new Date(selectedDate + 'T00:00:00Z')
+    const dayName = d.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' })
+    const monthDay = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
+    return `${dayName}, ${monthDay}`
+  })()
+
   async function handleComplete(task) {
+    if (isRetroactiveMode) {
+      // Silent retroactive — no XP, no hype, no toast
+      setCompleting(task.id)
+      try {
+        await completeTask(task, selectedDate)
+      } catch (err) {
+        console.error('Failed to complete task:', err)
+        setActionError('Could not save completion. Try again.')
+      } finally {
+        setCompleting(null)
+      }
+      return
+    }
+
+    // Today — full behavior: XP, hype, toast
     setCompleting(task.id)
     try {
-      const xp = await completeTask(task)
+      const xp = await completeTask(task, todayStr)
       if (xp == null) return
       const { leveledUp, newLevel } = await addXp(xp)
-
       if (leveledUp) setLevelUpMsg(`LEVEL ${newLevel}`)
 
       let hypeMessage = null
@@ -97,6 +170,26 @@ export default function ArenaDetail() {
       setActionError('Could not save completion. Try again.')
     } finally {
       setCompleting(null)
+    }
+  }
+
+  async function handleUncomplete(task) {
+    setCompleting(task.id)
+    try {
+      await uncompleteTask(task.id, selectedDate)
+    } catch (err) {
+      console.error('Failed to uncomplete task:', err)
+      setActionError('Could not undo completion. Try again.')
+    } finally {
+      setCompleting(null)
+    }
+  }
+
+  function handleToggle(task) {
+    if (isTaskDone(task, selectedDate)) {
+      handleUncomplete(task)
+    } else {
+      handleComplete(task)
     }
   }
 
@@ -161,7 +254,7 @@ export default function ArenaDetail() {
 
       <main className="max-w-3xl mx-auto px-6 py-5">
         {/* Arena header */}
-        <div className="mb-6">
+        <div className="mb-4">
           <button onClick={() => navigate('/')} className="text-peak-muted text-xs mb-3 hover:text-peak-text transition-colors">
             ← Dashboard
           </button>
@@ -175,6 +268,47 @@ export default function ArenaDetail() {
           <ProgressBar value={stats.completed} max={Math.max(stats.total, 1)} />
         </div>
 
+        {/* Day tab bar */}
+        <div className="flex gap-1.5 overflow-x-auto pb-1 mb-4 scrollbar-hide">
+          {weekDays.map(day => {
+            const isSelected = day.dateStr === selectedDate
+            const dotStatus = getDotStatus(day)
+            return (
+              <button
+                key={day.dateStr}
+                onClick={() => !day.isFuture && setSelectedDate(day.dateStr)}
+                disabled={day.isFuture}
+                className={`flex flex-col items-center min-w-[52px] px-3 py-2 rounded-lg text-center transition-colors shrink-0 disabled:opacity-40 disabled:cursor-not-allowed
+                  ${isSelected
+                    ? 'bg-peak-accent text-white'
+                    : day.isToday
+                      ? 'border border-peak-accent text-peak-accent bg-white'
+                      : 'bg-peak-surface border border-peak-border text-peak-muted hover:border-peak-accent hover:text-peak-text'
+                  }`}
+              >
+                <span className={`text-[10px] font-bold tracking-wide uppercase leading-none ${isSelected ? 'text-white/80' : ''}`}>
+                  {day.label}
+                </span>
+                <span className={`text-sm font-black leading-tight mt-0.5 ${isSelected ? 'text-white' : ''}`}>
+                  {day.num}
+                </span>
+                <div className="mt-1 flex items-center justify-center h-2">
+                  <StatusDot status={isSelected ? 'neutral' : dotStatus} />
+                </div>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Retroactive editing banner */}
+        {isRetroactiveMode && editingLabel && (
+          <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-lg px-3 py-2 mb-4">
+            <p className="text-xs text-[#92400E] font-medium">
+              Editing {editingLabel} — tap a daily task to toggle completion
+            </p>
+          </div>
+        )}
+
         {actionError && (
           <p role="alert" className="text-[#DC2626] text-xs font-medium bg-[#FEF2F2] border border-[#FCA5A5] rounded-lg px-3 py-2 mb-4">
             {actionError}
@@ -182,21 +316,27 @@ export default function ArenaDetail() {
         )}
 
         {/* Recurring tasks */}
-        {recurringTasks.length > 0 && (
+        {visibleRecurring.length > 0 && (
           <section className="bg-peak-surface border border-peak-border rounded-xl p-4 mb-4">
             <p className="text-[10px] font-black tracking-widest uppercase text-peak-muted mb-3">Recurring</p>
-            {recurringTasks.map(task => (
-              <TaskRow
-                key={task.id}
-                task={task}
-                completionCount={getCompletionCount(task)}
-                isDone={isTaskDone(task)}
-                onComplete={handleComplete}
-                completing={completing === task.id}
-                onEdit={handleEditOpen}
-                onDelete={handleDeleteOpen}
-              />
-            ))}
+            {visibleRecurring.map(task => {
+              const done = isTaskDone(task, selectedDate)
+              const isDaily = task.recurrence === 'daily'
+              return (
+                <TaskRow
+                  key={task.id}
+                  task={task}
+                  completionCount={getCompletionCount(task, selectedDate)}
+                  isDone={done}
+                  onComplete={!isRetroactiveMode ? handleComplete : undefined}
+                  onToggle={isRetroactiveMode && isDaily ? handleToggle : undefined}
+                  readOnly={isRetroactiveMode && !isDaily}
+                  completing={completing === task.id}
+                  onEdit={handleEditOpen}
+                  onDelete={handleDeleteOpen}
+                />
+              )
+            })}
           </section>
         )}
 
@@ -209,18 +349,22 @@ export default function ArenaDetail() {
           {miscTasks.length === 0 && (
             <p className="text-peak-muted text-xs py-2">No tasks added yet this week.</p>
           )}
-          {miscTasks.map(task => (
-            <TaskRow
-              key={task.id}
-              task={task}
-              completionCount={getCompletionCount(task)}
-              isDone={isTaskDone(task)}
-              onComplete={handleComplete}
-              completing={completing === task.id}
-              onEdit={handleEditOpen}
-              onDelete={handleDeleteOpen}
-            />
-          ))}
+          {miscTasks.map(task => {
+            const done = isTaskDone(task, selectedDate)
+            return (
+              <TaskRow
+                key={task.id}
+                task={task}
+                completionCount={getCompletionCount(task)}
+                isDone={done}
+                onComplete={!isRetroactiveMode ? handleComplete : undefined}
+                readOnly={isRetroactiveMode}
+                completing={completing === task.id}
+                onEdit={handleEditOpen}
+                onDelete={handleDeleteOpen}
+              />
+            )
+          })}
         </section>
       </main>
 
@@ -270,7 +414,7 @@ export default function ArenaDetail() {
       {taskToEdit && (
         <Modal title="Edit Task" onClose={() => setTaskToEdit(null)}>
           {taskToEdit.task_type === 'recurring' && (
-            <p className="text-xs bg-[#1E1A10] border border-[#3A2E10] text-[#8A7040] rounded-lg px-3 py-2 mb-4">
+            <p className="text-xs bg-peak-elevated border border-peak-border text-peak-muted rounded-lg px-3 py-2 mb-4">
               This is a recurring task — changes apply permanently
             </p>
           )}

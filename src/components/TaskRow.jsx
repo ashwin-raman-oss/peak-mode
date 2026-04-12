@@ -20,37 +20,49 @@ function TrashIcon() {
   )
 }
 
-export default function TaskRow({ task, completionCount, isDone, onComplete, completing, onEdit, onDelete }) {
+export default function TaskRow({ task, completionCount, isDone, onComplete, onToggle, completing, onEdit, onDelete, readOnly }) {
   const effectivePriority = task.priority_override ?? task.priority
   const isCounter = task.weekly_target > 1
-  const canComplete = !isDone && !completing
+
+  // Toggle mode: button is always clickable (undo or complete)
+  // Normal mode: only clickable when not done
+  const canInteract = !completing && !readOnly
+  const canComplete = onToggle ? canInteract : (canInteract && !isDone)
+
+  function handleCircleClick() {
+    if (!canInteract) return
+    if (onToggle) { onToggle(task); return }
+    if (canComplete) onComplete(task)
+  }
 
   return (
-    <div className={`group flex items-center gap-3 py-2.5 px-1 border-b border-peak-border/50 last:border-0 ${isDone ? 'opacity-50' : ''}`}>
+    <div className={`group flex items-center gap-3 py-2.5 px-1 border-b border-peak-border/50 last:border-0 ${isDone && !onToggle ? 'opacity-50' : ''}`}>
       {/* Checkbox or counter */}
       {isCounter ? (
         <button
-          onClick={() => canComplete && onComplete(task)}
+          onClick={handleCircleClick}
           disabled={!canComplete}
+          title={readOnly ? "Weekly tasks can't be edited by day" : undefined}
           aria-label={`${task.title} — ${completionCount} of ${task.weekly_target} complete`}
           className={`shrink-0 w-14 h-7 rounded-lg border text-[10px] font-black tracking-wider transition-colors
             ${isDone
               ? 'bg-peak-accent-light border-peak-accent text-peak-accent'
               : 'bg-peak-elevated border-peak-border text-peak-muted hover:border-peak-accent'
-            } disabled:cursor-not-allowed`}
+            } disabled:cursor-not-allowed disabled:opacity-40`}
         >
           {completionCount} / {task.weekly_target}
         </button>
       ) : (
         <button
-          onClick={() => canComplete && onComplete(task)}
-          disabled={!canComplete}
+          onClick={handleCircleClick}
+          disabled={!canComplete && !onToggle}
+          title={readOnly ? "Weekly tasks can't be edited by day" : undefined}
           aria-label={completing ? 'Completing...' : isDone ? `${task.title} — done` : `Complete: ${task.title}`}
           className={`shrink-0 w-5 h-5 rounded-full border-2 transition-colors flex items-center justify-center
             ${isDone
               ? 'bg-peak-success border-peak-success'
               : 'border-peak-border hover:border-peak-accent'
-            } disabled:cursor-not-allowed`}
+            } ${readOnly ? 'opacity-40 cursor-not-allowed' : ''} ${onToggle && isDone ? 'cursor-pointer' : ''}`}
         >
           {isDone && <span className="text-white text-[10px] font-black">✓</span>}
           {completing && !isDone && <div className="w-1.5 h-1.5 rounded-full bg-peak-accent animate-pulse" />}
@@ -58,7 +70,7 @@ export default function TaskRow({ task, completionCount, isDone, onComplete, com
       )}
 
       {/* Title */}
-      <span className={`text-sm flex-1 ${isDone ? 'line-through text-peak-muted' : 'text-peak-primary'}`}>
+      <span className={`text-sm flex-1 ${isDone && !onToggle ? 'line-through text-peak-muted' : isDone && onToggle ? 'text-peak-muted' : 'text-peak-primary'}`}>
         {task.title}
       </span>
 

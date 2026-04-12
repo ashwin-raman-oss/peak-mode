@@ -61,36 +61,46 @@ export function useTasks(userId, arenaSlug = null) {
 
   useEffect(() => { fetchData() }, [fetchData])
 
-  function isTaskDone(task) {
+  function isTaskDone(task, dateStr = toDateStr(new Date())) {
     if (task.recurrence === 'daily') {
-      return isCompletedToday(completions, task.id)
+      return completions.some(c =>
+        c.task_id === task.id &&
+        typeof c.completed_at === 'string' &&
+        c.completed_at.slice(0, 10) === dateStr
+      )
     }
     return isCompletedThisWeek(completions, task.id, task.weekly_target, weekStartStr)
   }
 
-  function getCompletionCount(task) {
+  function getCompletionCount(task, dateStr = toDateStr(new Date())) {
     if (task.recurrence === 'daily') {
-      return isCompletedToday(completions, task.id) ? 1 : 0
+      return completions.some(c =>
+        c.task_id === task.id &&
+        typeof c.completed_at === 'string' &&
+        c.completed_at.slice(0, 10) === dateStr
+      ) ? 1 : 0
     }
     return getWeeklyCompletionCount(completions, task.id, weekStartStr)
   }
 
-  async function completeTask(task) {
+  async function completeTask(task, dateStr = toDateStr(new Date())) {
     if (!userId) throw new Error('No authenticated user')
+    const todayStr = toDateStr(new Date())
+    const isRetroactive = dateStr !== todayStr
     const effectivePriority = task.priority_override ?? task.priority
-    const xp = getXpForPriority(effectivePriority)
+    const xp = isRetroactive ? 0 : getXpForPriority(effectivePriority)
+    const completedAt = isRetroactive ? dateStr + 'T12:00:00Z' : new Date().toISOString()
 
     // Optimistic update
     const optimisticCompletion = {
       id: `temp-${Date.now()}`,
       task_id: task.id,
-      completed_at: new Date().toISOString(),
+      completed_at: completedAt,
       xp_earned: xp,
       week_start_date: weekStartStr,
     }
     setCompletions(prev => [...prev, optimisticCompletion])
 
-    // Persist to Supabase
     const { data, error: insertErr } = await supabase
       .from('task_completions')
       .insert({
@@ -98,20 +108,42 @@ export function useTasks(userId, arenaSlug = null) {
         task_id: task.id,
         xp_earned: xp,
         week_start_date: weekStartStr,
+        completed_at: completedAt,
       })
       .select()
       .single()
 
     if (insertErr) {
-      // Rollback optimistic update
       setCompletions(prev => prev.filter(c => c.id !== optimisticCompletion.id))
       throw insertErr
     }
 
-    // Replace temp with real
     setCompletions(prev => prev.map(c => c.id === optimisticCompletion.id ? data : c))
-
     return xp
+  }
+
+  async function uncompleteTask(taskId, dateStr) {
+    if (!userId) throw new Error('No authenticated user')
+    const match = completions.find(c =>
+      c.task_id === taskId &&
+      typeof c.completed_at === 'string' &&
+      c.completed_at.slice(0, 10) === dateStr
+    )
+    if (!match) return
+
+    // Optimistic remove
+    setCompletions(prev => prev.filter(c => c.id !== match.id))
+
+    const { error } = await supabase
+      .from('task_completions')
+      .delete()
+      .eq('id', match.id)
+      .eq('user_id', userId)
+
+    if (error) {
+      await fetchData()
+      throw error
+    }
   }
 
   async function addMiscTask(arenaId, title, priority) {
@@ -195,6 +227,20 @@ export function useTasks(userId, arenaSlug = null) {
     }
   }
 
+  // Daily completion stats for a specific date (arena-scoped when hook called with arenaSlug)
+  function getDailyStatsForDate(dateStr) {
+    const dailyTasks = tasks.filter(t => t.recurrence === 'daily' && t.task_type === 'recurring')
+    const total = dailyTasks.length
+    const completed = dailyTasks.filter(t =>
+      completions.some(c =>
+        c.task_id === t.id &&
+        typeof c.completed_at === 'string' &&
+        c.completed_at.slice(0, 10) === dateStr
+      )
+    ).length
+    return { completed, total }
+  }
+
   // Week-level stats per arena
   function getArenaStats(arenaSlugFilter) {
     const arenaTasks = tasks.filter(t => t.arenas?.slug === arenaSlugFilter)
@@ -248,10 +294,12 @@ export function useTasks(userId, arenaSlug = null) {
     isTaskDone,
     getCompletionCount,
     completeTask,
+    uncompleteTask,
     addMiscTask,
     updateTask,
     deleteTask,
     getArenaStats,
+    getDailyStatsForDate,
     getTodaysFocusTasks,
     getWeekXp,
     weekStartStr,

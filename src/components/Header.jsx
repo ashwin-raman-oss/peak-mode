@@ -43,6 +43,9 @@ export default function Header({ profile }) {
               {profile.current_streak}d
             </span>
           )}
+          <Link to="/month" className="text-peak-text hover:text-peak-accent text-xs font-medium transition-colors">
+            Month
+          </Link>
           <Link to="/report" className="text-peak-text hover:text-peak-accent text-xs font-medium transition-colors">
             Report
           </Link>

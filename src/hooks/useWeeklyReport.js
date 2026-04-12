@@ -19,7 +19,6 @@ export function useWeeklyReport(userId, weekDateParam = null) {
     try {
       setLoading(true)
 
-      // Fetch all reports for browsing
       const { data: all, error: allErr } = await supabase
         .from('weekly_reports')
         .select('week_start_date, tasks_completed, tasks_total, xp_earned, streak_held')
@@ -29,7 +28,6 @@ export function useWeeklyReport(userId, weekDateParam = null) {
       if (allErr) throw allErr
       setAllReports(all || [])
 
-      // Fetch specific week's report — PGRST116 = no rows found (expected, not an error)
       const { data: existing, error: reportErr } = await supabase
         .from('weekly_reports')
         .select('*')
@@ -51,7 +49,6 @@ export function useWeeklyReport(userId, weekDateParam = null) {
   async function generateReport(weekStats) {
     setGenerating(true)
     try {
-      // Get AI summary
       const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch('/api/weekly-report', {
         method: 'POST',
@@ -63,12 +60,15 @@ export function useWeeklyReport(userId, weekDateParam = null) {
       })
 
       let aiSummary = 'Great effort this week. Keep showing up.'
+      let nextWeekCommitments = []
+
       if (res.ok) {
         const data = await res.json()
-        aiSummary = data.summary
+        // New format: { summary, focusAreas, nextWeekCommitments }
+        aiSummary = data.summary ?? aiSummary
+        nextWeekCommitments = Array.isArray(data.nextWeekCommitments) ? data.nextWeekCommitments : []
       }
 
-      // Upsert report
       const { data: saved, error: saveErr } = await supabase
         .from('weekly_reports')
         .upsert({
@@ -80,6 +80,7 @@ export function useWeeklyReport(userId, weekDateParam = null) {
           streak_held: weekStats.streakHeld,
           arena_breakdown: weekStats.arenaBreakdown,
           ai_summary: aiSummary,
+          next_week_commitments: nextWeekCommitments,
         }, { onConflict: 'user_id,week_start_date' })
         .select()
         .single()

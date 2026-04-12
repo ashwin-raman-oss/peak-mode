@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 import { useTasks } from '../hooks/useTasks'
 import { useRecentActivity } from '../hooks/useRecentActivity'
+import { useLastWeekCommitments } from '../hooks/useLastWeekCommitments'
 import { supabase } from '../lib/supabase'
 import Header from '../components/Header'
 import TodaysFocus from '../components/TodaysFocus'
@@ -28,6 +29,7 @@ export default function Dashboard() {
     getTodaysFocusTasks, getArenaStats, getWeekXp, isTaskDone, completeTask,
   } = useTasks(user?.id)
   const { activity } = useRecentActivity(user?.id)
+  const { commitments } = useLastWeekCommitments(user?.id)
 
   const [toast, setToast] = useState(null)
   const [completing, setCompleting] = useState(null)
@@ -140,6 +142,21 @@ export default function Dashboard() {
 
         {/* Form dip warning */}
         <FormDipBanner count={highRemainingToday} />
+
+        {/* Last week's commitments */}
+        {commitments.length > 0 && (
+          <div className="bg-peak-accent-light border border-peak-accent/20 rounded-xl p-4">
+            <p className="text-[10px] font-black tracking-widest uppercase text-peak-accent mb-2">This Week's Commitments</p>
+            <ol className="space-y-1.5">
+              {commitments.map((c, i) => (
+                <li key={i} className="flex items-start gap-2.5">
+                  <span className="shrink-0 w-4 h-4 rounded border border-peak-accent/40 mt-0.5" />
+                  <span className="text-sm text-peak-primary leading-snug">{c.replace(/^\d+\.\s*/, '')}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
 
         {/* Today's Focus */}
         <TodaysFocus

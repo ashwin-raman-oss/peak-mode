@@ -8,9 +8,36 @@ import Header from '../components/Header'
 import ProgressBar from '../components/ui/ProgressBar'
 import Button from '../components/ui/Button'
 import { formatWeekRange, getWeekStart, toDateStr } from '../lib/dates'
+import { supabase } from '../lib/supabase'
 
 const ARENA_SLUGS = ['career', 'health', 'learning', 'misc']
 const ARENA_LABELS = { career: 'Career', health: 'Health', learning: 'Learning', misc: 'Misc' }
+
+const TREND_ICON = { up: '↑', down: '↓', flat: '→' }
+const TREND_COLOR = { up: 'text-peak-success', down: 'text-[#DC2626]', flat: 'text-peak-muted' }
+
+function parseCoach(report) {
+  if (!report?.ai_summary) return null
+  // Handle legacy plain-text format
+  if (!report.ai_summary.trim().startsWith('{')) {
+    return {
+      summary: report.ai_summary,
+      nextWeekCommitments: report.next_week_commitments ?? [],
+    }
+  }
+  try {
+    const parsed = JSON.parse(report.ai_summary)
+    return {
+      summary: parsed.summary ?? report.ai_summary,
+      nextWeekCommitments: report.next_week_commitments ?? parsed.nextWeekCommitments ?? [],
+    }
+  } catch {
+    return {
+      summary: report.ai_summary,
+      nextWeekCommitments: report.next_week_commitments ?? [],
+    }
+  }
+}
 
 export default function WeeklyReport() {
   const { weekDate } = useParams()
@@ -29,6 +56,9 @@ export default function WeeklyReport() {
   const nextReport = currentIdx > 0 ? allReports[currentIdx - 1] : null
 
   const [generateError, setGenerateError] = useState(null)
+  const [expandedArena, setExpandedArena] = useState(null)
+  const [deepDiveData, setDeepDiveData] = useState({})
+  const [deepDiving, setDeepDiving] = useState(null)
 
   async function handleGenerate() {
     setGenerateError(null)
@@ -51,6 +81,42 @@ export default function WeeklyReport() {
     }
   }
 
+  async function handleDeepDive(arenaName, weekStats) {
+    // Toggle closed if already open with data
+    if (expandedArena === arenaName && deepDiveData[arenaName]) {
+      setExpandedArena(null)
+      return
+    }
+    setExpandedArena(arenaName)
+    if (deepDiveData[arenaName]) return // already fetched
+
+    setDeepDiving(arenaName)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch('/api/arena-deep-dive', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({
+          arenaName,
+          weekStats,
+          weekStart: weekStartStr,
+          previousWeekStats: null,
+        }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setDeepDiveData(prev => ({ ...prev, [arenaName]: data }))
+      }
+    } catch (err) {
+      console.error('Deep dive failed:', err)
+    } finally {
+      setDeepDiving(null)
+    }
+  }
+
   if (loading || profileLoading || tasksLoading) {
     return (
       <div className="min-h-screen bg-peak-bg flex items-center justify-center">
@@ -58,6 +124,8 @@ export default function WeeklyReport() {
       </div>
     )
   }
+
+  const coachData = parseCoach(report)
 
   return (
     <div className="min-h-screen bg-peak-bg">
@@ -127,27 +195,83 @@ export default function WeeklyReport() {
               </div>
             </div>
 
-            {/* Arena breakdown */}
+            {/* Arena breakdown with Dig Deeper */}
             <div className="bg-peak-surface border border-peak-border rounded-xl p-4">
               <p className="text-[10px] font-black tracking-widest uppercase text-peak-muted mb-3">Arena Breakdown</p>
-              <div className="space-y-3">
-                {Object.entries(report.arena_breakdown || {}).map(([name, stats]) => (
-                  <div key={name}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm text-peak-primary">{name}</span>
-                      <span className="text-xs text-peak-accent font-bold">{stats.xp} XP · {stats.completed}/{stats.total}</span>
+              <div className="space-y-1">
+                {Object.entries(report.arena_breakdown || {}).map(([name, stats]) => {
+                  const isExpanded = expandedArena === name
+                  const dive = deepDiveData[name]
+                  const isDiving = deepDiving === name
+                  return (
+                    <div key={name}>
+                      <div className="py-2">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-sm font-medium text-peak-primary">{name}</span>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-peak-accent font-bold">{stats.xp} XP · {stats.completed}/{stats.total}</span>
+                            <button
+                              onClick={() => handleDeepDive(name, { completed: stats.completed, total: stats.total, xpEarned: stats.xp })}
+                              className="text-xs text-peak-accent hover:text-peak-primary transition-colors font-medium"
+                            >
+                              {isDiving ? 'Loading...' : isExpanded && dive ? 'Close ↑' : 'Dig deeper →'}
+                            </button>
+                          </div>
+                        </div>
+                        <ProgressBar value={stats.completed} max={Math.max(stats.total, 1)} />
+                      </div>
+
+                      {/* Deep dive panel */}
+                      {isExpanded && dive && (
+                        <div className="mb-2 bg-peak-elevated border border-peak-border rounded-lg p-4 space-y-3">
+                          <div className="flex items-center gap-2">
+                            <span className={`text-lg font-bold ${TREND_COLOR[dive.trend] ?? 'text-peak-muted'}`}>
+                              {TREND_ICON[dive.trend] ?? '→'}
+                            </span>
+                            <p className="text-xs text-peak-text leading-relaxed">{dive.pattern}</p>
+                          </div>
+                          {dive.actionPlan?.length > 0 && (
+                            <div>
+                              <p className="text-[9px] font-bold tracking-widest uppercase text-peak-muted mb-2">Action Plan</p>
+                              <ol className="space-y-1">
+                                {dive.actionPlan.map((step, i) => (
+                                  <li key={i} className="text-xs text-peak-primary flex gap-2">
+                                    <span className="shrink-0 text-peak-accent font-bold">{i + 1}.</span>
+                                    <span>{step.replace(/^\d+\.\s*/, '')}</span>
+                                  </li>
+                                ))}
+                              </ol>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    <ProgressBar value={stats.completed} max={Math.max(stats.total, 1)} />
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
 
-            {/* AI Summary */}
-            {report.ai_summary && (
-              <div className="bg-peak-accent-light border border-peak-accent/30 rounded-xl p-5">
-                <p className="text-[10px] font-black tracking-widest uppercase text-peak-accent mb-2">AI Coach</p>
-                <p className="text-sm text-peak-primary leading-relaxed">{report.ai_summary}</p>
+            {/* AI Coach */}
+            {coachData && (
+              <div className="bg-peak-accent-light border border-peak-accent/30 rounded-xl p-5 space-y-4">
+                <div>
+                  <p className="text-[10px] font-black tracking-widest uppercase text-peak-accent mb-2">AI Coach</p>
+                  <p className="text-sm text-peak-primary leading-relaxed">{coachData.summary}</p>
+                </div>
+
+                {coachData.nextWeekCommitments?.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-black tracking-widest uppercase text-peak-accent mb-2">Next Week's Focus</p>
+                    <ol className="space-y-2">
+                      {coachData.nextWeekCommitments.map((c, i) => (
+                        <li key={i} className="flex items-start gap-3">
+                          <span className="shrink-0 w-5 h-5 rounded border-2 border-peak-accent/50 mt-0.5" />
+                          <span className="text-sm text-peak-primary leading-snug">{c.replace(/^\d+\.\s*/, '')}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
               </div>
             )}
 

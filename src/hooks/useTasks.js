@@ -209,9 +209,20 @@ export function useTasks(userId, arenaSlug = null) {
 
   function getTodaysFocusTasks() {
     const today = new Date()
-    const dayOfWeek = today.getDay()
-    if (dayOfWeek === 0 || dayOfWeek === 6) return [] // weekend
+    const dayOfWeek = today.getUTCDay() // 0=Sun, 6=Sat
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
 
+    if (isWeekend) {
+      // Weekends: skip daily recurring (weekday-only), show weekly + misc that aren't done
+      return tasks.filter(t => {
+        const effectivePriority = t.priority_override ?? t.priority
+        if (effectivePriority !== 'high') return false
+        if (isTaskDone(t)) return false
+        return t.recurrence === 'weekly' || t.task_type === 'misc'
+      }).slice(0, 3)
+    }
+
+    // Weekdays: all high-priority undone tasks, daily first
     const highTasks = tasks.filter(t => {
       const effectivePriority = t.priority_override ?? t.priority
       if (effectivePriority !== 'high') return false
@@ -219,7 +230,6 @@ export function useTasks(userId, arenaSlug = null) {
       return true
     })
 
-    // Daily tasks first, then weekly
     const daily = highTasks.filter(t => t.recurrence === 'daily')
     const weekly = highTasks.filter(t => t.recurrence !== 'daily')
     return [...daily, ...weekly].slice(0, 3)

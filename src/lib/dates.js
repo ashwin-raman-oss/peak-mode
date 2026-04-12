@@ -21,7 +21,7 @@ const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct'
 export function formatWeekRange(weekStart) {
   const start = new Date(weekStart)
   const end = new Date(weekStart)
-  end.setUTCDate(end.getUTCDate() + 4) // Mon + 4 = Fri
+  end.setUTCDate(end.getUTCDate() + 6) // Mon + 6 = Sun
   const sm = MONTH_NAMES[start.getUTCMonth()]
   const em = MONTH_NAMES[end.getUTCMonth()]
   return `${sm} ${start.getUTCDate()} – ${em} ${end.getUTCDate()}`

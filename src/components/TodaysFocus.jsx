@@ -9,15 +9,15 @@ const cardStyle = { borderLeft: '3px solid #2D5BE3', backgroundColor: '#F0F4FF' 
 const labelStyle = { color: '#2D5BE3' }
 
 export default function TodaysFocus({ tasks = [], onComplete, completing, weekSummary }) {
-  const today = new Date()
-  const dayOfWeek = today.getUTCDay()
+  const dayOfWeek = new Date().getUTCDay()
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
 
-  if (isWeekend) {
-    return (
-      <section className={cardClass} style={cardStyle}>
-        <p className="text-[10px] font-bold tracking-widest uppercase mb-3" style={labelStyle}>Week in Review</p>
-        {weekSummary ? (
+  // Empty state — different message on weekends vs weekdays
+  if (tasks.length === 0) {
+    if (isWeekend && weekSummary) {
+      return (
+        <section className={cardClass} style={cardStyle}>
+          <p className="text-[10px] font-bold tracking-widest uppercase mb-3" style={labelStyle}>Week in Review</p>
           <div className="grid grid-cols-3 gap-3">
             <div>
               <p className="text-[9px] font-bold tracking-widest uppercase text-peak-muted mb-0.5">Tasks</p>
@@ -34,22 +34,20 @@ export default function TodaysFocus({ tasks = [], onComplete, completing, weekSu
               <p className="text-sm font-bold text-peak-primary leading-tight truncate">{weekSummary.bestArena}</p>
             </div>
           </div>
-        ) : (
-          <p className="text-peak-text text-sm">Rest day. Back Monday.</p>
-        )}
-      </section>
-    )
-  }
-
-  if (tasks.length === 0) {
+        </section>
+      )
+    }
     return (
       <section className={cardClass} style={cardStyle}>
         <p className="text-[10px] font-bold tracking-widest uppercase mb-1" style={labelStyle}>Today's Focus</p>
-        <p className="text-peak-text text-sm">All priority tasks done.</p>
+        <p className="text-peak-text text-sm">
+          {isWeekend ? 'Week complete. Great work.' : 'All priority tasks done.'}
+        </p>
       </section>
     )
   }
 
+  // Task list — same for weekdays and weekends
   return (
     <section className={cardClass} style={cardStyle}>
       <p className="text-[10px] font-bold tracking-widest uppercase mb-3" style={labelStyle}>Today's Focus</p>

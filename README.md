@@ -1,133 +1,366 @@
 # Peak Mode
 
-**A gamified personal productivity system built for people who are juggling too many goals at once.**
+**A personal performance system that treats your life like a training program.**
 
-![Peak Mode Dashboard](docs/screenshots/dashboard.png)
+Most productivity apps are lists. Peak Mode is a system. It organizes every goal you're chasing — job search, fitness, side projects, life admin — into a unified performance dashboard with XP, streaks, AI coaching, and weekly reviews. The kind of tool an elite athlete's coaching staff would build if they cared about your whole life, not just one domain.
+
+Built as a real product I use daily. Every architectural decision reflects what it takes to ship something you actually open every morning.
 
 ---
 
-## Why I Built This
+## The Problem
 
-I was deep in a job search while trying to stay on top of fitness goals, side projects, and life admin — and I was drowning. Not because any single task was hard, but because there was no system connecting everything. I'd crush my job applications one week and completely drop my health goals. The next week I'd flip. Nothing stuck.
+I was in a job search while trying to maintain fitness, build side projects, and handle life admin. Standard tools failed me in the same way: they tracked tasks inside one domain but had no concept of the tradeoffs between them. I'd over-index on job applications one week and let my health goals collapse. The next week I'd flip. Nothing compounded.
 
-I needed something that treated all my goals as one interconnected performance system — not just another to-do list, but something that made me *want* to show up every day. So I built Peak Mode: a productivity tool framed around the metaphor of an elite athlete training for peak performance. Every task completed earns XP. Every day you show up extends your streak. Every week ends with a performance report.
+What I needed wasn't more organization — it was **a system that made all goals visible simultaneously, created accountability across all of them, and made showing up feel rewarding enough to sustain**.
 
-It works. I actually use it.
+That's Peak Mode.
 
-## What It Does
+---
 
-Peak Mode organizes your life into **four arenas** — Career, Health, Learning/Projects, and Misc — each with their own recurring and one-off tasks, priority levels, and weekly progress tracking.
+## Product Overview
 
-### Core Features
+### Four Life Arenas
 
-- **Four Life Arenas** — Career (job search + professional development), Health (fitness, nutrition, meditation), Learning/Projects (side hustles, skill-building), and Misc (taxes, errands, everything else). Each arena tracks progress independently with its own XP tally.
+Every goal lives in one of four arenas: **Career**, **Health**, **Learning/Projects**, and **Misc**. Each arena has its own progress tracking, XP tally, and weekly summary. The separation creates mental clarity — you can see at a glance which domain you're crushing and which one you're neglecting.
 
-- **Smart Task System** — Daily recurring tasks reset each morning (Mon–Fri). Weekly tasks track count-based goals like "strength training 4x this week" with progress indicators (2/4). Misc tasks can be added, edited, and deleted freely each week.
+Arenas are color-coded throughout the UI (blue, green, purple, amber) and each has a distinct icon. The design makes the balance — or imbalance — immediately legible without needing to read anything.
 
-- **Priority Engine** — Tasks are auto-assigned priority levels (High, Medium, Optional) based on their arena. Users can override any priority at any time. The "Today's Focus" panel surfaces the top uncompleted high-priority tasks so you always know what matters most right now.
+### Task Architecture
 
-- **XP and Leveling** — Every completed task earns XP scaled by priority (High = 100, Medium = 60, Optional = 30). XP accumulates toward levels. The header always shows your current level and weekly XP total.
+Three task types handle different goal structures:
 
-- **Streak Tracking** — Consecutive days of completing all high-priority tasks builds your streak. Missing a day triggers a "form dip" warning — visible but not punishing.
+| Type | Recurrence | Example |
+|------|-----------|---------|
+| **Daily recurring** | Resets each weekday (Mon–Fri) | "Apply to 3 jobs" |
+| **Weekly recurring** | Count-based target (e.g. 4×/week) | "Strength training 2/4" |
+| **Misc / one-off** | User-added, no recurrence | "File quarterly taxes" |
 
-- **AI-Powered Hype Messages** — Completing a task triggers a Claude API-generated motivational message via XP toast animation. Small dopamine hit, every time.
+This covers the vast majority of personal goal structures without needing a flexible-but-confusing custom recurrence engine.
 
-- **Weekly Performance Report** — An AI-generated end-of-week breakdown covering tasks completed vs. total, XP earned, streaks held, and an arena-by-arena analysis with personalized insights and encouragement.
+### Priority Engine
 
-- **Full Task Management** — Add new tasks to any arena, edit task titles and priorities, delete tasks with confirmation. Recurring tasks warn before permanent changes.
+Every task has a base priority (`high`, `medium`, `optional`) seeded by its arena's default. Users can override any priority at any time — the override is stored separately from the base value, so the schema stays clean and the original signal isn't lost.
 
-- **PWA** — Installable on desktop and mobile. Works from the home screen like a native app with no browser chrome.
+The **Today's Focus** panel uses this to surface the 3 most important incomplete tasks right now. On weekends it shifts automatically to weekly and misc tasks instead of daily ones, since weekday cadence doesn't apply.
 
-![Arena Detail View](docs/screenshots/arena-detail.png)
+### XP and Progression
 
-## Tech Stack
+| Priority | XP |
+|----------|-----|
+| High | 100 |
+| Medium | 60 |
+| Optional | 30 |
 
-| Layer | Technology | Why |
-|-------|-----------|-----|
-| Frontend | React + Vite | Fast builds, modern React 19 with hooks |
-| Styling | Tailwind CSS | Utility-first, dark theme with custom design tokens |
-| Backend/Auth | Supabase | Postgres database, Row Level Security, email/password auth |
-| AI | Claude API (via Vercel Serverless Functions) | Hype messages on task completion, weekly report generation |
-| Hosting | Vercel | Free tier, automatic deployments, serverless API routes |
-| Mobile | PWA (Service Worker + Web Manifest) | Installable on any device, no app store needed |
+XP accumulates toward levels. Weekly XP is displayed as the hero number on the dashboard — the single most important metric for "did I actually do the work this week?" The header shows your current level at all times as a persistent signal of long-run progress.
+
+### Streak System
+
+Consecutive days of completing all high-priority tasks build your streak. A "form dip" warning banner appears when high-priority tasks are still incomplete today — visible but not punishing. Missing a day isn't catastrophized; it's surfaced as useful signal.
+
+---
+
+## Features
+
+### AI-Powered Task Completion (Hype Messages)
+
+Every task completion triggers a Claude API call that returns a one-sentence motivational message tailored to the specific task and arena. Delivered as an XP toast animation. The latency is acceptable because it's async — the UI updates optimistically before the AI responds.
+
+The prompt is tuned toward honest encouragement rather than hollow cheerleading. "That's 3 outreach messages. Recruiters notice consistency" lands differently than "Great job!"
+
+### Weekly Performance Report
+
+At any point during or after a week, you can generate a full AI performance review. The report covers:
+
+- Tasks completed vs. total across all arenas
+- XP earned and streak held
+- Arena-by-arena breakdown with progress bars
+- AI coach summary — patterns, what drove the week, honest assessment
+- **Next Week's Commitments** — 3 specific things to focus on, generated by Claude and persisted to the database
+
+Reports are stored permanently. Navigation arrows let you browse any past week. The "This Week's Commitments" card on the dashboard pulls last week's commitments forward so you start each week knowing exactly what you promised yourself.
+
+### Dig Deeper — Arena Analysis
+
+Each arena in the weekly report has a "Dig deeper →" button that triggers a second, focused AI call analyzing that specific arena's performance. Returns:
+
+- A **trend badge** (↑/↓/→) next to the arena name
+- A **pattern**: 1–2 sentences identifying the underlying habit or behavior driving results
+- An **action plan**: 3 concrete steps specific to this arena
+
+The separate endpoint keeps this analysis fast and independent — you only pay the latency when you actually want the deep dive.
+
+### Monthly Tracker
+
+A calendar view (`/month`) showing every day of the month as a colored circle:
+
+- 🟢 **Green** — All daily tasks completed
+- 🟡 **Amber** — Partial completion
+- ⭕ **Grey outline** — Nothing done (missed)
+- ✕ **Grey X** — Future day
+- ⬜ **Neutral** — Weekend
+
+Below the calendar: a stats bar (completion rate, total tasks, total XP) and a weekly breakdown table showing each week's completion rate, task count, XP, and best/worst week labels. This view makes multi-week patterns visible that the week-by-week report misses.
+
+### Day-Selector for Retroactive Editing
+
+Inside each Arena Detail view, a Mon–Sun tab bar lets you select any day of the current week. Status dots show that day's completion state at a glance.
+
+Selecting a past day enters **retroactive editing mode**:
+- An amber banner clarifies you're editing a past day
+- **Daily tasks** become toggleable — tap to mark complete, tap again to undo
+- **Weekly and misc tasks** become read-only (count-based logic doesn't support day-level editing cleanly)
+- Retroactive completions are **silent**: no XP awarded, no hype message, no toast. This preserves fairness while letting you fix genuine data entry errors.
+
+Weekend tabs automatically filter out daily recurring tasks and only show weekly/misc — the same logic used by Today's Focus.
+
+### Progressive Web App
+
+Peak Mode installs on any device directly from the browser — no app store. The service worker (via `vite-plugin-pwa` with `generateSW` mode) precaches the entire app bundle and static assets. A custom branded icon and `theme-color` make the installed experience feel native.
+
+---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────┐
-│                   Vercel                         │
-│  ┌──────────────┐    ┌───────────────────────┐  │
-│  │  React SPA   │    │  Serverless Functions  │  │
-│  │  (Vite PWA)  │    │  /api/hype             │  │
-│  │              │    │  /api/weekly-report     │  │
-│  └──────┬───────┘    └──────────┬────────────┘  │
-└─────────┼───────────────────────┼────────────────┘
-          │                       │
-          ▼                       ▼
-   ┌──────────────┐      ┌──────────────┐
-   │   Supabase   │      │  Claude API  │
-   │  (Postgres)  │      │  (Anthropic) │
-   │  + Auth      │      │              │
-   └──────────────┘      └──────────────┘
+┌──────────────────────────────────────────────────────────┐
+│                        Vercel                             │
+│                                                           │
+│   ┌─────────────────┐     ┌────────────────────────────┐ │
+│   │  React 19 SPA   │     │   Serverless Functions     │ │
+│   │  (Vite + PWA)   │     │                            │ │
+│   │                 │     │  POST /api/hype             │ │
+│   │  React Router   │     │  POST /api/weekly-report    │ │
+│   │  Tailwind CSS   │     │  POST /api/arena-deep-dive  │ │
+│   └────────┬────────┘     └────────────┬───────────────┘ │
+└────────────┼─────────────────────────────────────────────┘
+             │                           │
+             ▼                           ▼
+    ┌─────────────────┐        ┌──────────────────┐
+    │    Supabase     │        │   Anthropic API  │
+    │                 │        │                  │
+    │  PostgreSQL     │        │  claude-sonnet-  │
+    │  Auth (email)   │        │  4-6             │
+    │  Row Level Sec  │        │                  │
+    └─────────────────┘        └──────────────────┘
 ```
 
-**Key design decisions:**
-- Claude API key lives server-side in Vercel serverless functions — never exposed to the browser
-- Supabase Row Level Security on every table — users can only access their own data
-- Task completion timestamps stored for full historical tracking
-- Weekly reports persisted in the database so past weeks are always browsable
-- `COALESCE(priority_override, priority)` pattern for clean priority overrides without schema complexity
+### Why Vercel Serverless for AI Calls
 
-## Database Schema
+The Anthropic API key must never reach the browser. Vercel serverless functions provide the simplest possible server layer that lives in the same repository and deployment unit as the frontend — no separate backend service to maintain, no cold-start overhead for the database layer. Each AI endpoint authenticates the caller by validating their Supabase JWT before forwarding to Claude.
 
-Five core tables:
+### Why Supabase
 
-- **profiles** — User level, total XP, streak data, linked to Supabase auth
-- **arenas** — The four life domains (seeded, not user-editable)
-- **tasks** — Both recurring and misc tasks with priority, recurrence type, and weekly targets
-- **task_completions** — Immutable log of every task completion with timestamp and XP earned
-- **weekly_reports** — AI-generated weekly summaries with arena breakdowns stored as JSONB
+Three things make Supabase the right choice here:
 
-## Running Locally
+1. **Row Level Security** — Every table has `user_id` policies enforced at the database layer. Even a misconfigured client query cannot access another user's data. This is a stronger guarantee than application-level auth checks.
 
-```bash
-# Clone the repo
-git clone https://github.com/ashwin-raman-oss/peak-mode.git
-cd peak-mode
+2. **Postgres over document stores** — The data model has real relational structure. `task_completions` joins to `tasks` joins to `arenas`. Weekly reports aggregate from completions. A document store would fight these queries; Postgres makes them trivial.
 
-# Install dependencies
-npm install
+3. **Auth + database in one** — Supabase Auth provides JWTs that Postgres RLS policies can consume directly via `auth.uid()`. No separate identity service, no token exchange layer.
 
-# Set up environment variables
-cp .env.example .env.local
-# Fill in your Supabase URL, anon key, and Anthropic API key
+### Key Design Decisions
 
-# Run the Supabase migrations
-# Paste contents of supabase/migrations/001_schema.sql into your Supabase SQL editor
-# Then paste supabase/migrations/002_rls_triggers_seed.sql
+**Optimistic UI throughout.** Task completions, updates, and deletes are applied to React state immediately, then persisted to Supabase. On error, state is rolled back. This makes the app feel instant on any connection quality.
 
-# Start the dev server
-npm run dev
-```
+**UTC-based date arithmetic everywhere.** `toDateStr()`, `getWeekStart()`, and all completion timestamp comparisons use UTC methods — `getUTCDay()`, `setUTCDate()`, `.toISOString().slice(0, 10)`. Mobile devices in different timezones get consistent behavior.
 
-## Design Philosophy
+**`priority_override` pattern.** Tasks have both a base `priority` and a nullable `priority_override`. The effective priority is `COALESCE(priority_override, priority)`. This lets users customize without losing the system's original signal, and makes resetting to default trivial.
 
-The UI is intentionally designed to feel like a premium health-tech product (think Whoop or Apple Fitness) rather than a gamified to-do app. Dark background (#080808), warm off-white accents (#E8E0D0), muted gold for XP indicators, ultra-thin progress bars, and subtle card depth through inner shadows and directional borders. The goal is a tool that feels sophisticated enough to open every morning without fatigue.
+**JSONB for flexible report data.** `arena_breakdown` and `next_week_commitments` in `weekly_reports` are stored as JSONB. The report schema can evolve without migrations — new fields appear immediately in both old and new report rows.
 
-## Roadmap
+**Retroactive completions at noon UTC.** When editing a past day, completions are inserted with `completed_at = dateStr + 'T12:00:00Z'` and `xp_earned = 0`. The noon timestamp avoids DST edge cases for date comparisons; zero XP preserves fairness (you can't grind past data for levels).
 
-This is a living project. Planned additions include:
-
-- **Habit Tracker** — Track daily habits beyond task completion (sleep quality, water intake, screen time)
-- **Personal Growth Goals** — Define things you want to change about yourself with milestone-based task sequences to get there
-- **Historical Analytics** — Charts and trends across weeks and months showing progress patterns
-- **Improved Weekly Reports** — Deeper AI insights with cross-arena pattern recognition
-- **Notification System** — Browser push notifications for daily reminders and streak warnings
-
-## Built With
-
-This project was built end-to-end using [Claude Code](https://docs.anthropic.com/en/docs/claude-code) as an AI-powered development partner — from initial concept brainstorming through schema design, implementation, UI iteration, and deployment. The commit history reflects the real build process.
+**New-user trigger.** A Postgres trigger (`handle_new_user`) fires on every `auth.users` insert and seeds the new user's `profile` row plus a full set of default recurring tasks. The app is ready to use immediately after sign-up with no onboarding flow.
 
 ---
 
-*Peak Mode is a personal project by [Ashwin Raman](https://github.com/ashwin-raman-oss). If you're interested in the product thinking behind it or want to chat about building with AI tools, feel free to reach out.*
+## Database Schema
+
+```sql
+profiles          -- level, total_xp, current_streak, longest_streak, last_active_date
+arenas            -- name, emoji, slug, default_priority (seeded; not user-editable)
+tasks             -- title, task_type, recurrence, priority, priority_override, weekly_target
+task_completions  -- task_id, completed_at, xp_earned, week_start_date
+weekly_reports    -- week_start_date, arena_breakdown (JSONB), ai_summary, next_week_commitments (JSONB)
+```
+
+Indexes on `(user_id, week_start_date)` for both `task_completions` and `weekly_reports` — the two most frequent query patterns.
+
+The `weekly_reports` table has a `UNIQUE (user_id, week_start_date)` constraint, enabling clean `upsert` semantics when regenerating a report.
+
+---
+
+## Tech Stack
+
+| | Technology | Version |
+|--|-----------|---------|
+| **Frontend** | React | 19.1 |
+| **Routing** | React Router | 7.5 |
+| **Build** | Vite | 6.3 |
+| **Styling** | Tailwind CSS | 3.4 |
+| **PWA** | vite-plugin-pwa | 0.21 |
+| **Database / Auth** | Supabase (PostgreSQL) | JS SDK 2.49 |
+| **AI** | Anthropic SDK (Claude Sonnet 4.6) | 0.82 |
+| **Hosting** | Vercel (SPA + Serverless) | — |
+| **Testing** | Vitest + Testing Library | 3.1 / 16.3 |
+
+**On the AI SDK choice:** The Anthropic SDK is used directly rather than a wrapper like the Vercel AI SDK. This gives full control over system prompts, `max_tokens`, and response parsing — important when you're relying on structured JSON output from the model and need deterministic parsing behavior.
+
+---
+
+## Local Setup
+
+### Prerequisites
+
+- Node.js 18+
+- A [Supabase](https://supabase.com) project (free tier works)
+- An [Anthropic API key](https://console.anthropic.com)
+
+### 1. Clone and install
+
+```bash
+git clone https://github.com/ashwin-raman-oss/peak-mode.git
+cd peak-mode
+npm install
+```
+
+### 2. Create the database
+
+In your Supabase project's **SQL Editor**, run the migrations in order:
+
+```bash
+# Run these files sequentially in the Supabase SQL editor:
+supabase/migrations/001_schema.sql       # Tables and indexes
+supabase/migrations/002_rls_triggers_seed.sql  # RLS policies, new-user trigger, arena seed data
+docs/migrations/003_next_week_commitments.sql  # Adds next_week_commitments column
+```
+
+### 3. Configure environment variables
+
+```bash
+cp .env.example .env.local
+```
+
+Open `.env.local` and fill in:
+
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+ANTHROPIC_API_KEY=your-anthropic-api-key
+```
+
+The `VITE_` prefix exposes variables to the React client. `ANTHROPIC_API_KEY` has no prefix — it's only available to Vercel serverless functions and never reaches the browser.
+
+### 4. Run locally
+
+```bash
+npm run dev
+```
+
+The Vite dev server proxies `/api/*` requests to Vercel's local function runtime automatically when you use `vercel dev` instead:
+
+```bash
+npm install -g vercel
+vercel dev   # runs frontend + serverless functions together on localhost:3000
+```
+
+Use `vercel dev` rather than `npm run dev` if you want AI features (hype messages, report generation) to work locally.
+
+---
+
+## Deployment
+
+Peak Mode deploys as a single Vercel project — the React SPA and all serverless functions live in the same repository and deploy together.
+
+### First deployment
+
+```bash
+npm install -g vercel
+vercel login
+vercel link        # connect to your Vercel project
+vercel env add VITE_SUPABASE_URL
+vercel env add VITE_SUPABASE_ANON_KEY
+vercel env add ANTHROPIC_API_KEY
+vercel --prod
+```
+
+### Subsequent deployments
+
+```bash
+vercel --prod
+```
+
+Vercel detects the Vite framework automatically. Serverless functions in `/api` are deployed as Node.js edge functions without any additional configuration.
+
+### Environment variable notes
+
+- All three variables must be set in Vercel's project settings (Production, Preview, Development)
+- `ANTHROPIC_API_KEY` should be marked as **sensitive** in Vercel — it's never injected into the client bundle because it lacks the `VITE_` prefix
+- The Supabase anon key is safe to expose client-side — RLS policies enforce access control at the database layer
+
+---
+
+## Design System
+
+The UI is built around a premium health-tech aesthetic (Whoop, Strava) rather than a traditional productivity app. Key decisions:
+
+- **DM Sans** — geometric grotesque, pairs well with data-heavy layouts
+- **Slate blue `#2D5BE3`** — primary accent; used for the current level badge, progress fills, selected states, and CTAs
+- **Arena colors** — each domain has a distinct accent: blue (Career), green (Health), purple (Learning), amber (Misc). The left border on arena cards makes the color system structural, not decorative.
+- **`h-[3px]` progress bars** — ultra-thin to avoid visual weight on dense layouts
+- **Light background `#F8F9FA`** — off-white rather than true white, reduces contrast fatigue across long sessions
+
+All color values are centralized in `tailwind.config.js` as `peak-*` tokens. Components reference tokens, never raw hex values (with a few documented exceptions for one-off states).
+
+---
+
+## Project Structure
+
+```
+peak-mode/
+├── api/                        # Vercel serverless functions
+│   ├── hype.js                 # Task completion hype message
+│   ├── weekly-report.js        # Weekly AI coach report
+│   └── arena-deep-dive.js      # Per-arena pattern analysis
+├── src/
+│   ├── components/
+│   │   ├── ui/                 # Button, Modal, Badge, ProgressBar, Icon
+│   │   ├── ArenaCard.jsx       # Arena summary card with next-task preview
+│   │   ├── Header.jsx          # Sticky header with level + streak
+│   │   ├── TaskRow.jsx         # Task row with toggle, counter, edit/delete
+│   │   ├── TodaysFocus.jsx     # Top 3 high-priority tasks + weekend state
+│   │   ├── FormDipBanner.jsx   # Warning when high-priority tasks remain
+│   │   └── XPToast.jsx         # Animated XP + hype message overlay
+│   ├── hooks/
+│   │   ├── useTasks.js         # Core task state, completions, stats
+│   │   ├── useProfile.js       # Level, XP, streak
+│   │   ├── useWeeklyReport.js  # Report fetch + generate
+│   │   ├── useMonthlyData.js   # Calendar status, monthly stats
+│   │   ├── useLastWeekCommitments.js
+│   │   └── useRecentActivity.js
+│   ├── pages/
+│   │   ├── Dashboard.jsx       # Main view: stats bar, arenas, focus, activity
+│   │   ├── ArenaDetail.jsx     # Arena tasks + day-selector tab bar
+│   │   ├── WeeklyReport.jsx    # Performance report + dig deeper panels
+│   │   └── MonthlyTracker.jsx  # Calendar + monthly breakdown
+│   ├── lib/
+│   │   ├── supabase.js         # Supabase client
+│   │   ├── dates.js            # UTC date utilities
+│   │   └── xp.js               # XP/level calculation
+│   └── context/
+│       └── AuthContext.jsx
+├── supabase/migrations/        # SQL schema + RLS + seed data
+├── docs/migrations/            # Post-launch migrations
+└── public/                     # PWA icons, manifest
+```
+
+---
+
+## Built With
+
+This project was designed and built end-to-end using [Claude Code](https://claude.ai/code) as a development partner — from schema design and product thinking through implementation, UI iteration, and deployment. The commit history reflects the real build process, including refactors, bug fixes, and feature evolution over time.
+
+---
+
+*Built by [Ashwin Raman](https://github.com/ashwin-raman-oss). Open to conversations about product thinking, building with AI tools, or the design decisions behind Peak Mode.*

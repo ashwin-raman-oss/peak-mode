@@ -46,6 +46,9 @@ export default function Header({ profile }) {
           <Link to="/month" className="text-peak-text hover:text-peak-accent text-xs font-medium transition-colors">
             Month
           </Link>
+          <Link to="/habits" className="text-peak-text hover:text-peak-accent text-xs font-medium transition-colors">
+            Habits
+          </Link>
           <Link to="/report" className="text-peak-text hover:text-peak-accent text-xs font-medium transition-colors">
             Report
           </Link>

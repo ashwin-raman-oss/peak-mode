@@ -130,23 +130,21 @@ function EveningCard({ done, saveCheckin }) {
   return (
     <div className="bg-white border-l-4 rounded-lg p-4" style={{ borderLeftColor: '#2D5BE3' }}>
       <p className="text-[10px] font-bold tracking-widest text-peak-accent uppercase">EVENING CHECK-IN</p>
-      <p className="text-xs text-peak-muted mb-3">How was your day?</p>
       <form onSubmit={handleSubmit}>
         {/* Day rating */}
         <div className="flex gap-2 mb-3">
           {[1, 2, 3, 4, 5].map(n => (
-            <button
+            <div
               key={n}
-              type="button"
               onClick={() => setDayRating(n)}
-              className={`w-8 h-8 rounded-full border-2 text-sm font-semibold flex items-center justify-center transition-colors ${
+              className={`w-8 h-8 rounded-full border-2 text-sm font-semibold flex items-center justify-center cursor-pointer transition-colors select-none ${
                 dayRating === n
                   ? 'bg-peak-accent border-peak-accent text-white'
                   : 'border-peak-border text-peak-muted hover:border-peak-accent/50'
               }`}
             >
               {n}
-            </button>
+            </div>
           ))}
         </div>
 

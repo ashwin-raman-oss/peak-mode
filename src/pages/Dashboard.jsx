@@ -4,12 +4,14 @@ import { useProfile } from '../hooks/useProfile'
 import { useTasks } from '../hooks/useTasks'
 import { useRecentActivity } from '../hooks/useRecentActivity'
 import { useLastWeekCommitments } from '../hooks/useLastWeekCommitments'
+import { useCheckin } from '../hooks/useCheckin'
 import { supabase } from '../lib/supabase'
 import Header from '../components/Header'
 import TodaysFocus from '../components/TodaysFocus'
 import FormDipBanner from '../components/FormDipBanner'
 import ArenaCard from '../components/ArenaCard'
 import XPToast from '../components/XPToast'
+import CheckinCard from '../components/CheckinCard'
 import { formatWeekRange, getWeekStart } from '../lib/dates'
 
 const ARENA_SLUGS = ['career', 'health', 'learning', 'misc']
@@ -30,6 +32,7 @@ export default function Dashboard() {
   } = useTasks(user?.id)
   const { activity } = useRecentActivity(user?.id)
   const { commitments } = useLastWeekCommitments(user?.id)
+  const { morningDone, eveningDone, saveCheckin } = useCheckin(user?.id)
 
   const [toast, setToast] = useState(null)
   const [completing, setCompleting] = useState(null)
@@ -123,6 +126,14 @@ export default function Dashboard() {
             <span className="text-sm font-medium text-peak-muted ml-1">XP</span>
           </span>
         </div>
+
+        {/* Check-in card */}
+        <CheckinCard
+          userId={user?.id}
+          morningDone={morningDone}
+          eveningDone={eveningDone}
+          saveCheckin={saveCheckin}
+        />
 
         {/* Stats bar */}
         {profile && (

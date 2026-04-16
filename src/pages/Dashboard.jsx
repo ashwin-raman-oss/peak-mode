@@ -129,7 +129,6 @@ export default function Dashboard() {
 
         {/* Check-in card */}
         <CheckinCard
-          userId={user?.id}
           morningDone={morningDone}
           eveningDone={eveningDone}
           saveCheckin={saveCheckin}

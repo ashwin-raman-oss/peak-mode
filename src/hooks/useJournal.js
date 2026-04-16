@@ -1,32 +1,27 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 
 export function useJournal(userId) {
   const [entries, setEntries] = useState([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+  const fetchEntries = useCallback(async () => {
     if (!userId) {
       setLoading(false)
       return
     }
+    setLoading(true)
+    const { data, error } = await supabase
+      .from('daily_checkins')
+      .select('*')
+      .eq('user_id', userId)
+      .order('date', { ascending: false })
 
-    async function fetchEntries() {
-      setLoading(true)
-      const { data, error } = await supabase
-        .from('daily_checkins')
-        .select('*')
-        .eq('user_id', userId)
-        .order('date', { ascending: false })
-
-      if (!error && data) {
-        setEntries(data)
-      }
-      setLoading(false)
-    }
-
-    fetchEntries()
+    if (!error && data) setEntries(data)
+    setLoading(false)
   }, [userId])
 
-  return { entries, loading }
+  useEffect(() => { fetchEntries() }, [fetchEntries])
+
+  return { entries, loading, refresh: fetchEntries }
 }

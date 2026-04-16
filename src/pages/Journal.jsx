@@ -15,13 +15,11 @@ export default function Journal() {
   const { entries, loading } = useJournal(user?.id)
   const [filter, setFilter] = useState('week') // 'week' | 'month' | 'all'
 
-  const now = new Date()
-
   const filtered = useMemo(() => {
+    const now = new Date()
     return entries.filter(e => {
       const d = new Date(e.date + 'T00:00:00')
       if (filter === 'week') {
-        // current week Mon-Sun
         const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1
         const weekStart = new Date(now)
         weekStart.setDate(now.getDate() - dayOfWeek)

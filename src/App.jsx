@@ -8,6 +8,7 @@ import ArenaDetail from './pages/ArenaDetail'
 import WeeklyReport from './pages/WeeklyReport'
 import MonthlyTracker from './pages/MonthlyTracker'
 import HabitTracker from './pages/HabitTracker'
+import Journal from './pages/Journal'
 
 export default function App() {
   const [isOffline, setIsOffline] = useState(!navigator.onLine)
@@ -39,6 +40,7 @@ export default function App() {
           <Route path="/report/:weekDate" element={<ProtectedRoute><WeeklyReport /></ProtectedRoute>} />
           <Route path="/month" element={<ProtectedRoute><MonthlyTracker /></ProtectedRoute>} />
           <Route path="/habits" element={<ProtectedRoute><HabitTracker /></ProtectedRoute>} />
+          <Route path="/journal" element={<ProtectedRoute><Journal /></ProtectedRoute>} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

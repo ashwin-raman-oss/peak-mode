@@ -49,6 +49,9 @@ export default function Header({ profile }) {
           <Link to="/habits" className="text-peak-text hover:text-peak-accent text-xs font-medium transition-colors">
             Habits
           </Link>
+          <Link to="/journal" className="text-peak-text hover:text-peak-accent text-xs font-medium transition-colors">
+            Journal
+          </Link>
           <Link to="/report" className="text-peak-text hover:text-peak-accent text-xs font-medium transition-colors">
             Report
           </Link>

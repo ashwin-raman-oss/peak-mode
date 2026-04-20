@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 import { useMonthlyData } from '../hooks/useMonthlyData'
 import Header from '../components/Header'
+import DayDetailModal from '../components/DayDetailModal'
 
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December']
 const DAY_HEADERS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
@@ -16,7 +17,7 @@ const STATUS_COLOR = {
   future:  'bg-transparent text-peak-muted/40',
 }
 
-function CalendarGrid({ year, month, dailyStatus }) {
+function CalendarGrid({ year, month, dailyStatus, onDayClick }) {
   // month is 1-indexed
   const firstDay = new Date(Date.UTC(year, month - 1, 1))
   const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate()
@@ -55,10 +56,16 @@ function CalendarGrid({ year, month, dailyStatus }) {
           const status = info?.status ?? 'future'
           const colorClass = STATUS_COLOR[status] ?? STATUS_COLOR.future
 
+          const isFutureDay = status === 'future'
+
           return (
-            <div key={dateStr} className="aspect-square flex items-center justify-center">
+            <div
+              key={dateStr}
+              className="aspect-square flex items-center justify-center"
+              onClick={() => !isFutureDay && onDayClick?.(dateStr)}
+            >
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${colorClass}`}
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${colorClass} ${!isFutureDay ? 'cursor-pointer hover:ring-2 hover:ring-peak-accent/30' : ''}`}
                 title={status === 'full' ? `${info.completed} tasks · ${info.xp} XP` : status}
               >
                 {day}
@@ -80,7 +87,8 @@ export default function MonthlyTracker() {
   const [year, setYear] = useState(now.getUTCFullYear())
   const [month, setMonth] = useState(now.getUTCMonth() + 1)
 
-  const { dailyStatus, monthStats, loading } = useMonthlyData(user?.id, year, month)
+  const [selectedDay, setSelectedDay] = useState(null)
+  const { dailyStatus, monthStats, loading, refresh } = useMonthlyData(user?.id, year, month)
 
   function prevMonth() {
     if (month === 1) { setYear(y => y - 1); setMonth(12) }
@@ -148,7 +156,7 @@ export default function MonthlyTracker() {
 
         {/* Calendar */}
         <div className="bg-peak-surface border border-peak-border rounded-xl p-5">
-          <CalendarGrid year={year} month={month} dailyStatus={dailyStatus} />
+          <CalendarGrid year={year} month={month} dailyStatus={dailyStatus} onDayClick={setSelectedDay} />
 
           {/* Legend */}
           <div className="flex items-center gap-4 mt-4 flex-wrap">
@@ -217,6 +225,17 @@ export default function MonthlyTracker() {
           </button>
         </div>
       </main>
+
+      {selectedDay && (
+        <DayDetailModal
+          date={selectedDay}
+          userId={user?.id}
+          onClose={() => {
+            setSelectedDay(null)
+            refresh()
+          }}
+        />
+      )}
     </div>
   )
 }

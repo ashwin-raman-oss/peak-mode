@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { toDateStr, getWeekStart } from '../lib/dates'
 
@@ -7,12 +7,8 @@ export function useMonthlyData(userId, year, month) {
   const [monthStats, setMonthStats] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+  const fetchData = useCallback(async () => {
     if (!userId) { setLoading(false); return }
-    fetchData()
-  }, [userId, year, month]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  async function fetchData() {
     setLoading(true)
 
     const firstDay = new Date(Date.UTC(year, month - 1, 1))
@@ -114,7 +110,9 @@ export function useMonthlyData(userId, year, month) {
 
     setMonthStats({ totalTasks, totalXp, weeksData, completionRate, bestWeek, worstWeek })
     setLoading(false)
-  }
+  }, [userId, year, month])
 
-  return { dailyStatus, monthStats, loading }
+  useEffect(() => { fetchData() }, [fetchData])
+
+  return { dailyStatus, monthStats, loading, refresh: fetchData }
 }

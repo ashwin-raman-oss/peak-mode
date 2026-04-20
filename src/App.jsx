@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useParams } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
@@ -9,6 +9,16 @@ import WeeklyReport from './pages/WeeklyReport'
 import MonthlyTracker from './pages/MonthlyTracker'
 import HabitTracker from './pages/HabitTracker'
 import Journal from './pages/Journal'
+
+// Wrapper that forces a fresh WeeklyReport mount whenever the week param changes
+function WeeklyReportRoute() {
+  const { weekDate } = useParams()
+  return (
+    <ProtectedRoute>
+      <WeeklyReport key={weekDate ?? 'current'} />
+    </ProtectedRoute>
+  )
+}
 
 export default function App() {
   const [isOffline, setIsOffline] = useState(!navigator.onLine)
@@ -36,8 +46,8 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/arena/:slug" element={<ProtectedRoute><ArenaDetail /></ProtectedRoute>} />
-          <Route path="/report" element={<ProtectedRoute><WeeklyReport /></ProtectedRoute>} />
-          <Route path="/report/:weekDate" element={<ProtectedRoute><WeeklyReport /></ProtectedRoute>} />
+          <Route path="/report" element={<WeeklyReportRoute />} />
+          <Route path="/report/:weekDate" element={<WeeklyReportRoute />} />
           <Route path="/month" element={<ProtectedRoute><MonthlyTracker /></ProtectedRoute>} />
           <Route path="/habits" element={<ProtectedRoute><HabitTracker /></ProtectedRoute>} />
           <Route path="/journal" element={<ProtectedRoute><Journal /></ProtectedRoute>} />

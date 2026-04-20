@@ -59,6 +59,7 @@ export default function WeeklyReport() {
   const canGoPrev = weekStartStr > twelveWeeksAgo
   const canGoNext = !isCurrentWeek
 
+
   const [generateError, setGenerateError] = useState(null)
   const [expandedArena, setExpandedArena] = useState(null)
   const [deepDiveData, setDeepDiveData] = useState({})

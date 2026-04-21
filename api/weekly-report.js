@@ -25,7 +25,7 @@ Rules:
 - End with exactly 3 numbered action items for next week — each one sentence, specific and measurable.
 - Tone: halftime locker room. Direct. No filler phrases.
 
-Respond ONLY with valid JSON in this exact format:
+Respond ONLY with raw JSON. No markdown code fences, no backticks, no preamble. Exact format:
 {
   "summary": "2-3 sentences of honest analysis",
   "focusAreas": ["area 1", "area 2"],
@@ -77,11 +77,12 @@ Analyze this week and give 3 specific commitments for next week.`
     })
 
     const raw = message.content[0]?.text?.trim() ?? ''
+    const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
 
     // Parse JSON response
     let parsed
     try {
-      parsed = JSON.parse(raw)
+      parsed = JSON.parse(cleaned)
     } catch {
       // Fallback if AI doesn't return valid JSON
       parsed = {

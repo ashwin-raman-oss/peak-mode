@@ -18,22 +18,22 @@ const TREND_COLOR = { up: 'text-peak-success', down: 'text-[#DC2626]', flat: 'te
 
 function parseCoach(report) {
   if (!report?.ai_summary) return null
-  // Handle legacy plain-text format
-  if (!report.ai_summary.trim().startsWith('{')) {
+  const stripped = report.ai_summary.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
+  if (!stripped.startsWith('{')) {
     return {
-      summary: report.ai_summary,
+      summary: stripped,
       nextWeekCommitments: report.next_week_commitments ?? [],
     }
   }
   try {
-    const parsed = JSON.parse(report.ai_summary)
+    const parsed = JSON.parse(stripped)
     return {
-      summary: parsed.summary ?? report.ai_summary,
+      summary: parsed.summary ?? stripped,
       nextWeekCommitments: report.next_week_commitments ?? parsed.nextWeekCommitments ?? [],
     }
   } catch {
     return {
-      summary: report.ai_summary,
+      summary: stripped,
       nextWeekCommitments: report.next_week_commitments ?? [],
     }
   }

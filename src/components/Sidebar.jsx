@@ -2,7 +2,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
-import { getXpInLevel } from '../lib/xp'
+import { getXpInLevel, XP_PER_LEVEL } from '../lib/xp'
 import { supabase } from '../lib/supabase'
 
 const NAV_ITEMS = [
@@ -20,11 +20,15 @@ export default function Sidebar() {
   const navigate = useNavigate()
 
   const xpInLevel = profile ? getXpInLevel(profile.total_xp) : 0
-  const xpPct = Math.min(100, Math.round((xpInLevel / 1000) * 100))
+  const xpPct = Math.min(100, Math.round((xpInLevel / XP_PER_LEVEL) * 100))
   const initial = user?.email?.[0]?.toUpperCase() ?? '?'
 
   async function handleLogout() {
-    await supabase.auth.signOut()
+    try {
+      await supabase.auth.signOut()
+    } catch (err) {
+      console.error('Logout error:', err)
+    }
     navigate('/login')
   }
 

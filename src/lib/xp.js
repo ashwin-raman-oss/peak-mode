@@ -1,4 +1,4 @@
-const XP_PER_LEVEL = 1000
+export const XP_PER_LEVEL = 1000
 
 export function getLevel(totalXp) {
   return Math.floor(totalXp / XP_PER_LEVEL) + 1

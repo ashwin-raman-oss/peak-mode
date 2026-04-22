@@ -68,7 +68,7 @@ export default function Dashboard() {
         })
         if (res.ok) { const d = await res.json(); message = d.message }
       } catch { /* hype is optional */ }
-      setToast({ xp, message, id: Date.now() })
+      setToast({ xp, hypeMessage: message, id: Date.now() })
     } finally {
       setCompleting(null)
     }
@@ -82,7 +82,7 @@ export default function Dashboard() {
       />
       <main className="flex-1 overflow-y-auto bg-peak-bg p-6">
         {toast && (
-          <XPToast key={toast.id} xp={toast.xp} message={toast.message} onDone={() => setToast(null)} />
+          <XPToast key={toast.id} xp={toast.xp} hypeMessage={toast.hypeMessage} onDone={() => setToast(null)} />
         )}
 
         {/* Stats row */}

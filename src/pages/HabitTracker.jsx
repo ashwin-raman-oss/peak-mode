@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 import { useHabits } from '../hooks/useHabits'
-import Header from '../components/Header'
+import TopBar from '../components/TopBar'
 import Modal from '../components/ui/Modal'
 import { toDateStr } from '../lib/dates'
 import { supabase } from '../lib/supabase'
@@ -235,40 +235,149 @@ export default function HabitTracker() {
 
   const todayStr = toDateStr(new Date())
 
+  // Derive streak and grid data from the first habit
+  const primaryHabit = habits[0] || null
+  const primaryCompletions = primaryHabit ? getHabitCompletions(primaryHabit.id) : []
+
+  // Build 66-day grid array
+  const days = primaryHabit
+    ? Array.from({ length: 66 }).map((_, i) => {
+        const d = addDaysToDate(primaryHabit.start_date, i)
+        const dateStr = toDateStr(d)
+        const isFuture = dateStr > todayStr
+        const completed = primaryCompletions.includes(dateStr)
+        const label = dateStr
+        return { isFuture, completed, label }
+      })
+    : []
+
+  // Compute current streak (consecutive completed days ending today or yesterday)
+  function computeCurrentStreak(completionDates) {
+    if (!completionDates.length) return 0
+    const sorted = [...completionDates].sort().reverse()
+    let streak = 0
+    let cursor = todayStr
+    for (const d of sorted) {
+      if (d === cursor) {
+        streak++
+        const prev = new Date(cursor + 'T00:00:00')
+        prev.setDate(prev.getDate() - 1)
+        cursor = toDateStr(prev)
+      } else {
+        break
+      }
+    }
+    // If today isn't completed, try starting from yesterday
+    if (streak === 0) {
+      const yesterday = new Date(todayStr + 'T00:00:00')
+      yesterday.setDate(yesterday.getDate() - 1)
+      cursor = toDateStr(yesterday)
+      for (const d of sorted) {
+        if (d === cursor) {
+          streak++
+          const prev = new Date(cursor + 'T00:00:00')
+          prev.setDate(prev.getDate() - 1)
+          cursor = toDateStr(prev)
+        } else {
+          break
+        }
+      }
+    }
+    return streak
+  }
+
+  // Compute longest streak
+  function computeLongestStreak(completionDates) {
+    if (!completionDates.length) return 0
+    const sorted = [...completionDates].sort()
+    let longest = 1
+    let current = 1
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = new Date(sorted[i - 1] + 'T00:00:00')
+      prev.setDate(prev.getDate() + 1)
+      if (toDateStr(prev) === sorted[i]) {
+        current++
+        if (current > longest) longest = current
+      } else {
+        current = 1
+      }
+    }
+    return longest
+  }
+
+  const currentStreak = computeCurrentStreak(primaryCompletions)
+  const longestStreak = computeLongestStreak(primaryCompletions)
+
   return (
-    <div className="min-h-screen bg-peak-bg">
-      <Header profile={profile} />
-      <main className="max-w-3xl mx-auto px-6 py-8">
-        {/* Page header */}
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-lg font-extrabold text-peak-primary uppercase tracking-tight">HABITS</h1>
-          <button
-            onClick={() => setShowAdd(true)}
-            className="bg-peak-accent text-white text-xs font-semibold px-4 py-2 rounded-md hover:opacity-90"
-          >
-            Add Habit
-          </button>
+    <div className="flex flex-col h-full overflow-hidden">
+      <TopBar title="Habit Tracker" subtitle="66-day challenge" />
+      <main className="flex-1 overflow-y-auto bg-peak-bg p-6">
+        {/* Streak stat cards */}
+        <div className="grid grid-cols-2 gap-4 mb-6 max-w-sm">
+          <div className="bg-peak-surface border border-peak-border border-l-[3px] border-l-peak-accent rounded-xl px-4 py-4">
+            <p className="text-[9px] font-semibold text-peak-muted uppercase tracking-widest mb-1">Current Streak</p>
+            <p className="text-2xl font-extrabold text-peak-text">{currentStreak}</p>
+            <p className="text-[10px] text-peak-muted">days</p>
+          </div>
+          <div className="bg-peak-surface border border-peak-border border-l-[3px] border-l-peak-text rounded-xl px-4 py-4">
+            <p className="text-[9px] font-semibold text-peak-muted uppercase tracking-widest mb-1">Longest Streak</p>
+            <p className="text-2xl font-extrabold text-peak-text">{longestStreak}</p>
+            <p className="text-[10px] text-peak-muted">days</p>
+          </div>
+        </div>
+
+        {/* 66-day grid */}
+        <div className="bg-peak-surface border border-peak-border rounded-xl p-5">
+          <p className="text-xs font-semibold text-peak-muted uppercase tracking-widest mb-4">66-Day Grid</p>
+          <div className="grid grid-cols-11 gap-1.5">
+            {days.map((day, i) => (
+              <div
+                key={i}
+                title={day.label}
+                className={`aspect-square rounded-md flex items-center justify-center text-[9px] font-semibold transition-colors ${
+                  day.isFuture
+                    ? 'bg-[#F4F4F5] text-[#D4D4D8]'
+                    : day.completed
+                    ? 'bg-peak-accent text-white'
+                    : 'bg-peak-border text-peak-muted'
+                }`}
+              >
+                {i + 1}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Habits list */}
-        {habits.map(habit => (
-          <HabitCard
-            key={habit.id}
-            habit={habit}
-            getHabitCompletions={getHabitCompletions}
-            getFormationProgress={getFormationProgress}
-            toggleHabitDay={toggleHabitDay}
-            deleteHabit={deleteHabit}
-            todayStr={todayStr}
-          />
-        ))}
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-xs font-semibold text-peak-muted uppercase tracking-widest">All Habits</p>
+            <button
+              onClick={() => setShowAdd(true)}
+              className="bg-peak-accent text-white text-xs font-semibold px-4 py-2 rounded-md hover:opacity-90"
+            >
+              Add Habit
+            </button>
+          </div>
 
-        {/* Empty state */}
-        {!loading && habits.length === 0 && (
-          <p className="text-peak-muted text-sm text-center mt-16">
-            No habits yet. Add your first habit to start building streaks.
-          </p>
-        )}
+          {habits.map(habit => (
+            <HabitCard
+              key={habit.id}
+              habit={habit}
+              getHabitCompletions={getHabitCompletions}
+              getFormationProgress={getFormationProgress}
+              toggleHabitDay={toggleHabitDay}
+              deleteHabit={deleteHabit}
+              todayStr={todayStr}
+            />
+          ))}
+
+          {!loading && habits.length === 0 && (
+            <p className="text-peak-muted text-sm text-center mt-16">
+              No habits yet. Add your first habit to start building streaks.
+            </p>
+          )}
+        </div>
 
         {/* Add modal */}
         {showAdd && (

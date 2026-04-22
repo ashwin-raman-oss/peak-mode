@@ -1,7 +1,9 @@
+// src/App.jsx
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, useParams } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
+import Sidebar from './components/Sidebar'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import ArenaDetail from './pages/ArenaDetail'
@@ -10,13 +12,23 @@ import MonthlyTracker from './pages/MonthlyTracker'
 import HabitTracker from './pages/HabitTracker'
 import Journal from './pages/Journal'
 
-// Wrapper that forces a fresh WeeklyReport mount whenever the week param changes
 function WeeklyReportRoute() {
   const { weekDate } = useParams()
   return (
     <ProtectedRoute>
       <WeeklyReport key={weekDate ?? 'current'} />
     </ProtectedRoute>
+  )
+}
+
+function AppLayout({ children }) {
+  return (
+    <div className="flex h-screen overflow-hidden">
+      <Sidebar />
+      <div className="flex-1 flex flex-col overflow-hidden ml-[220px]">
+        {children}
+      </div>
+    </div>
   )
 }
 
@@ -38,19 +50,19 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         {isOffline && (
-          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-peak-elevated border border-peak-border text-peak-primary text-xs font-medium px-4 py-2 rounded-full shadow-lg">
+          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-peak-sidebar text-white text-xs font-medium px-4 py-2 rounded-full shadow-lg">
             You're offline — showing cached data
           </div>
         )}
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/arena/:slug" element={<ProtectedRoute><ArenaDetail /></ProtectedRoute>} />
-          <Route path="/report" element={<WeeklyReportRoute />} />
-          <Route path="/report/:weekDate" element={<WeeklyReportRoute />} />
-          <Route path="/month" element={<ProtectedRoute><MonthlyTracker /></ProtectedRoute>} />
-          <Route path="/habits" element={<ProtectedRoute><HabitTracker /></ProtectedRoute>} />
-          <Route path="/journal" element={<ProtectedRoute><Journal /></ProtectedRoute>} />
+          <Route path="/" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
+          <Route path="/arena/:slug" element={<ProtectedRoute><AppLayout><ArenaDetail /></AppLayout></ProtectedRoute>} />
+          <Route path="/report" element={<AppLayout><WeeklyReportRoute /></AppLayout>} />
+          <Route path="/report/:weekDate" element={<AppLayout><WeeklyReportRoute /></AppLayout>} />
+          <Route path="/month" element={<ProtectedRoute><AppLayout><MonthlyTracker /></AppLayout></ProtectedRoute>} />
+          <Route path="/habits" element={<ProtectedRoute><AppLayout><HabitTracker /></AppLayout></ProtectedRoute>} />
+          <Route path="/journal" element={<ProtectedRoute><AppLayout><Journal /></AppLayout></ProtectedRoute>} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

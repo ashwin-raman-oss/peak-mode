@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 import { useTasks } from '../hooks/useTasks'
-import { useCheckin } from '../hooks/useCheckin'
 import { supabase } from '../lib/supabase'
 import TopBar from '../components/TopBar'
 import XPToast from '../components/XPToast'
@@ -39,8 +38,6 @@ export default function Dashboard() {
     tasks, arenas,
     getTodaysFocusTasks, getArenaStats, getWeekXp, isTaskDone, completeTask,
   } = useTasks(user?.id)
-  useCheckin(user?.id)
-
   const [toast, setToast] = useState(null)
   const [completing, setCompleting] = useState(null)
 

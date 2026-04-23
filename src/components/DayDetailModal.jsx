@@ -123,7 +123,7 @@ export default function DayDetailModal({ date, userId, onClose }) {
   return (
     <Modal title={formatDate(date)} onClose={onClose}>
       {/* Tabs */}
-      <div className="flex gap-1 mb-5 border-b border-peak-border -mt-1 pb-0">
+      <div className="flex gap-1 mb-5 border-b border-peak-border -mt-1 pb-0 sticky top-0 bg-peak-surface z-10">
         {['tasks', 'journal'].map(tab => (
           <button
             key={tab}

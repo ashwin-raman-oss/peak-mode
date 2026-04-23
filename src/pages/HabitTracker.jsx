@@ -23,9 +23,9 @@ function HabitCard({ habit, getHabitCompletions, getFormationProgress, toggleHab
       {/* Top row: name + arena badge + delete */}
       <div className="flex items-start justify-between mb-3">
         <div>
-          <h3 className="font-bold text-peak-primary text-sm">{habit.title}</h3>
+          <h3 className="font-bold text-peak-text text-sm">{habit.title}</h3>
           {habit.arenas && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-peak-elevated text-peak-text mt-1">
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-peak-bg text-peak-text mt-1">
               {habit.arenas.emoji} {habit.arenas.name}
             </span>
           )}

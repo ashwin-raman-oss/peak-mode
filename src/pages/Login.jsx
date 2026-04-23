@@ -49,7 +49,7 @@ export default function Login() {
       <div className="w-full max-w-sm bg-peak-surface rounded-2xl shadow-sm border border-peak-border p-8">
         {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-black tracking-widest text-peak-primary uppercase">
+          <h1 className="text-2xl font-black tracking-widest text-peak-text uppercase">
             PEAK <span className="text-peak-accent">MODE</span>
           </h1>
           <p className="text-peak-muted text-sm mt-1">Elite performance tracking</p>
@@ -68,7 +68,7 @@ export default function Login() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
-              className="w-full bg-peak-elevated border border-peak-border rounded-lg px-4 py-3 text-peak-primary text-sm focus:outline-none focus:border-peak-accent transition-colors placeholder-peak-muted"
+              className="w-full bg-peak-bg border border-peak-border rounded-lg px-4 py-3 text-peak-text text-sm focus:outline-none focus:border-peak-accent transition-colors placeholder-peak-muted"
               placeholder="you@example.com"
             />
           </div>
@@ -85,7 +85,7 @@ export default function Login() {
               onChange={e => setPassword(e.target.value)}
               required
               minLength={mode === 'signup' ? 6 : undefined}
-              className="w-full bg-peak-elevated border border-peak-border rounded-lg px-4 py-3 text-peak-primary text-sm focus:outline-none focus:border-peak-accent transition-colors placeholder-peak-muted"
+              className="w-full bg-peak-bg border border-peak-border rounded-lg px-4 py-3 text-peak-text text-sm focus:outline-none focus:border-peak-accent transition-colors placeholder-peak-muted"
               placeholder="••••••••"
             />
           </div>

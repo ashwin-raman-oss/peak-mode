@@ -17,7 +17,7 @@ export default function Modal({ title, onClose, children }) {
           <button onClick={onClose} aria-label="Close"
             className="text-peak-muted hover:text-peak-text text-lg leading-none">&times;</button>
         </div>
-        <div className="overflow-y-auto flex-1 px-6 pb-6">
+        <div className="overflow-y-auto flex-1 min-h-0 px-6 pb-6">
           {children}
         </div>
       </div>

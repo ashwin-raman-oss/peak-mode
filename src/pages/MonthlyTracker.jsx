@@ -50,7 +50,7 @@ export default function MonthlyTracker() {
 
   // Local today string (avoids UTC timezone mismatch)
   const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-  const currentMonth = new Date(Date.UTC(year, month - 1, 1))
+  const currentMonth = new Date(year, month - 1, 1)
 
   if (profileLoading || loading) {
     return (

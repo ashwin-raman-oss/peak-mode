@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 import { useTasks } from '../hooks/useTasks'
 import { useWeeklyReport } from '../hooks/useWeeklyReport'
-import Header from '../components/Header'
+import TopBar from '../components/TopBar'
 import ProgressBar from '../components/ui/ProgressBar'
 import Button from '../components/ui/Button'
 import { formatWeekRange, getWeekStart, toDateStr } from '../lib/dates'
@@ -168,176 +168,176 @@ export default function WeeklyReport() {
   const coachData = parseCoach(report)
 
   return (
-    <div className="min-h-screen bg-peak-bg">
-      <Header profile={profile} />
-
-      <main className="max-w-3xl mx-auto px-6 py-5 space-y-5">
-        {/* Week navigation */}
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => canGoPrev && navigate(`/report/${prevWeekStr}`)}
-            disabled={!canGoPrev}
-            className="text-xs text-peak-muted hover:text-peak-primary disabled:opacity-30 transition-colors"
-          >
-            ← Prev
-          </button>
-          <div className="text-center">
-            <p className="text-xs font-black tracking-widest uppercase text-peak-accent">Weekly Report</p>
-            <p className="text-sm font-bold text-peak-primary">{weekRange}</p>
+    <div className="flex flex-col h-full overflow-hidden">
+      <TopBar
+        title="Weekly Report"
+        subtitle={weekRange}
+        action={
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => canGoPrev && navigate(`/report/${prevWeekStr}`)}
+              disabled={!canGoPrev}
+              className="text-xs text-peak-muted hover:text-peak-text px-2 py-1 rounded-lg hover:bg-peak-bg transition-colors disabled:opacity-30"
+            >
+              ← Prev
+            </button>
+            <button
+              onClick={() => canGoNext && navigate(nextWeekStr === currentWeekStart ? '/report' : `/report/${nextWeekStr}`)}
+              disabled={!canGoNext}
+              className="text-xs text-peak-muted hover:text-peak-text px-2 py-1 rounded-lg hover:bg-peak-bg transition-colors disabled:opacity-30"
+            >
+              Next →
+            </button>
           </div>
-          <button
-            onClick={() => canGoNext && navigate(nextWeekStr === currentWeekStart ? '/report' : `/report/${nextWeekStr}`)}
-            disabled={!canGoNext}
-            className="text-xs text-peak-muted hover:text-peak-primary disabled:opacity-30 transition-colors"
-          >
-            Next →
-          </button>
-        </div>
+        }
+      />
+      <main className="flex-1 overflow-y-auto bg-peak-bg p-6">
+        <div className="max-w-3xl mx-auto space-y-5">
+          {generateError && (
+            <p role="alert" className="text-[#DC2626] text-xs font-medium bg-[#FEF2F2] border border-[#FCA5A5] rounded-lg px-3 py-2">
+              {generateError}
+            </p>
+          )}
 
-        {generateError && (
-          <p role="alert" className="text-[#DC2626] text-xs font-medium bg-[#FEF2F2] border border-[#FCA5A5] rounded-lg px-3 py-2">
-            {generateError}
-          </p>
-        )}
-
-        {/* No report yet */}
-        {!report && isCurrentWeek && (
-          <div className="bg-peak-surface border border-peak-border rounded-xl p-6 text-center space-y-3">
-            <p className="text-peak-muted text-sm">No report generated yet for this week.</p>
-            <Button onClick={handleGenerate} size="lg" disabled={generating}>
-              {generating ? 'Generating...' : 'Generate Report'}
-            </Button>
-          </div>
-        )}
-
-        {!report && !isCurrentWeek && (
-          <div className="bg-peak-surface border border-peak-border rounded-xl p-6 text-center space-y-3">
-            {generating ? (
-              <>
-                <div className="w-6 h-6 border-2 border-peak-accent border-t-transparent rounded-full animate-spin mx-auto" />
-                <p className="text-peak-muted text-sm">Generating report for {weekRange}...</p>
-              </>
-            ) : (
-              <p className="text-peak-muted text-sm">No report for this week.</p>
-            )}
-          </div>
-        )}
-
-        {/* Report content */}
-        {report && (
-          <>
-            {/* Stats summary */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-peak-surface border border-peak-border rounded-xl p-4 text-center">
-                <p className="text-2xl font-black text-peak-primary">{report.tasks_completed}<span className="text-peak-muted text-base">/{report.tasks_total}</span></p>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-peak-muted mt-1">Tasks</p>
-              </div>
-              <div className="bg-peak-surface border border-peak-border rounded-xl p-4 text-center">
-                <p className="text-2xl font-black text-peak-xp">{report.xp_earned}</p>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-peak-muted mt-1">XP</p>
-              </div>
-              <div className="bg-peak-surface border border-peak-border rounded-xl p-4 text-center">
-                <p className="text-2xl font-black text-peak-primary">{report.streak_held ? '✓' : '✗'}</p>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-peak-muted mt-1">Streak</p>
-              </div>
+          {/* No report yet */}
+          {!report && isCurrentWeek && (
+            <div className="bg-peak-surface border border-peak-border rounded-xl p-6 text-center space-y-3">
+              <p className="text-peak-muted text-sm">No report generated yet for this week.</p>
+              <Button onClick={handleGenerate} size="lg" disabled={generating}>
+                {generating ? 'Generating...' : 'Generate Report'}
+              </Button>
             </div>
+          )}
 
-            {/* Arena breakdown with Dig Deeper */}
-            <div className="bg-peak-surface border border-peak-border rounded-xl p-4">
-              <p className="text-[10px] font-black tracking-widest uppercase text-peak-muted mb-3">Arena Breakdown</p>
-              <div className="space-y-1">
-                {Object.entries(report.arena_breakdown || {}).map(([name, stats]) => {
-                  const isExpanded = expandedArena === name
-                  const dive = deepDiveData[name]
-                  const isDiving = deepDiving === name
-                  return (
-                    <div key={name}>
-                      <div className="py-2">
-                        <div className="flex items-center justify-between mb-1.5">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-peak-primary">{name}</span>
-                            {dive && (
-                              <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
-                                dive.trend === 'up'   ? 'bg-[#D1FAE5] text-[#059669]' :
-                                dive.trend === 'down' ? 'bg-[#FEE2E2] text-[#DC2626]' :
-                                                        'bg-peak-elevated text-[#D97706]'
-                              }`}>
-                                {dive.trend === 'up' ? '↑' : dive.trend === 'down' ? '↓' : '→'}
-                              </span>
+          {!report && !isCurrentWeek && (
+            <div className="bg-peak-surface border border-peak-border rounded-xl p-6 text-center space-y-3">
+              {generating ? (
+                <>
+                  <div className="w-6 h-6 border-2 border-peak-accent border-t-transparent rounded-full animate-spin mx-auto" />
+                  <p className="text-peak-muted text-sm">Generating report for {weekRange}...</p>
+                </>
+              ) : (
+                <p className="text-peak-muted text-sm">No report for this week.</p>
+              )}
+            </div>
+          )}
+
+          {/* Report content */}
+          {report && (
+            <>
+              {/* Stats summary */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-peak-surface border border-peak-border rounded-xl p-4 text-center">
+                  <p className="text-2xl font-black text-peak-text">{report.tasks_completed}<span className="text-peak-muted text-base">/{report.tasks_total}</span></p>
+                  <p className="text-[10px] font-semibold tracking-widest uppercase text-peak-muted mt-1">Tasks</p>
+                </div>
+                <div className="bg-peak-surface border border-peak-border rounded-xl p-4 text-center">
+                  <p className="text-2xl font-black text-peak-accent">{report.xp_earned}</p>
+                  <p className="text-[10px] font-semibold tracking-widest uppercase text-peak-muted mt-1">XP</p>
+                </div>
+                <div className="bg-peak-surface border border-peak-border rounded-xl p-4 text-center">
+                  <p className="text-2xl font-black text-peak-text">{report.streak_held ? '✓' : '✗'}</p>
+                  <p className="text-[10px] font-semibold tracking-widest uppercase text-peak-muted mt-1">Streak</p>
+                </div>
+              </div>
+
+              {/* Arena breakdown with Dig Deeper */}
+              <div className="bg-peak-surface border border-peak-border rounded-xl p-4">
+                <p className="text-[10px] font-semibold tracking-widest uppercase text-peak-muted mb-3">Arena Breakdown</p>
+                <div className="space-y-1">
+                  {Object.entries(report.arena_breakdown || {}).map(([name, stats]) => {
+                    const isExpanded = expandedArena === name
+                    const dive = deepDiveData[name]
+                    const isDiving = deepDiving === name
+                    return (
+                      <div key={name}>
+                        <div className="py-2">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-peak-text">{name}</span>
+                              {dive && (
+                                <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
+                                  dive.trend === 'up'   ? 'bg-[#D1FAE5] text-[#059669]' :
+                                  dive.trend === 'down' ? 'bg-[#FEE2E2] text-[#DC2626]' :
+                                                          'bg-peak-bg text-[#D97706]'
+                                }`}>
+                                  {dive.trend === 'up' ? '↑' : dive.trend === 'down' ? '↓' : '→'}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="text-xs text-peak-accent font-bold">{stats.xp} XP · {stats.completed}/{stats.total}</span>
+                              <button
+                                onClick={() => handleDeepDive(name, { completed: stats.completed, total: stats.total, xpEarned: stats.xp })}
+                                className="text-xs text-peak-accent hover:text-peak-text transition-colors font-medium"
+                              >
+                                {isDiving ? 'Loading...' : isExpanded && dive ? 'Close ↑' : 'Dig deeper →'}
+                              </button>
+                            </div>
+                          </div>
+                          <ProgressBar value={stats.completed} max={Math.max(stats.total, 1)} />
+                        </div>
+
+                        {/* Deep dive panel */}
+                        {isExpanded && dive && (
+                          <div className="mb-2 bg-peak-bg border border-peak-border rounded-lg p-4 space-y-3">
+                            <p className="text-[15px] text-peak-text leading-[1.7]">{dive.pattern}</p>
+                            {dive.actionPlan?.length > 0 && (
+                              <div>
+                                <p className="text-[9px] font-semibold tracking-widest uppercase text-peak-muted mb-2">Action Plan</p>
+                                <ol className="space-y-2">
+                                  {dive.actionPlan.map((step, i) => (
+                                    <li key={i} className="flex gap-2.5">
+                                      <span className="shrink-0 text-sm font-bold text-peak-accent">{i + 1}.</span>
+                                      <span className="text-sm text-peak-text leading-snug">{step.replace(/^\d+\.\s*/, '')}</span>
+                                    </li>
+                                  ))}
+                                </ol>
+                              </div>
                             )}
                           </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-xs text-peak-accent font-bold">{stats.xp} XP · {stats.completed}/{stats.total}</span>
-                            <button
-                              onClick={() => handleDeepDive(name, { completed: stats.completed, total: stats.total, xpEarned: stats.xp })}
-                              className="text-xs text-peak-accent hover:text-peak-primary transition-colors font-medium"
-                            >
-                              {isDiving ? 'Loading...' : isExpanded && dive ? 'Close ↑' : 'Dig deeper →'}
-                            </button>
-                          </div>
-                        </div>
-                        <ProgressBar value={stats.completed} max={Math.max(stats.total, 1)} />
+                        )}
                       </div>
-
-                      {/* Deep dive panel */}
-                      {isExpanded && dive && (
-                        <div className="mb-2 bg-peak-elevated border border-peak-border rounded-lg p-4 space-y-3">
-                          <p className="text-sm text-peak-text leading-relaxed">{dive.pattern}</p>
-                          {dive.actionPlan?.length > 0 && (
-                            <div>
-                              <p className="text-[9px] font-bold tracking-widest uppercase text-peak-muted mb-2">Action Plan</p>
-                              <ol className="space-y-2">
-                                {dive.actionPlan.map((step, i) => (
-                                  <li key={i} className="flex gap-2.5">
-                                    <span className="shrink-0 text-sm font-bold text-peak-accent">{i + 1}.</span>
-                                    <span className="text-sm text-peak-primary leading-snug">{step.replace(/^\d+\.\s*/, '')}</span>
-                                  </li>
-                                ))}
-                              </ol>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* AI Coach */}
-            {coachData && (
-              <div className="bg-peak-accent-light border border-peak-accent/30 rounded-xl p-5 space-y-4">
-                <div>
-                  <p className="text-[10px] font-black tracking-widest uppercase text-peak-accent mb-2">AI Coach</p>
-                  <p className="text-sm text-peak-primary leading-relaxed">{coachData.summary}</p>
+                    )
+                  })}
                 </div>
+              </div>
 
-                {coachData.nextWeekCommitments?.length > 0 && (
+              {/* AI Coach */}
+              {coachData && (
+                <div className="bg-peak-accent-light border border-peak-accent/30 rounded-xl p-5 space-y-4">
                   <div>
-                    <p className="text-[10px] font-black tracking-widest uppercase text-peak-accent mb-2">Next Week's Focus</p>
-                    <ol className="space-y-2">
-                      {coachData.nextWeekCommitments.map((c, i) => (
-                        <li key={i} className="flex items-start gap-3">
-                          <span className="shrink-0 w-5 h-5 rounded border-2 border-peak-accent/50 mt-0.5" />
-                          <span className="text-sm text-peak-primary leading-snug">{c.replace(/^\d+\.\s*/, '')}</span>
-                        </li>
-                      ))}
-                    </ol>
+                    <p className="text-[10px] font-semibold tracking-widest uppercase text-peak-accent mb-2">AI Coach</p>
+                    <p className="text-[15px] text-peak-text leading-[1.7]">{coachData.summary}</p>
                   </div>
-                )}
-              </div>
-            )}
 
-            {/* Regenerate */}
-            {isCurrentWeek && (
-              <div className="text-center">
-                <Button variant="ghost" size="sm" onClick={handleGenerate} disabled={generating}>
-                  {generating ? 'Regenerating...' : 'Regenerate'}
-                </Button>
-              </div>
-            )}
-          </>
-        )}
+                  {coachData.nextWeekCommitments?.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-semibold tracking-widest uppercase text-peak-accent mb-2">Next Week's Focus</p>
+                      <ol className="space-y-2">
+                        {coachData.nextWeekCommitments.map((c, i) => (
+                          <li key={i} className="flex items-start gap-3">
+                            <span className="shrink-0 w-5 h-5 rounded border-2 border-peak-accent/50 mt-0.5" />
+                            <span className="text-sm text-peak-text leading-snug">{c.replace(/^\d+\.\s*/, '')}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Regenerate */}
+              {isCurrentWeek && (
+                <div className="text-center">
+                  <Button variant="ghost" size="sm" onClick={handleGenerate} disabled={generating}>
+                    {generating ? 'Regenerating...' : 'Regenerate'}
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </main>
     </div>
   )

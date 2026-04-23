@@ -11,7 +11,8 @@ export default function Modal({ title, onClose, children }) {
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       <div role="dialog" aria-modal="true" aria-labelledby="modal-title"
-        className="relative w-full max-w-md bg-peak-surface border border-peak-border rounded-2xl p-6 shadow-xl animate-fade-in">
+        className="relative w-full max-w-md bg-peak-surface border border-peak-border rounded-2xl p-6 shadow-xl animate-fade-in overflow-y-auto"
+        style={{ maxHeight: '85vh' }}>
         <div className="flex items-center justify-between mb-5">
           <h2 id="modal-title" className="text-sm font-bold text-peak-text">{title}</h2>
           <button onClick={onClose} aria-label="Close"

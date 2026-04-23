@@ -66,7 +66,7 @@ export default function MonthlyTracker() {
           {/* Day-of-week headers */}
           <div className="grid grid-cols-7 border-b border-peak-border">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-              <div key={d} className="text-center py-2.5 text-[10px] font-semibold text-peak-muted uppercase tracking-wider">
+              <div key={d} className="text-center py-2.5 text-[11px] font-semibold text-peak-muted uppercase tracking-widest">
                 {d}
               </div>
             ))}
@@ -74,23 +74,44 @@ export default function MonthlyTracker() {
           {/* Calendar grid */}
           <div className="grid grid-cols-7">
             {calendarDays.map((day, i) => {
-              if (!day) return <div key={i} className="border-b border-r border-peak-border aspect-square" />
-              const hasActivity = (dailyStatus[day.dateStr]?.completed ?? 0) > 0
+              if (!day) return <div key={i} className="border-b border-r border-peak-border min-h-[60px] sm:min-h-[80px] bg-[#F9FAFB]" />
+
+              const status = dailyStatus[day.dateStr]
+              const statusType = status?.status ?? 'future'
               const isToday = day.dateStr === todayStr
               const isPast = day.dateStr < todayStr
+              const isWeekend = statusType === 'weekend'
+              const isFuture = statusType === 'future'
+              const isClickable = isPast || isToday
+
+              const barColor = { full: '#059669', partial: '#D97706', missed: '#DC2626' }[statusType]
+              const showBar = !!barColor && !isWeekend && !isFuture
+              const showFraction = !isWeekend && !isFuture && (status?.highTotal ?? 0) > 0
+
               return (
                 <div
                   key={day.dateStr}
-                  onClick={() => (isPast || isToday) ? setSelectedDay(day.dateStr) : null}
-                  className={`relative border-b border-r border-peak-border p-2 aspect-square flex flex-col transition-colors ${
-                    isPast || isToday ? 'cursor-pointer hover:bg-peak-bg' : 'cursor-default'
-                  } ${isToday ? 'bg-peak-accent-light' : ''}`}
+                  onClick={() => isClickable ? setSelectedDay(day.dateStr) : null}
+                  className={`relative border-b border-r border-peak-border min-h-[60px] sm:min-h-[80px] p-1.5 flex flex-col transition-colors ${
+                    isClickable ? 'cursor-pointer hover:bg-amber-50' : 'cursor-default'
+                  } ${isToday ? 'ring-2 ring-inset ring-amber-400' : ''} ${isWeekend ? 'bg-[#F9FAFB]' : ''}`}
+                  style={isToday ? { backgroundColor: '#FFFBEB' } : undefined}
                 >
-                  <span className={`text-xs font-semibold ${isToday ? 'text-peak-accent' : 'text-peak-text'}`}>
+                  <span className={`text-xs font-semibold leading-none ${
+                    isToday ? 'text-amber-600' : isWeekend || isFuture ? 'text-peak-muted' : 'text-peak-text'
+                  }`}>
                     {day.day}
                   </span>
-                  {hasActivity && (
-                    <div className="w-1.5 h-1.5 rounded-full bg-peak-accent mt-auto" />
+                  <div className="flex-1" />
+                  {showFraction && (
+                    <div className="flex justify-end mb-0.5">
+                      <span className="text-[10px] text-peak-muted leading-none">
+                        {status.completed}/{status.highTotal}
+                      </span>
+                    </div>
+                  )}
+                  {showBar && (
+                    <div className="h-1 w-full rounded-full" style={{ backgroundColor: barColor }} />
                   )}
                 </div>
               )

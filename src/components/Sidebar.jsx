@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { to: '/arena/career', label: 'Arena',    icon: '◈' },
   { to: '/habits',  label: 'Habits',        icon: '◷' },
   { to: '/journal', label: 'Journal',       icon: '✎' },
+  { to: '/okrs',    label: 'OKRs',          icon: '◎' },
   { to: '/month',   label: 'Monthly',       icon: '▦' },
   { to: '/report',  label: 'Weekly Report', icon: '⚡' },
 ]

@@ -11,6 +11,7 @@ import WeeklyReport from './pages/WeeklyReport'
 import MonthlyTracker from './pages/MonthlyTracker'
 import HabitTracker from './pages/HabitTracker'
 import Journal from './pages/Journal'
+import OKRs from './pages/OKRs'
 
 function WeeklyReportRoute() {
   const { weekDate } = useParams()
@@ -63,6 +64,7 @@ export default function App() {
           <Route path="/month" element={<ProtectedRoute><AppLayout><MonthlyTracker /></AppLayout></ProtectedRoute>} />
           <Route path="/habits" element={<ProtectedRoute><AppLayout><HabitTracker /></AppLayout></ProtectedRoute>} />
           <Route path="/journal" element={<ProtectedRoute><AppLayout><Journal /></AppLayout></ProtectedRoute>} />
+          <Route path="/okrs" element={<ProtectedRoute><AppLayout><OKRs /></AppLayout></ProtectedRoute>} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

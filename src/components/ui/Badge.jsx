@@ -1,7 +1,7 @@
 export default function Badge({ priority }) {
   const config = {
     high:     { label: 'HIGH', className: 'bg-peak-accent text-white' },
-    medium:   { label: 'MED',  className: 'bg-peak-xp text-white' },
+    medium:   { label: 'MED',  className: 'bg-[#2563EB] text-white' },
     optional: { label: 'OPT',  className: 'bg-[#6B7280] text-white' },
   }
   const { label, className } = config[priority] ?? config.optional

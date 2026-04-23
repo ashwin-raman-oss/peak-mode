@@ -4,6 +4,7 @@ import { toDateStr, getWeekStart } from '../lib/dates'
 
 export function useMonthlyData(userId, year, month) {
   const [dailyStatus, setDailyStatus] = useState({})
+  const [dailyCompletions, setDailyCompletions] = useState({})
   const [monthStats, setMonthStats] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -12,14 +13,14 @@ export function useMonthlyData(userId, year, month) {
     setLoading(true)
 
     const firstDay = new Date(Date.UTC(year, month - 1, 1))
-    const lastDay  = new Date(Date.UTC(year, month, 1)) // exclusive upper bound
+    const lastDay  = new Date(Date.UTC(year, month, 1))
     const firstDayStr = toDateStr(firstDay)
     const lastDayStr  = toDateStr(lastDay)
 
     const [{ data: completions }, { data: highTasks }] = await Promise.all([
       supabase
         .from('task_completions')
-        .select('id, task_id, completed_at, xp_earned')
+        .select('id, task_id, completed_at, xp_earned, tasks(title, arenas(slug))')
         .eq('user_id', userId)
         .gte('completed_at', firstDayStr + 'T00:00:00Z')
         .lt('completed_at', lastDayStr + 'T00:00:00Z'),
@@ -37,22 +38,30 @@ export function useMonthlyData(userId, year, month) {
 
     // Group completions by date
     const byDate = {}
+    const completionsByDate = {}
     for (const c of (completions || [])) {
       const d = c.completed_at.slice(0, 10)
       if (!byDate[d]) byDate[d] = { count: 0, xp: 0, highDone: 0 }
       byDate[d].count++
       byDate[d].xp += c.xp_earned
       if (highTaskIds.has(c.task_id)) byDate[d].highDone++
+
+      if (!completionsByDate[d]) completionsByDate[d] = []
+      completionsByDate[d].push({
+        title: c.tasks?.title ?? 'Task',
+        arenaSlug: c.tasks?.arenas?.slug ?? 'misc',
+      })
     }
 
-    const today = toDateStr(new Date())
+    const now = new Date()
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
     const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate()
     const statusMap = {}
 
     for (let d = 1; d <= daysInMonth; d++) {
       const date    = new Date(Date.UTC(year, month - 1, d))
       const dateStr = toDateStr(date)
-      const dow     = date.getUTCDay() // 0=Sun, 6=Sat
+      const dow     = date.getUTCDay()
       const isWeekend = dow === 0 || dow === 6
       const isFuture  = dateStr > today
       const day       = byDate[dateStr]
@@ -81,8 +90,8 @@ export function useMonthlyData(userId, year, month) {
     }
 
     setDailyStatus(statusMap)
+    setDailyCompletions(completionsByDate)
 
-    // Month-level stats
     const allComp = completions || []
     const totalXp    = allComp.reduce((s, c) => s + c.xp_earned, 0)
     const totalTasks = allComp.length
@@ -91,7 +100,6 @@ export function useMonthlyData(userId, year, month) {
     const fullDays = weekdayEntries.filter(s => s.status === 'full').length
     const completionRate = weekdayEntries.length > 0 ? Math.round((fullDays / weekdayEntries.length) * 100) : 0
 
-    // Weekly breakdown (group days by Mon-start week)
     const weekMap = {}
     for (const [dateStr, data] of Object.entries(statusMap)) {
       const weekStart = toDateStr(getWeekStart(new Date(dateStr + 'T00:00:00Z')))
@@ -114,5 +122,5 @@ export function useMonthlyData(userId, year, month) {
 
   useEffect(() => { fetchData() }, [fetchData])
 
-  return { dailyStatus, monthStats, loading, refresh: fetchData }
+  return { dailyStatus, dailyCompletions, monthStats, loading, refresh: fetchData }
 }

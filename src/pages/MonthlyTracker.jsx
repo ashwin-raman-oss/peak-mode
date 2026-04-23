@@ -5,16 +5,26 @@ import { useMonthlyData } from '../hooks/useMonthlyData'
 import TopBar from '../components/TopBar'
 import DayDetailModal from '../components/DayDetailModal'
 
+const APP_START = '2026-04-16'
+
+const ARENA_COLORS = {
+  career:   '#2D5BE3',
+  health:   '#059669',
+  learning: '#7C3AED',
+  misc:     '#D97706',
+}
+
 export default function MonthlyTracker() {
   const { user } = useAuth()
   const { profile, loading: profileLoading } = useProfile(user?.id)
 
+  // Use local time so timezone doesn't shift the displayed month
   const now = new Date()
-  const [year, setYear] = useState(now.getUTCFullYear())
-  const [month, setMonth] = useState(now.getUTCMonth() + 1)
+  const [year, setYear] = useState(now.getFullYear())
+  const [month, setMonth] = useState(now.getMonth() + 1)
 
   const [selectedDay, setSelectedDay] = useState(null)
-  const { dailyStatus, loading, refresh } = useMonthlyData(user?.id, year, month)
+  const { dailyStatus, dailyCompletions, loading, refresh } = useMonthlyData(user?.id, year, month)
 
   function prevMonth() {
     if (month === 1) { setYear(y => y - 1); setMonth(12) }
@@ -22,14 +32,14 @@ export default function MonthlyTracker() {
   }
 
   function nextMonth() {
-    const isCurrentMonth = year === now.getUTCFullYear() && month === now.getUTCMonth() + 1
+    const isCurrentMonth = year === now.getFullYear() && month === now.getMonth() + 1
     if (isCurrentMonth) return
     if (month === 12) { setYear(y => y + 1); setMonth(1) }
     else setMonth(m => m + 1)
   }
 
   // Build flat calendarDays array (Sun-start grid)
-  const firstDow = new Date(Date.UTC(year, month - 1, 1)).getUTCDay() // 0=Sun
+  const firstDow = new Date(Date.UTC(year, month - 1, 1)).getUTCDay()
   const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate()
   const calendarDays = []
   for (let i = 0; i < firstDow; i++) calendarDays.push(null)
@@ -38,7 +48,8 @@ export default function MonthlyTracker() {
     calendarDays.push({ dateStr, day: d })
   }
 
-  const todayStr = now.toISOString().slice(0, 10)
+  // Local today string (avoids UTC timezone mismatch)
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
   const currentMonth = new Date(Date.UTC(year, month - 1, 1))
 
   if (profileLoading || loading) {
@@ -74,44 +85,52 @@ export default function MonthlyTracker() {
           {/* Calendar grid */}
           <div className="grid grid-cols-7">
             {calendarDays.map((day, i) => {
-              if (!day) return <div key={i} className="border-b border-r border-peak-border min-h-[60px] sm:min-h-[80px] bg-[#F9FAFB]" />
+              if (!day) return <div key={i} className="border-b border-r border-peak-border min-h-[80px] bg-[#F9FAFB]" />
 
               const status = dailyStatus[day.dateStr]
               const statusType = status?.status ?? 'future'
               const isToday = day.dateStr === todayStr
-              const isPast = day.dateStr < todayStr
               const isWeekend = statusType === 'weekend'
               const isFuture = statusType === 'future'
-              const isClickable = isPast || isToday
+              const isBeforeStart = day.dateStr < APP_START
+              // Treat pre-launch days same as future: no data, no click
+              const isActive = !isFuture && !isBeforeStart
+              const isClickable = isActive
 
-              const barColor = { full: '#059669', partial: '#D97706', missed: '#DC2626' }[statusType]
-              const showBar = !!barColor && !isWeekend && !isFuture
-              const showFraction = !isWeekend && !isFuture && (status?.highTotal ?? 0) > 0
+              const dayCompletions = isActive ? (dailyCompletions[day.dateStr] ?? []) : []
+              const visible = dayCompletions.slice(0, 3)
+              const extra = dayCompletions.length - 3
 
               return (
                 <div
                   key={day.dateStr}
                   onClick={() => isClickable ? setSelectedDay(day.dateStr) : null}
-                  className={`relative border-b border-r border-peak-border min-h-[60px] sm:min-h-[80px] p-1.5 flex flex-col transition-colors ${
+                  className={`relative border-b border-r border-peak-border min-h-[80px] p-1.5 flex flex-col transition-colors ${
                     isClickable ? 'cursor-pointer hover:bg-amber-50' : 'cursor-default'
-                  } ${isToday ? 'ring-2 ring-inset ring-amber-400' : ''} ${isWeekend ? 'bg-[#F9FAFB]' : ''}`}
+                  } ${isToday ? 'ring-2 ring-inset ring-amber-400' : ''} ${isWeekend || isBeforeStart ? 'bg-[#F9FAFB]' : ''}`}
                   style={isToday ? { backgroundColor: '#FFFBEB' } : undefined}
                 >
                   <span className={`text-xs font-semibold leading-none ${
-                    isToday ? 'text-amber-600' : isWeekend || isFuture ? 'text-peak-muted' : 'text-peak-text'
+                    isToday ? 'text-amber-600' : isWeekend || isFuture || isBeforeStart ? 'text-peak-muted' : 'text-peak-text'
                   }`}>
                     {day.day}
                   </span>
-                  <div className="flex-1" />
-                  {showFraction && (
-                    <div className="flex justify-end mb-0.5">
-                      <span className="text-[10px] text-peak-muted leading-none">
-                        {status.completed}/{status.highTotal}
-                      </span>
+
+                  {visible.length > 0 && (
+                    <div className="mt-1 space-y-0.5 flex-1">
+                      {visible.map((t, idx) => (
+                        <p
+                          key={idx}
+                          className="text-[10px] leading-tight truncate font-medium"
+                          style={{ color: ARENA_COLORS[t.arenaSlug] ?? ARENA_COLORS.misc }}
+                        >
+                          {t.title}
+                        </p>
+                      ))}
+                      {extra > 0 && (
+                        <p className="text-[10px] leading-tight text-peak-muted">+{extra} more</p>
+                      )}
                     </div>
-                  )}
-                  {showBar && (
-                    <div className="h-1 w-full rounded-full" style={{ backgroundColor: barColor }} />
                   )}
                 </div>
               )

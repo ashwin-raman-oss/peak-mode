@@ -3,53 +3,56 @@ import { supabase } from '../lib/supabase'
 
 export const BIG3_START_DATE = '2026-04-24'
 
-export function useBig3(userId, weekStartStr = null) {
-  const [big3ByDate, setBig3ByDate] = useState({})
+function getTodayStr() {
+  const d = new Date()
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
+export function useBig3(userId) {
+  const [todayBig3, setTodayBig3] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  const fetchData = useCallback(async () => {
-    if (!userId) { setLoading(false); return }
+  const fetchToday = useCallback(async () => {
+    if (!userId) {
+      setLoading(false)
+      return
+    }
+    const todayStr = getTodayStr()
     setLoading(true)
-
-    let q = supabase
+    const { data, error } = await supabase
       .from('daily_big3')
       .select('*')
       .eq('user_id', userId)
+      .eq('date', todayStr)
+      .maybeSingle()
 
-    if (weekStartStr) {
-      const end = new Date(weekStartStr + 'T00:00:00Z')
-      end.setUTCDate(end.getUTCDate() + 7)
-      const weekEndStr = end.toISOString().slice(0, 10)
-      const rangeStart = weekStartStr < BIG3_START_DATE ? BIG3_START_DATE : weekStartStr
-      q = q.gte('date', rangeStart).lt('date', weekEndStr)
-    } else {
-      const now = new Date()
-      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-      q = q.eq('date', today)
-    }
-
-    const { data, error } = await q
     if (error) {
-      console.error('[useBig3] fetch error:', error)
+      console.error('[useBig3] fetchToday error:', error)
+    } else {
+      console.log('[useBig3] fetched:', data)
+      setTodayBig3(data ?? null)
     }
-    const map = {}
-    for (const r of (data || [])) map[r.date] = r
-    setBig3ByDate(map)
     setLoading(false)
-  }, [userId, weekStartStr])
+  }, [userId])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => {
+    fetchToday()
+  }, [fetchToday])
 
-  async function saveBig3(date, { task_1, task_2, task_3 }) {
+  async function saveBig3(task1, task2, task3) {
+    if (!userId) return
+    const todayStr = getTodayStr()
     const payload = {
       user_id: userId,
-      date,
-      task_1: task_1 || null,
-      task_2: task_2 || null,
-      task_3: task_3 || null,
+      date: todayStr,
+      task_1: task1 || null,
+      task_2: task2 || null,
+      task_3: task3 || null,
     }
-    console.log('[useBig3] saveBig3 payload:', payload)
-
+    console.log('[useBig3] saving payload:', payload)
     const { data, error } = await supabase
       .from('daily_big3')
       .upsert(payload, { onConflict: 'user_id,date' })
@@ -57,45 +60,51 @@ export function useBig3(userId, weekStartStr = null) {
       .single()
 
     if (error) {
-      console.error('[useBig3] saveBig3 error:', error)
-      console.error('[useBig3] saveBig3 error detail:', JSON.stringify(error))
+      console.error('[useBig3] save error:', JSON.stringify(error))
       throw error
     }
-
-    console.log('[useBig3] saveBig3 saved row:', data)
-    // Update state with the row returned from Supabase, not the input
-    setBig3ByDate(prev => ({ ...prev, [date]: data }))
+    console.log('[useBig3] saved row:', data)
+    setTodayBig3(data)
+    return data
   }
 
-  async function markItemDone(date, itemNum, done) {
+  async function markItemDone(itemNum, done) {
+    if (!userId || !todayBig3) return
     const field = `task_${itemNum}_done`
-
-    // Optimistic update so UI reflects change immediately
-    setBig3ByDate(prev => ({
-      ...prev,
-      [date]: prev[date] ? { ...prev[date], [field]: done } : prev[date],
-    }))
+    const fieldAt = `task_${itemNum}_done_at`
+    const optimistic = { ...todayBig3, [field]: done, [fieldAt]: done ? new Date().toISOString() : null }
+    setTodayBig3(optimistic)
 
     const { data, error } = await supabase
       .from('daily_big3')
-      .update({ [field]: done })
-      .eq('user_id', userId)
-      .eq('date', date)
+      .update({ [field]: done, [fieldAt]: done ? new Date().toISOString() : null })
+      .eq('id', todayBig3.id)
       .select()
       .single()
 
     if (error) {
-      console.error('[useBig3] markItemDone error:', error)
-      // Revert optimistic update on failure
-      setBig3ByDate(prev => ({
-        ...prev,
-        [date]: prev[date] ? { ...prev[date], [field]: !done } : prev[date],
-      }))
-      throw error
+      console.error('[useBig3] markItemDone error:', JSON.stringify(error))
+      setTodayBig3(todayBig3) // rollback
+    } else {
+      setTodayBig3(data)
     }
-
-    setBig3ByDate(prev => ({ ...prev, [date]: data }))
   }
 
-  return { big3ByDate, loading, saveBig3, markItemDone, refresh: fetchData }
+  async function getWeekBig3(weekStartStr) {
+    if (!userId) return []
+    const weekEnd = new Date(weekStartStr)
+    weekEnd.setDate(weekEnd.getDate() + 6)
+    const weekEndStr = weekEnd.toISOString().split('T')[0]
+    const { data, error } = await supabase
+      .from('daily_big3')
+      .select('*')
+      .eq('user_id', userId)
+      .gte('date', weekStartStr)
+      .lte('date', weekEndStr)
+      .order('date')
+    if (error) console.error('[useBig3] getWeekBig3 error:', error)
+    return data ?? []
+  }
+
+  return { todayBig3, loading, saveBig3, markItemDone, getWeekBig3, refresh: fetchToday }
 }

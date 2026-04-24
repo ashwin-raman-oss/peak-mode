@@ -1,5 +1,5 @@
 // src/pages/Dashboard.jsx
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
@@ -31,7 +31,7 @@ function getLevelTitle(level) {
   return 'Rookie'
 }
 
-function Big3Card({ todayBig3, todayStr, onSave, onMarkDone }) {
+function Big3Card({ todayBig3, onSave, onMarkDone }) {
   const [editing, setEditing] = useState(!todayBig3)
   const [items, setItems] = useState([
     todayBig3?.task_1 ?? '',
@@ -52,7 +52,7 @@ function Big3Card({ todayBig3, todayStr, onSave, onMarkDone }) {
     setSaving(true)
     setSaveError(null)
     try {
-      await onSave(todayStr, { task_1: items[0].trim(), task_2: items[1].trim(), task_3: items[2].trim() })
+      await onSave(items[0].trim(), items[1].trim(), items[2].trim())
       setEditing(false)
     } catch (err) {
       console.error('Big 3 save failed:', err)
@@ -65,7 +65,7 @@ function Big3Card({ todayBig3, todayStr, onSave, onMarkDone }) {
   async function handleMark(num, done) {
     setMarkError(null)
     try {
-      await onMarkDone(todayStr, num, done)
+      await onMarkDone(num, done)
     } catch (err) {
       console.error('Big 3 mark failed:', err)
       setMarkError('Could not save. Try again.')
@@ -188,9 +188,12 @@ export default function Dashboard() {
   } = useTasks(user?.id)
   const todayStr = localTodayStr()
   const showBig3 = todayStr >= BIG3_START_DATE
-  const { big3ByDate, saveBig3, markItemDone } = useBig3(showBig3 ? user?.id : null)
-  const todayBig3 = big3ByDate[todayStr] ?? null
+  const { todayBig3, saveBig3, markItemDone } = useBig3(showBig3 ? user?.id : null)
   const [toast, setToast] = useState(null)
+
+  useEffect(() => {
+    console.log('[Dashboard] todayBig3:', todayBig3)
+  }, [todayBig3])
   const [completing, setCompleting] = useState(null)
 
   const focusTasks = getTodaysFocusTasks()
@@ -374,7 +377,6 @@ export default function Dashboard() {
         {showBig3 && (
           <Big3Card
             todayBig3={todayBig3}
-            todayStr={todayStr}
             onSave={saveBig3}
             onMarkDone={markItemDone}
           />

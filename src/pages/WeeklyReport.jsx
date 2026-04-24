@@ -47,9 +47,21 @@ export default function WeeklyReport() {
   const { profile, loading: profileLoading } = useProfile(user?.id)
   const { arenas, getArenaStats, getWeekXp, loading: tasksLoading } = useTasks(user?.id)
   const { report, allReports, loading, generating, generateReport } = useWeeklyReport(user?.id, weekDate ?? null)
-  const { big3ByDate } = useBig3(user?.id, weekStartStr)
 
+  // weekStartStr must be declared before any hook that uses it
   const weekStartStr = weekDate ?? toDateStr(getWeekStart(new Date()))
+
+  const { getWeekBig3 } = useBig3(user?.id)
+  const [big3ByDate, setBig3ByDate] = useState({})
+
+  useEffect(() => {
+    if (!user?.id) return
+    getWeekBig3(weekStartStr).then(rows => {
+      const map = {}
+      for (const r of rows) map[r.date] = r
+      setBig3ByDate(map)
+    })
+  }, [user?.id, weekStartStr]) // eslint-disable-line react-hooks/exhaustive-deps
   const weekRange = formatWeekRange(new Date(weekStartStr + 'T00:00:00Z'))
   const currentWeekStart = toDateStr(getWeekStart(new Date()))
   const isCurrentWeek = weekStartStr === currentWeekStart

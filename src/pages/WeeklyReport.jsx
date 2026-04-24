@@ -263,7 +263,7 @@ export default function WeeklyReport() {
                         </div>
                         {big3 && (
                           <div className="w-full space-y-0.5">
-                            {[big3.item_1, big3.item_2, big3.item_3].filter(Boolean).map((item, j) => (
+                            {[big3.task_1, big3.task_2, big3.task_3].filter(Boolean).map((item, j) => (
                               <p key={j} className="text-[9px] text-peak-muted leading-tight truncate text-center">{item}</p>
                             ))}
                           </div>

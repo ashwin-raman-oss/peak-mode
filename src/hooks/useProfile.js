@@ -37,7 +37,7 @@ export function useProfile(userId) {
           // Post-launch: streak based on Big 3 completion
           const { data: big3Row } = await supabase
             .from('daily_big3')
-            .select('item_1, item_2, item_3, task_1_done, task_2_done, task_3_done')
+            .select('task_1, task_2, task_3, task_1_done, task_2_done, task_3_done')
             .eq('user_id', userId)
             .eq('date', prevDayStr)
             .maybeSingle()

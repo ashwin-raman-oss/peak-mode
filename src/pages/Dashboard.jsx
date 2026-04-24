@@ -34,9 +34,9 @@ function getLevelTitle(level) {
 function Big3Card({ todayBig3, todayStr, onSave, onMarkDone }) {
   const [editing, setEditing] = useState(!todayBig3)
   const [items, setItems] = useState([
-    todayBig3?.item_1 ?? '',
-    todayBig3?.item_2 ?? '',
-    todayBig3?.item_3 ?? '',
+    todayBig3?.task_1 ?? '',
+    todayBig3?.task_2 ?? '',
+    todayBig3?.task_3 ?? '',
   ])
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(null)
@@ -44,7 +44,7 @@ function Big3Card({ todayBig3, todayStr, onSave, onMarkDone }) {
 
   // Sync item text when todayBig3 first loads (e.g. existing data from DB on mount)
   if (todayBig3 && editing === false && items.every(i => i === '')) {
-    setItems([todayBig3.item_1 ?? '', todayBig3.item_2 ?? '', todayBig3.item_3 ?? ''])
+    setItems([todayBig3.task_1 ?? '', todayBig3.task_2 ?? '', todayBig3.task_3 ?? ''])
   }
 
   async function handleSave() {
@@ -52,7 +52,7 @@ function Big3Card({ todayBig3, todayStr, onSave, onMarkDone }) {
     setSaving(true)
     setSaveError(null)
     try {
-      await onSave(todayStr, { item_1: items[0].trim(), item_2: items[1].trim(), item_3: items[2].trim() })
+      await onSave(todayStr, { task_1: items[0].trim(), task_2: items[1].trim(), task_3: items[2].trim() })
       setEditing(false)
     } catch (err) {
       console.error('Big 3 save failed:', err)
@@ -75,9 +75,9 @@ function Big3Card({ todayBig3, todayStr, onSave, onMarkDone }) {
   const set = todayBig3 && !editing
   // Use task_N_done — matches the DB column name
   const itemEntries = [
-    { num: 1, text: todayBig3?.item_1, done: !!todayBig3?.task_1_done },
-    { num: 2, text: todayBig3?.item_2, done: !!todayBig3?.task_2_done },
-    { num: 3, text: todayBig3?.item_3, done: !!todayBig3?.task_3_done },
+    { num: 1, text: todayBig3?.task_1, done: !!todayBig3?.task_1_done },
+    { num: 2, text: todayBig3?.task_2, done: !!todayBig3?.task_2_done },
+    { num: 3, text: todayBig3?.task_3, done: !!todayBig3?.task_3_done },
   ].filter(e => e.text)
 
   const allDone = itemEntries.length > 0 && itemEntries.every(e => e.done)

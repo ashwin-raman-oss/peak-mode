@@ -40,13 +40,13 @@ export function useBig3(userId, weekStartStr = null) {
 
   useEffect(() => { fetchData() }, [fetchData])
 
-  async function saveBig3(date, { item_1, item_2, item_3 }) {
+  async function saveBig3(date, { task_1, task_2, task_3 }) {
     const payload = {
       user_id: userId,
       date,
-      item_1: item_1 || null,
-      item_2: item_2 || null,
-      item_3: item_3 || null,
+      task_1: task_1 || null,
+      task_2: task_2 || null,
+      task_3: task_3 || null,
     }
     console.log('[useBig3] saveBig3 payload:', payload)
 
@@ -58,6 +58,7 @@ export function useBig3(userId, weekStartStr = null) {
 
     if (error) {
       console.error('[useBig3] saveBig3 error:', error)
+      console.error('[useBig3] saveBig3 error detail:', JSON.stringify(error))
       throw error
     }
 

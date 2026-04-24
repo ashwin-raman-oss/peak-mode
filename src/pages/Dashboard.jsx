@@ -39,8 +39,10 @@ function Big3Card({ todayBig3, todayStr, onSave, onMarkDone }) {
     todayBig3?.item_3 ?? '',
   ])
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState(null)
+  const [markError, setMarkError] = useState(null)
 
-  // Sync when todayBig3 loads
+  // Sync item text when todayBig3 first loads (e.g. existing data from DB on mount)
   if (todayBig3 && editing === false && items.every(i => i === '')) {
     setItems([todayBig3.item_1 ?? '', todayBig3.item_2 ?? '', todayBig3.item_3 ?? ''])
   }
@@ -48,19 +50,34 @@ function Big3Card({ todayBig3, todayStr, onSave, onMarkDone }) {
   async function handleSave() {
     if (!items.some(i => i.trim())) return
     setSaving(true)
+    setSaveError(null)
     try {
       await onSave(todayStr, { item_1: items[0].trim(), item_2: items[1].trim(), item_3: items[2].trim() })
       setEditing(false)
+    } catch (err) {
+      console.error('Big 3 save failed:', err)
+      setSaveError('Failed to save. Check your connection and try again.')
     } finally {
       setSaving(false)
     }
   }
 
+  async function handleMark(num, done) {
+    setMarkError(null)
+    try {
+      await onMarkDone(todayStr, num, done)
+    } catch (err) {
+      console.error('Big 3 mark failed:', err)
+      setMarkError('Could not save. Try again.')
+    }
+  }
+
   const set = todayBig3 && !editing
+  // Use task_N_done — matches the DB column name
   const itemEntries = [
-    { num: 1, text: todayBig3?.item_1, done: todayBig3?.item_1_done },
-    { num: 2, text: todayBig3?.item_2, done: todayBig3?.item_2_done },
-    { num: 3, text: todayBig3?.item_3, done: todayBig3?.item_3_done },
+    { num: 1, text: todayBig3?.item_1, done: !!todayBig3?.task_1_done },
+    { num: 2, text: todayBig3?.item_2, done: !!todayBig3?.task_2_done },
+    { num: 3, text: todayBig3?.item_3, done: !!todayBig3?.task_3_done },
   ].filter(e => e.text)
 
   const allDone = itemEntries.length > 0 && itemEntries.every(e => e.done)
@@ -87,10 +104,13 @@ function Big3Card({ todayBig3, todayStr, onSave, onMarkDone }) {
       <div className="px-5 py-4">
         {set ? (
           <div className="space-y-2">
+            {markError && (
+              <p className="text-xs text-red-500 mb-1">{markError}</p>
+            )}
             {itemEntries.map(({ num, text, done }) => (
               <div key={num} className="flex items-start gap-3">
                 <button
-                  onClick={() => onMarkDone(todayStr, num, !done)}
+                  onClick={() => handleMark(num, !done)}
                   className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
                     done ? 'bg-peak-text border-peak-text' : 'border-peak-border hover:border-peak-accent'
                   }`}
@@ -121,6 +141,9 @@ function Big3Card({ todayBig3, todayStr, onSave, onMarkDone }) {
                 />
               </div>
             ))}
+            {saveError && (
+              <p className="text-xs text-red-500 pt-1">{saveError}</p>
+            )}
             <div className="flex gap-2 pt-1">
               <button
                 onClick={handleSave}
@@ -130,7 +153,7 @@ function Big3Card({ todayBig3, todayStr, onSave, onMarkDone }) {
                 {saving ? 'Saving…' : 'Save Big 3'}
               </button>
               {todayBig3 && (
-                <button onClick={() => setEditing(false)} className="text-xs text-peak-muted hover:text-peak-text">Cancel</button>
+                <button onClick={() => { setEditing(false); setSaveError(null) }} className="text-xs text-peak-muted hover:text-peak-text">Cancel</button>
               )}
             </div>
           </div>

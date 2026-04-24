@@ -52,7 +52,14 @@ export function useBig3(userId, weekStartStr = null) {
   }
 
   async function markItemDone(date, itemNum, done) {
-    const field = `item_${itemNum}_done`
+    const field = `task_${itemNum}_done`
+
+    // Optimistic update so the UI reflects the change immediately
+    setBig3ByDate(prev => ({
+      ...prev,
+      [date]: prev[date] ? { ...prev[date], [field]: done } : prev[date],
+    }))
+
     const { data, error } = await supabase
       .from('daily_big3')
       .update({ [field]: done })
@@ -60,7 +67,16 @@ export function useBig3(userId, weekStartStr = null) {
       .eq('date', date)
       .select()
       .single()
-    if (error) throw error
+
+    if (error) {
+      // Revert optimistic update on failure
+      setBig3ByDate(prev => ({
+        ...prev,
+        [date]: prev[date] ? { ...prev[date], [field]: !done } : prev[date],
+      }))
+      throw error
+    }
+
     setBig3ByDate(prev => ({ ...prev, [date]: data }))
   }
 

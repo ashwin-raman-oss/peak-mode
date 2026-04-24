@@ -46,9 +46,9 @@ export function computeNewStreakFromBig3(profile, big3Row, prevDayStr) {
   }
 
   const setItems = [
-    { text: big3Row.item_1, done: big3Row.item_1_done },
-    { text: big3Row.item_2, done: big3Row.item_2_done },
-    { text: big3Row.item_3, done: big3Row.item_3_done },
+    { text: big3Row.item_1, done: big3Row.task_1_done },
+    { text: big3Row.item_2, done: big3Row.task_2_done },
+    { text: big3Row.item_3, done: big3Row.task_3_done },
   ].filter(i => i.text)
 
   // Big 3 row exists but nothing was filled in → treat as missed

@@ -4,7 +4,7 @@ import { useProfile } from '../hooks/useProfile'
 import { useJournal } from '../hooks/useJournal'
 import { useCheckin } from '../hooks/useCheckin'
 import TopBar from '../components/TopBar'
-import { MorningForm, EveningForm } from '../components/CheckinForms'
+import { EveningForm } from '../components/CheckinForms'
 import PastEntryModal from '../components/PastEntryModal'
 
 function formatJournalDate(dateStr) {
@@ -16,9 +16,9 @@ export default function Journal() {
   const { user } = useAuth()
   const { profile } = useProfile(user?.id)
   const { entries, loading, refresh } = useJournal(user?.id)
-  const { morningDone, eveningDone, saveCheckin } = useCheckin(user?.id)
+  const { eveningDone, saveCheckin } = useCheckin(user?.id)
   const [filter, setFilter] = useState('week')
-  const [modal, setModal] = useState(null) // null | 'morning' | 'evening'
+  const [showEveningModal, setShowEveningModal] = useState(false)
   const [showPastEntry, setShowPastEntry] = useState(false)
 
   const filtered = useMemo(() => {
@@ -49,7 +49,7 @@ export default function Journal() {
   }, [filtered])
 
   function handleSuccess() {
-    setModal(null)
+    setShowEveningModal(false)
     refresh()
   }
 
@@ -57,7 +57,7 @@ export default function Journal() {
     <div className="flex flex-col h-full overflow-hidden">
       <TopBar
         title="Journal"
-        subtitle="Morning & evening check-ins"
+        subtitle="Evening check-ins & reflections"
         action={
           <button
             onClick={() => setShowPastEntry(true)}
@@ -71,18 +71,7 @@ export default function Journal() {
         {/* Today's check-in buttons */}
         <div className="flex gap-2 mb-6">
           <button
-            onClick={() => !morningDone && setModal('morning')}
-            disabled={morningDone}
-            className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${
-              morningDone
-                ? 'border-peak-border text-peak-muted cursor-default'
-                : 'border-peak-accent text-peak-accent hover:bg-peak-accent-light'
-            }`}
-          >
-            {morningDone ? '✓ Morning Done' : 'Morning Check-in'}
-          </button>
-          <button
-            onClick={() => !eveningDone && setModal('evening')}
+            onClick={() => !eveningDone && setShowEveningModal(true)}
             disabled={eveningDone}
             className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${
               eveningDone
@@ -130,21 +119,16 @@ export default function Journal() {
         </div>
       </main>
 
-      {/* Today's check-in modals */}
-      {modal && (
+      {/* Evening check-in modal */}
+      {showEveningModal && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setModal(null)} />
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowEveningModal(false)} />
           <div className="relative w-full max-w-md bg-peak-surface border border-peak-border rounded-2xl p-6 shadow-xl animate-fade-in">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-bold text-peak-text">
-                {modal === 'morning' ? 'Morning Check-in' : 'Evening Check-in'}
-              </h2>
-              <button onClick={() => setModal(null)} className="text-peak-muted hover:text-peak-text text-lg">&times;</button>
+              <h2 className="text-sm font-bold text-peak-text">Evening Check-in</h2>
+              <button onClick={() => setShowEveningModal(false)} className="text-peak-muted hover:text-peak-text text-lg">&times;</button>
             </div>
-            {modal === 'morning'
-              ? <MorningForm saveCheckin={saveCheckin} onSuccess={handleSuccess} />
-              : <EveningForm saveCheckin={saveCheckin} onSuccess={handleSuccess} />
-            }
+            <EveningForm saveCheckin={saveCheckin} onSuccess={handleSuccess} />
           </div>
         </div>
       )}
@@ -176,12 +160,14 @@ function JournalEntry({ entry, type }) {
   return (
     <div className="px-5 py-4 border-b border-peak-border last:border-0">
       <span className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full mb-3 ${
-        type === 'morning' ? 'bg-peak-accent-light text-peak-accent' : 'bg-[#EFF6FF] text-[#2563EB]'
+        type === 'morning'
+          ? 'bg-peak-border text-peak-muted'
+          : 'bg-[#EFF6FF] text-[#2563EB]'
       }`}>
-        {type === 'morning' ? 'Morning' : 'Evening'}
+        {type === 'morning' ? 'Morning intention' : 'Evening'}
       </span>
       {type === 'morning' && entry.intention && (
-        <p className="text-sm text-peak-text">{entry.intention}</p>
+        <p className="text-sm text-peak-muted italic">{entry.intention}</p>
       )}
       {type === 'evening' && (
         <div className="space-y-2">

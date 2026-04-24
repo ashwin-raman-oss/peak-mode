@@ -201,27 +201,29 @@ export default function Dashboard() {
   const { profile, addXp } = useProfile(user?.id)
   const {
     tasks, arenas,
-    getTodaysFocusTasks, getArenaStats, getWeekXp, isTaskDone, completeTask,
+    getTodaysFocusTasks, getArenaStats, getWeekXp, getTodayCompletionCount,
+    isTaskDone, completeTask, refetch: refetchTasks,
   } = useTasks(user?.id)
   const todayStr = localTodayStr()
   const showBig3 = todayStr >= BIG3_START_DATE
   const { todayBig3, loading: big3Loading, saveBig3, markItemDone } = useBig3(showBig3 ? user?.id : null)
   const [toast, setToast] = useState(null)
 
-  useEffect(() => {
-    console.log('[Dashboard] todayBig3:', todayBig3)
-  }, [todayBig3])
   const [completing, setCompleting] = useState(null)
+
+  // Refetch when ArenaDetail (separate hook instance) changes completions
+  useEffect(() => {
+    function handleTaskChanged() { refetchTasks() }
+    window.addEventListener('peak-task-changed', handleTaskChanged)
+    return () => window.removeEventListener('peak-task-changed', handleTaskChanged)
+  }, [refetchTasks])
 
   const focusTasks = getTodaysFocusTasks()
   const weekXp = getWeekXp()
   const doneTasks = focusTasks.filter(t => isTaskDone(t)).length
 
-  // All-arena task totals for today
-  const allTaskStats = ARENA_SLUGS.reduce(
-    (acc, slug) => { const s = getArenaStats(slug); return { done: acc.done + s.completed, total: acc.total + s.total } },
-    { done: 0, total: 0 }
-  )
+  // Today-only completion count (not full week)
+  const { completedToday, totalDailyToday, isWeekend } = getTodayCompletionCount()
 
   // Level display
   const level = profile?.level ?? 1
@@ -276,11 +278,10 @@ export default function Dashboard() {
             valueColor="text-peak-text"
           />
 
-          {/* FIX 2: Today count — all tasks across all arenas */}
           <StatCard
             label="Today's Tasks"
-            value={`${allTaskStats.done}/${allTaskStats.total}`}
-            sub="tasks done"
+            value={`${completedToday}/${totalDailyToday}`}
+            sub={isWeekend ? 'tasks this week' : 'tasks done today'}
             borderColor="border-peak-success"
             valueColor="text-peak-text"
           />

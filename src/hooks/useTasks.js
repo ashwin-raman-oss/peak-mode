@@ -41,7 +41,13 @@ export function useTasks(userId, arenaSlug = null) {
       const { data: taskData, error: taskErr } = await taskQuery.order('created_at')
       if (taskErr) throw taskErr
 
-      setTasks(taskData || [])
+      // Filter out expired one-time tasks (created before this week)
+      const activeTaskData = (taskData || []).filter(task => {
+        if (!task.is_one_time) return true
+        const createdStr = task.created_at?.slice(0, 10) ?? ''
+        return createdStr >= weekStartStr
+      })
+      setTasks(activeTaskData)
 
       // Fetch this week's completions
       const { data: compData, error: compErr } = await supabase
@@ -119,6 +125,7 @@ export function useTasks(userId, arenaSlug = null) {
     }
 
     setCompletions(prev => prev.map(c => c.id === optimisticCompletion.id ? data : c))
+    window.dispatchEvent(new CustomEvent('peak-task-changed'))
     return xp
   }
 
@@ -144,9 +151,11 @@ export function useTasks(userId, arenaSlug = null) {
       await fetchData()
       throw error
     }
+
+    window.dispatchEvent(new CustomEvent('peak-task-changed'))
   }
 
-  async function addMiscTask(arenaId, title, priority) {
+  async function addMiscTask(arenaId, title, priority, is_one_time = false) {
     if (!userId) throw new Error('No authenticated user')
     const { data, error: insertErr } = await supabase
       .from('tasks')
@@ -158,6 +167,7 @@ export function useTasks(userId, arenaSlug = null) {
         recurrence: 'none',
         priority,
         weekly_target: 1,
+        is_one_time,
       })
       .select('*, arenas(id, name, emoji, slug, default_priority)')
       .single()
@@ -167,11 +177,12 @@ export function useTasks(userId, arenaSlug = null) {
     return data
   }
 
-  async function updateTask(taskId, { title, priority_override }) {
+  async function updateTask(taskId, { title, priority_override, is_one_time }) {
     if (!userId) throw new Error('No authenticated user')
     const updates = {}
     if (title !== undefined) updates.title = title
     if (priority_override !== undefined) updates.priority_override = priority_override
+    if (is_one_time !== undefined) updates.is_one_time = is_one_time
 
     if (Object.keys(updates).length === 0) return
 
@@ -285,6 +296,27 @@ export function useTasks(userId, arenaSlug = null) {
     return completions.reduce((sum, c) => sum + c.xp_earned, 0)
   }
 
+  // Count completions for today only (not the full week)
+  function getTodayCompletionCount() {
+    const todayStr = toDateStr(new Date())
+    const dayOfWeek = new Date().getDay() // 0=Sun, 6=Sat
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
+
+    if (isWeekend) {
+      // On weekends show the weekly count since no daily tasks are expected
+      return { completedToday: completions.length, totalDailyToday: tasks.length, isWeekend: true }
+    }
+
+    const completedToday = completions.filter(c =>
+      typeof c.completed_at === 'string' &&
+      c.completed_at.slice(0, 10) === todayStr
+    ).length
+
+    const totalDailyToday = tasks.filter(t => t.recurrence === 'daily').length
+
+    return { completedToday, totalDailyToday, isWeekend: false }
+  }
+
   return {
     tasks,
     completions,
@@ -302,6 +334,7 @@ export function useTasks(userId, arenaSlug = null) {
     getDailyStatsForDate,
     getTodaysFocusTasks,
     getWeekXp,
+    getTodayCompletionCount,
     weekStartStr,
     refetch: fetchData,
   }

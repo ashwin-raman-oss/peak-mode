@@ -101,9 +101,9 @@ export default function ArenaDetail() {
     }
   }
 
-  async function handleAddTask({ title, priority }) {
+  async function handleAddTask({ title, priority, is_one_time }) {
     try {
-      await addMiscTask(arena.id, title, priority)
+      await addMiscTask(arena.id, title, priority, is_one_time)
       setShowAddForm(false)
     } catch (err) {
       console.error('Failed to add task:', err)
@@ -296,6 +296,7 @@ export default function ArenaDetail() {
 function EditTaskForm({ task, onSave, onCancel }) {
   const [title, setTitle] = useState(task.title)
   const [priority, setPriority] = useState(task.priority_override ?? task.priority)
+  const [isOneTime, setIsOneTime] = useState(task.is_one_time ?? false)
   const [saving, setSaving] = useState(false)
 
   async function handleSubmit(e) {
@@ -303,33 +304,47 @@ function EditTaskForm({ task, onSave, onCancel }) {
     if (!title.trim()) return
     setSaving(true)
     try {
-      await onSave({ title: title.trim(), priority_override: priority })
+      await onSave({ title: title.trim(), priority_override: priority, is_one_time: isOneTime })
     } finally {
       setSaving(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2 col-span-1">
-      <input
-        autoFocus
-        value={title}
-        onChange={e => setTitle(e.target.value)}
-        className="flex-1 text-sm border border-peak-border rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-peak-accent/30"
-      />
-      <select
-        value={priority}
-        onChange={e => setPriority(e.target.value)}
-        className="text-xs border border-peak-border rounded-lg px-1.5 py-1 text-peak-text focus:outline-none"
-      >
-        <option value="high">High</option>
-        <option value="medium">Medium</option>
-        <option value="optional">Optional</option>
-      </select>
-      <button type="submit" disabled={saving} className="text-xs font-semibold text-peak-accent hover:underline disabled:opacity-50">
-        {saving ? 'Saving…' : 'Save'}
-      </button>
-      <button type="button" onClick={onCancel} className="text-xs text-peak-muted hover:text-peak-text">Cancel</button>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-1.5 col-span-1">
+      <div className="flex items-center gap-2">
+        <input
+          autoFocus
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          className="flex-1 text-sm border border-peak-border rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-peak-accent/30"
+        />
+        <select
+          value={priority}
+          onChange={e => setPriority(e.target.value)}
+          className="text-xs border border-peak-border rounded-lg px-1.5 py-1 text-peak-text focus:outline-none"
+        >
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="optional">Optional</option>
+        </select>
+        <button type="submit" disabled={saving} className="text-xs font-semibold text-peak-accent hover:underline disabled:opacity-50">
+          {saving ? 'Saving…' : 'Save'}
+        </button>
+        <button type="button" onClick={onCancel} className="text-xs text-peak-muted hover:text-peak-text">Cancel</button>
+      </div>
+      <label className="flex items-center gap-2 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={isOneTime}
+          onChange={e => setIsOneTime(e.target.checked)}
+          className="w-3.5 h-3.5 rounded accent-peak-accent"
+        />
+        <span className="text-[10px] text-peak-muted">One-time task</span>
+        {isOneTime && (
+          <span className="text-[10px] text-peak-muted italic">· disappears after this week</span>
+        )}
+      </label>
     </form>
   )
 }
@@ -337,33 +352,48 @@ function EditTaskForm({ task, onSave, onCancel }) {
 function AddTaskForm({ onSave, onCancel }) {
   const [title, setTitle] = useState('')
   const [priority, setPriority] = useState('medium')
+  const [isOneTime, setIsOneTime] = useState(false)
 
   function handleSubmit(e) {
     e.preventDefault()
     if (!title.trim()) return
-    onSave({ title: title.trim(), priority })
+    onSave({ title: title.trim(), priority, is_one_time: isOneTime })
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-3">
-      <input
-        autoFocus
-        value={title}
-        onChange={e => setTitle(e.target.value)}
-        placeholder="Task name..."
-        className="flex-1 text-sm border border-peak-border rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-peak-accent/30"
-      />
-      <select
-        value={priority}
-        onChange={e => setPriority(e.target.value)}
-        className="text-xs border border-peak-border rounded-lg px-2 py-1.5 text-peak-text focus:outline-none"
-      >
-        <option value="high">High</option>
-        <option value="medium">Medium</option>
-        <option value="optional">Optional</option>
-      </select>
-      <button type="submit" className="text-xs font-semibold bg-peak-accent text-white px-3 py-1.5 rounded-lg hover:bg-amber-500">Save</button>
-      <button type="button" onClick={onCancel} className="text-xs text-peak-muted hover:text-peak-text">Cancel</button>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+      <div className="flex items-center gap-3">
+        <input
+          autoFocus
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          placeholder="Task name..."
+          className="flex-1 text-sm border border-peak-border rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-peak-accent/30"
+        />
+        <select
+          value={priority}
+          onChange={e => setPriority(e.target.value)}
+          className="text-xs border border-peak-border rounded-lg px-2 py-1.5 text-peak-text focus:outline-none"
+        >
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="optional">Optional</option>
+        </select>
+        <button type="submit" className="text-xs font-semibold bg-peak-accent text-white px-3 py-1.5 rounded-lg hover:bg-amber-500">Save</button>
+        <button type="button" onClick={onCancel} className="text-xs text-peak-muted hover:text-peak-text">Cancel</button>
+      </div>
+      <label className="flex items-center gap-2 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={isOneTime}
+          onChange={e => setIsOneTime(e.target.checked)}
+          className="w-3.5 h-3.5 rounded accent-peak-accent"
+        />
+        <span className="text-xs text-peak-muted">One-time task</span>
+        {isOneTime && (
+          <span className="text-[10px] text-peak-muted italic">· will disappear after this week</span>
+        )}
+      </label>
     </form>
   )
 }

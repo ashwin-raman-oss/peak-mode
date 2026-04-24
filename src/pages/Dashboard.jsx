@@ -31,23 +31,38 @@ function getLevelTitle(level) {
   return 'Rookie'
 }
 
-function Big3Card({ todayBig3, onSave, onMarkDone }) {
+function Big3Card({ todayBig3, onSave, onMarkDone, loading }) {
   const [editing, setEditing] = useState(false)
   const [items, setItems] = useState(['', '', ''])
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(null)
   const [markError, setMarkError] = useState(null)
+  const hasSavedData = todayBig3?.task_1
 
-  // When todayBig3 loads async from Supabase, switch to saved view and sync text.
-  // If null (nothing saved yet), stay in edit mode.
+  // Sync editing state whenever todayBig3 changes (including on cold start).
+  // Guard on loading so we never flash the form before the fetch completes.
   useEffect(() => {
-    if (todayBig3?.task_1) {
+    if (loading) return
+    if (hasSavedData) {
       setEditing(false)
-      setItems([todayBig3.task_1 ?? '', todayBig3.task_2 ?? '', todayBig3.task_3 ?? ''])
-    } else if (todayBig3 === null) {
+      setItems([
+        todayBig3.task_1 || '',
+        todayBig3.task_2 || '',
+        todayBig3.task_3 || '',
+      ])
+    } else {
       setEditing(true)
     }
-  }, [todayBig3])
+  }, [todayBig3, loading, hasSavedData])
+
+  // Show skeleton while Supabase fetch is in-flight — prevents cold-start race
+  if (loading) {
+    return (
+      <div className="mt-5 bg-peak-surface border border-peak-border rounded-xl p-6">
+        <p className="text-sm text-peak-muted">Loading your Big 3…</p>
+      </div>
+    )
+  }
 
   async function handleSave() {
     if (!items.some(i => i.trim())) return
@@ -190,7 +205,7 @@ export default function Dashboard() {
   } = useTasks(user?.id)
   const todayStr = localTodayStr()
   const showBig3 = todayStr >= BIG3_START_DATE
-  const { todayBig3, saveBig3, markItemDone } = useBig3(showBig3 ? user?.id : null)
+  const { todayBig3, loading: big3Loading, saveBig3, markItemDone } = useBig3(showBig3 ? user?.id : null)
   const [toast, setToast] = useState(null)
 
   useEffect(() => {
@@ -381,6 +396,7 @@ export default function Dashboard() {
             todayBig3={todayBig3}
             onSave={saveBig3}
             onMarkDone={markItemDone}
+            loading={big3Loading}
           />
         )}
       </main>

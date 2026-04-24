@@ -32,20 +32,22 @@ function getLevelTitle(level) {
 }
 
 function Big3Card({ todayBig3, onSave, onMarkDone }) {
-  const [editing, setEditing] = useState(!todayBig3)
-  const [items, setItems] = useState([
-    todayBig3?.task_1 ?? '',
-    todayBig3?.task_2 ?? '',
-    todayBig3?.task_3 ?? '',
-  ])
+  const [editing, setEditing] = useState(false)
+  const [items, setItems] = useState(['', '', ''])
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(null)
   const [markError, setMarkError] = useState(null)
 
-  // Sync item text when todayBig3 first loads (e.g. existing data from DB on mount)
-  if (todayBig3 && editing === false && items.every(i => i === '')) {
-    setItems([todayBig3.task_1 ?? '', todayBig3.task_2 ?? '', todayBig3.task_3 ?? ''])
-  }
+  // When todayBig3 loads async from Supabase, switch to saved view and sync text.
+  // If null (nothing saved yet), stay in edit mode.
+  useEffect(() => {
+    if (todayBig3?.task_1) {
+      setEditing(false)
+      setItems([todayBig3.task_1 ?? '', todayBig3.task_2 ?? '', todayBig3.task_3 ?? ''])
+    } else if (todayBig3 === null) {
+      setEditing(true)
+    }
+  }, [todayBig3])
 
   async function handleSave() {
     if (!items.some(i => i.trim())) return

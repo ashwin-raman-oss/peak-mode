@@ -5,9 +5,18 @@ import { useProfile } from '../hooks/useProfile'
 import { getXpInLevel, XP_PER_LEVEL } from '../lib/xp'
 import { supabase } from '../lib/supabase'
 
-const NAV_ITEMS = [
-  { to: '/',        label: 'Dashboard',     icon: '⊞' },
-  { to: '/arena/career', label: 'Arena',    icon: '◈' },
+const NAV_ITEMS_BEFORE = [
+  { to: '/', label: 'Dashboard', icon: '⊞' },
+]
+
+const ARENA_SLUGS = [
+  { slug: 'career',   label: 'Career' },
+  { slug: 'health',   label: 'Health' },
+  { slug: 'learning', label: 'Learning' },
+  { slug: 'misc',     label: 'Misc' },
+]
+
+const NAV_ITEMS_AFTER = [
   { to: '/habits',  label: 'Habits',        icon: '◷' },
   { to: '/journal', label: 'Journal',       icon: '✎' },
   { to: '/okrs',    label: 'OKRs',          icon: '◎' },
@@ -46,11 +55,54 @@ export default function Sidebar() {
       {/* Nav */}
       <nav className="flex-1 px-2 py-3 overflow-y-auto">
         <p className="text-[9px] font-semibold text-peak-sidebar-text uppercase tracking-widest px-2 mb-2">Main</p>
-        {NAV_ITEMS.map(({ to, label, icon }) => (
+
+        {NAV_ITEMS_BEFORE.map(({ to, label, icon }) => (
           <NavLink
             key={to}
             to={to}
-            end={to === '/'}
+            end
+            className={({ isActive }) =>
+              `flex items-center gap-2.5 px-3 py-2 rounded-md mb-0.5 text-sm font-medium transition-colors ${
+                isActive
+                  ? 'bg-peak-sidebar-active text-white'
+                  : 'text-peak-sidebar-text hover:text-white hover:bg-peak-sidebar-hover'
+              }`
+            }
+          >
+            <span className="text-base leading-none">{icon}</span>
+            {label}
+          </NavLink>
+        ))}
+
+        {/* Arena parent + sub-links */}
+        <div className="mb-0.5">
+          <div className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-peak-sidebar-text">
+            <span className="text-base leading-none">◈</span>
+            Arena
+          </div>
+          <div className="ml-4 border-l border-peak-sidebar-border pl-2 space-y-0.5">
+            {ARENA_SLUGS.map(({ slug, label }) => (
+              <NavLink
+                key={slug}
+                to={`/arena/${slug}`}
+                className={({ isActive }) =>
+                  `block px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                    isActive
+                      ? 'bg-peak-sidebar-active text-white'
+                      : 'text-peak-sidebar-text hover:text-white hover:bg-peak-sidebar-hover'
+                  }`
+                }
+              >
+                {label}
+              </NavLink>
+            ))}
+          </div>
+        </div>
+
+        {NAV_ITEMS_AFTER.map(({ to, label, icon }) => (
+          <NavLink
+            key={to}
+            to={to}
             className={({ isActive }) =>
               `flex items-center gap-2.5 px-3 py-2 rounded-md mb-0.5 text-sm font-medium transition-colors ${
                 isActive

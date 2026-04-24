@@ -1,5 +1,6 @@
 // src/pages/Dashboard.jsx
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 import { useTasks } from '../hooks/useTasks'
@@ -123,6 +124,7 @@ function localTodayStr() {
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate()
   const { user } = useAuth()
   const { profile, addXp } = useProfile(user?.id)
   const {
@@ -268,10 +270,19 @@ export default function Dashboard() {
                 const meta = ARENA_META[slug]
                 const pct = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0
                 return (
-                  <div key={slug}>
-                    <div className="flex justify-between mb-1.5">
-                      <span className="text-xs font-semibold text-peak-text">{meta.label}</span>
-                      <span className="text-xs text-peak-muted">{stats.completed}/{stats.total}</span>
+                  <button
+                    key={slug}
+                    onClick={() => navigate(`/arena/${slug}`)}
+                    className="w-full text-left group"
+                  >
+                    <div className="flex justify-between mb-1.5 items-center">
+                      <span className="text-xs font-semibold text-peak-text group-hover:text-peak-accent transition-colors">
+                        {meta.label}
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs text-peak-muted">{stats.completed}/{stats.total}</span>
+                        <span className="text-peak-muted opacity-0 group-hover:opacity-100 transition-opacity text-xs">→</span>
+                      </div>
                     </div>
                     <div className="h-1.5 bg-peak-border rounded-full overflow-hidden">
                       <div
@@ -279,7 +290,7 @@ export default function Dashboard() {
                         style={{ width: `${pct}%`, background: meta.color }}
                       />
                     </div>
-                  </div>
+                  </button>
                 )
               })}
             </div>

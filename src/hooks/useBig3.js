@@ -15,7 +15,6 @@ export function useBig3(userId, weekStartStr = null) {
       .from('daily_big3')
       .select('*')
       .eq('user_id', userId)
-      .gte('date', BIG3_START_DATE)
 
     if (weekStartStr) {
       const end = new Date(weekStartStr + 'T00:00:00Z')
@@ -29,7 +28,10 @@ export function useBig3(userId, weekStartStr = null) {
       q = q.eq('date', today)
     }
 
-    const { data } = await q
+    const { data, error } = await q
+    if (error) {
+      console.error('[useBig3] fetch error:', error)
+    }
     const map = {}
     for (const r of (data || [])) map[r.date] = r
     setBig3ByDate(map)
@@ -39,22 +41,35 @@ export function useBig3(userId, weekStartStr = null) {
   useEffect(() => { fetchData() }, [fetchData])
 
   async function saveBig3(date, { item_1, item_2, item_3 }) {
+    const payload = {
+      user_id: userId,
+      date,
+      item_1: item_1 || null,
+      item_2: item_2 || null,
+      item_3: item_3 || null,
+    }
+    console.log('[useBig3] saveBig3 payload:', payload)
+
     const { data, error } = await supabase
       .from('daily_big3')
-      .upsert(
-        { user_id: userId, date, item_1: item_1 || null, item_2: item_2 || null, item_3: item_3 || null },
-        { onConflict: 'user_id,date' }
-      )
+      .upsert(payload, { onConflict: 'user_id,date' })
       .select()
       .single()
-    if (error) throw error
+
+    if (error) {
+      console.error('[useBig3] saveBig3 error:', error)
+      throw error
+    }
+
+    console.log('[useBig3] saveBig3 saved row:', data)
+    // Update state with the row returned from Supabase, not the input
     setBig3ByDate(prev => ({ ...prev, [date]: data }))
   }
 
   async function markItemDone(date, itemNum, done) {
     const field = `task_${itemNum}_done`
 
-    // Optimistic update so the UI reflects the change immediately
+    // Optimistic update so UI reflects change immediately
     setBig3ByDate(prev => ({
       ...prev,
       [date]: prev[date] ? { ...prev[date], [field]: done } : prev[date],
@@ -69,6 +84,7 @@ export function useBig3(userId, weekStartStr = null) {
       .single()
 
     if (error) {
+      console.error('[useBig3] markItemDone error:', error)
       // Revert optimistic update on failure
       setBig3ByDate(prev => ({
         ...prev,

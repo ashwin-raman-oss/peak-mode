@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, useParams } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { SidebarProvider } from './context/SidebarContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Sidebar from './components/Sidebar'
 import Login from './pages/Login'
@@ -24,12 +25,14 @@ function WeeklyReportRoute() {
 
 function AppLayout({ children }) {
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden ml-[220px]">
-        {children}
+    <SidebarProvider>
+      <div className="flex h-screen overflow-hidden">
+        <Sidebar />
+        <div className="flex-1 flex flex-col overflow-hidden lg:ml-[220px] min-w-0">
+          {children}
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   )
 }
 

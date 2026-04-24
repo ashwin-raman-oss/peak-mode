@@ -51,5 +51,18 @@ export function useBig3(userId, weekStartStr = null) {
     setBig3ByDate(prev => ({ ...prev, [date]: data }))
   }
 
-  return { big3ByDate, loading, saveBig3, refresh: fetchData }
+  async function markItemDone(date, itemNum, done) {
+    const field = `item_${itemNum}_done`
+    const { data, error } = await supabase
+      .from('daily_big3')
+      .update({ [field]: done })
+      .eq('user_id', userId)
+      .eq('date', date)
+      .select()
+      .single()
+    if (error) throw error
+    setBig3ByDate(prev => ({ ...prev, [date]: data }))
+  }
+
+  return { big3ByDate, loading, saveBig3, markItemDone, refresh: fetchData }
 }

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { getLevel } from '../lib/xp'
-import { getPreviousWeekday, computeNewStreak } from '../lib/streak'
+import { getPreviousWeekday, computeNewStreakFromBig3, BIG3_STREAK_START } from '../lib/streak'
 import { toDateStr } from '../lib/dates'
 
 export function useProfile(userId) {
@@ -12,7 +12,6 @@ export function useProfile(userId) {
   const fetchAndEvaluateStreak = useCallback(async () => {
     if (!userId) return
     try {
-      // Fetch profile
       const { data: profileData, error: profileErr } = await supabase
         .from('profiles')
         .select('*')
@@ -23,33 +22,29 @@ export function useProfile(userId) {
 
       const today = toDateStr(new Date())
 
-      // Only evaluate streak if we haven't done it today
       if (profileData.last_active_date !== today) {
         const prevDay = getPreviousWeekday(new Date())
         const prevDayStr = toDateStr(prevDay)
 
-        // Get high-priority daily task IDs
-        const { data: highTasks } = await supabase
-          .from('tasks')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('recurrence', 'daily')
-          .eq('priority', 'high')
-          .eq('is_active', true)
+        let streakUpdate
+        if (today < BIG3_STREAK_START) {
+          // Pre-launch: don't evaluate streak at all, leave unchanged
+          streakUpdate = {
+            current_streak: profileData.current_streak,
+            longest_streak: profileData.longest_streak,
+          }
+        } else {
+          // Post-launch: streak based on Big 3 completion
+          const { data: big3Row } = await supabase
+            .from('daily_big3')
+            .select('item_1, item_2, item_3, item_1_done, item_2_done, item_3_done')
+            .eq('user_id', userId)
+            .eq('date', prevDayStr)
+            .maybeSingle()
 
-        const highTaskIds = (highTasks || []).map(t => t.id)
+          streakUpdate = computeNewStreakFromBig3(profileData, big3Row, prevDayStr)
+        }
 
-        // Get completions on previous weekday
-        const { data: prevCompletions } = await supabase
-          .from('task_completions')
-          .select('task_id')
-          .eq('user_id', userId)
-          .gte('completed_at', prevDayStr + 'T00:00:00Z')
-          .lt('completed_at', prevDayStr + 'T24:00:00Z')
-
-        const prevTaskIds = (prevCompletions || []).map(c => c.task_id)
-
-        const streakUpdate = computeNewStreak(profileData, highTaskIds, prevTaskIds)
         const newLevel = getLevel(profileData.total_xp)
 
         const updates = {

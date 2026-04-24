@@ -8,7 +8,7 @@ import { useBig3, BIG3_START_DATE } from '../hooks/useBig3'
 import { supabase } from '../lib/supabase'
 import TopBar from '../components/TopBar'
 import XPToast from '../components/XPToast'
-import { getXpInLevel, XP_PER_LEVEL } from '../lib/xp'
+import { getXpInLevel, getXpToNextLevel, XP_PER_LEVEL } from '../lib/xp'
 
 const ARENA_SLUGS = ['career', 'health', 'learning', 'misc']
 
@@ -23,7 +23,15 @@ function todayLabel() {
   return new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
 }
 
-function Big3Card({ todayBig3, todayStr, onSave }) {
+function getLevelTitle(level) {
+  if (level >= 10) return 'Peak Mode'
+  if (level >= 7) return 'Elite'
+  if (level >= 5) return 'Performer'
+  if (level >= 3) return 'Contender'
+  return 'Rookie'
+}
+
+function Big3Card({ todayBig3, todayStr, onSave, onMarkDone }) {
   const [editing, setEditing] = useState(!todayBig3)
   const [items, setItems] = useState([
     todayBig3?.item_1 ?? '',
@@ -49,13 +57,27 @@ function Big3Card({ todayBig3, todayStr, onSave }) {
   }
 
   const set = todayBig3 && !editing
+  const itemEntries = [
+    { num: 1, text: todayBig3?.item_1, done: todayBig3?.item_1_done },
+    { num: 2, text: todayBig3?.item_2, done: todayBig3?.item_2_done },
+    { num: 3, text: todayBig3?.item_3, done: todayBig3?.item_3_done },
+  ].filter(e => e.text)
+
+  const allDone = itemEntries.length > 0 && itemEntries.every(e => e.done)
 
   return (
     <div className="mt-5 bg-peak-surface border border-peak-border rounded-xl overflow-hidden">
       <div className="px-5 py-3.5 border-b border-peak-border flex items-center justify-between">
-        <div>
+        <div className="flex items-center gap-2">
           <span className="text-sm font-bold text-peak-text">Today's Big 3</span>
-          <span className="ml-2 text-[10px] text-peak-muted">Your 3 priorities for today</span>
+          {set && allDone && (
+            <span className="text-[10px] font-semibold text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-md">
+              ✓ All done!
+            </span>
+          )}
+          {set && !allDone && (
+            <span className="text-[10px] text-peak-muted">Check off as you complete them</span>
+          )}
         </div>
         {set && (
           <button onClick={() => setEditing(true)} className="text-xs text-peak-accent hover:underline">Edit</button>
@@ -65,12 +87,22 @@ function Big3Card({ todayBig3, todayStr, onSave }) {
       <div className="px-5 py-4">
         {set ? (
           <div className="space-y-2">
-            {[todayBig3.item_1, todayBig3.item_2, todayBig3.item_3].filter(Boolean).map((item, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <span className="w-5 h-5 rounded-full bg-peak-accent-light text-peak-accent text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
-                  {i + 1}
-                </span>
-                <span className="text-sm text-peak-text">{item}</span>
+            {itemEntries.map(({ num, text, done }) => (
+              <div key={num} className="flex items-start gap-3">
+                <button
+                  onClick={() => onMarkDone(todayStr, num, !done)}
+                  className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                    done ? 'bg-peak-text border-peak-text' : 'border-peak-border hover:border-peak-accent'
+                  }`}
+                  aria-label={done ? 'Unmark done' : 'Mark done'}
+                >
+                  {done && (
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </button>
+                <span className={`text-sm ${done ? 'line-through text-peak-muted' : 'text-peak-text'}`}>{text}</span>
               </div>
             ))}
           </div>
@@ -133,7 +165,7 @@ export default function Dashboard() {
   } = useTasks(user?.id)
   const todayStr = localTodayStr()
   const showBig3 = todayStr >= BIG3_START_DATE
-  const { big3ByDate, saveBig3 } = useBig3(showBig3 ? user?.id : null)
+  const { big3ByDate, saveBig3, markItemDone } = useBig3(showBig3 ? user?.id : null)
   const todayBig3 = big3ByDate[todayStr] ?? null
   const [toast, setToast] = useState(null)
   const [completing, setCompleting] = useState(null)
@@ -142,9 +174,20 @@ export default function Dashboard() {
   const weekXp = getWeekXp()
   const doneTasks = focusTasks.filter(t => isTaskDone(t)).length
 
-  const xpPct = profile
-    ? Math.min(100, Math.round((getXpInLevel(profile.total_xp) / XP_PER_LEVEL) * 100))
-    : 0
+  // All-arena task totals for today
+  const allTaskStats = ARENA_SLUGS.reduce(
+    (acc, slug) => { const s = getArenaStats(slug); return { done: acc.done + s.completed, total: acc.total + s.total } },
+    { done: 0, total: 0 }
+  )
+
+  // Level display
+  const level = profile?.level ?? 1
+  const xpToNext = profile ? getXpToNextLevel(profile.total_xp) : XP_PER_LEVEL
+  const levelTitle = getLevelTitle(level)
+
+  // Streak sub-label
+  const streak = profile?.current_streak ?? 0
+  const streakSub = streak > 0 ? '🔥 Keep it going' : showBig3 ? 'Start today — set your Big 3' : 'Starts Apr 24'
 
   async function handleComplete(task) {
     if (isTaskDone(task) || completing === task.id) return
@@ -181,20 +224,24 @@ export default function Dashboard() {
 
         {/* Stats row */}
         <div className="grid grid-cols-4 gap-4 mb-6">
+          {/* FIX 1: Streak card — tied to Big 3 */}
           <StatCard
-            label="Streak"
-            value={profile?.current_streak ?? 0}
-            sub="days"
+            label="Big 3 Streak"
+            value={streak}
+            sub={streakSub}
             borderColor="border-peak-accent"
             valueColor="text-peak-text"
           />
+
+          {/* FIX 2: Today count — all tasks across all arenas */}
           <StatCard
-            label="Today"
-            value={`${doneTasks}/${focusTasks.length}`}
+            label="Today's Tasks"
+            value={`${allTaskStats.done}/${allTaskStats.total}`}
             sub="tasks done"
             borderColor="border-peak-success"
             valueColor="text-peak-text"
           />
+
           <StatCard
             label="XP This Week"
             value={`+${weekXp}`}
@@ -202,13 +249,16 @@ export default function Dashboard() {
             borderColor="border-peak-accent"
             valueColor="text-peak-accent"
           />
-          <StatCard
-            label="Level"
-            value={profile?.level ?? 1}
-            sub={`${xpPct}% to next`}
-            borderColor="border-peak-text"
-            valueColor="text-peak-text"
-          />
+
+          {/* FIX 3: Level card — with title and XP to next */}
+          <div className="bg-peak-surface border border-peak-border border-l-[3px] border-l-peak-accent rounded-xl px-4 py-4">
+            <p className="text-[9px] font-semibold text-peak-muted uppercase tracking-widest mb-1">Level</p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl font-extrabold tracking-tight text-peak-text">{level}</p>
+              <p className="text-xs font-bold text-peak-accent">{levelTitle}</p>
+            </div>
+            <p className="text-[10px] text-peak-muted mt-0.5">{xpToNext} XP to Level {level + 1}</p>
+          </div>
         </div>
 
         {/* Two-column */}
@@ -299,7 +349,12 @@ export default function Dashboard() {
 
         {/* Big 3 card — only shown from April 24 onwards */}
         {showBig3 && (
-          <Big3Card todayBig3={todayBig3} todayStr={todayStr} onSave={saveBig3} />
+          <Big3Card
+            todayBig3={todayBig3}
+            todayStr={todayStr}
+            onSave={saveBig3}
+            onMarkDone={markItemDone}
+          />
         )}
       </main>
     </div>

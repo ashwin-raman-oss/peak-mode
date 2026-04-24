@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 import { useTasks } from '../hooks/useTasks'
 import { useWeeklyReport } from '../hooks/useWeeklyReport'
+import { useBig3, BIG3_START_DATE } from '../hooks/useBig3'
 import TopBar from '../components/TopBar'
 import ProgressBar from '../components/ui/ProgressBar'
 import Button from '../components/ui/Button'
@@ -46,6 +47,7 @@ export default function WeeklyReport() {
   const { profile, loading: profileLoading } = useProfile(user?.id)
   const { arenas, getArenaStats, getWeekXp, loading: tasksLoading } = useTasks(user?.id)
   const { report, allReports, loading, generating, generateReport } = useWeeklyReport(user?.id, weekDate ?? null)
+  const { big3ByDate } = useBig3(user?.id, weekStartStr)
 
   const weekStartStr = weekDate ?? toDateStr(getWeekStart(new Date()))
   const weekRange = formatWeekRange(new Date(weekStartStr + 'T00:00:00Z'))
@@ -221,6 +223,58 @@ export default function WeeklyReport() {
               )}
             </div>
           )}
+
+          {/* Big 3 Consistency — shown whenever week has days >= BIG3_START_DATE */}
+          {(() => {
+            const now = new Date()
+            const todayLocal = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`
+            // Mon–Fri for this week
+            const weekdays = Array.from({ length: 5 }, (_, i) => {
+              const d = new Date(weekStartStr + 'T00:00:00Z')
+              d.setUTCDate(d.getUTCDate() + i)
+              return d.toISOString().slice(0, 10)
+            }).filter(d => d >= BIG3_START_DATE)
+            if (weekdays.length === 0) return null
+            const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+            const validDays = weekdays.filter(d => d <= todayLocal)
+            const setCount = validDays.filter(d => big3ByDate[d]).length
+            return (
+              <div className="bg-peak-surface border border-peak-border rounded-xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[10px] font-semibold tracking-widest uppercase text-peak-muted">Big 3 Consistency</p>
+                  <span className="text-xs font-semibold text-peak-accent">{setCount} of {validDays.length} days</span>
+                </div>
+                <div className="flex gap-2">
+                  {weekdays.map((dateStr, i) => {
+                    const isSet = !!big3ByDate[dateStr]
+                    const isPast = dateStr <= todayLocal
+                    const big3 = big3ByDate[dateStr]
+                    return (
+                      <div key={dateStr} className="flex-1 flex flex-col items-center gap-1">
+                        <span className="text-[10px] font-semibold text-peak-muted">{DAY_LABELS[i]}</span>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm border-2 transition-colors ${
+                          isSet
+                            ? 'bg-peak-accent border-peak-accent text-white'
+                            : isPast
+                            ? 'border-[#DC2626] text-[#DC2626]'
+                            : 'border-peak-border text-peak-muted'
+                        }`}>
+                          {isSet ? '✓' : isPast ? '✗' : '·'}
+                        </div>
+                        {big3 && (
+                          <div className="w-full space-y-0.5">
+                            {[big3.item_1, big3.item_2, big3.item_3].filter(Boolean).map((item, j) => (
+                              <p key={j} className="text-[9px] text-peak-muted leading-tight truncate text-center">{item}</p>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })()}
 
           {/* Report content */}
           {report && (

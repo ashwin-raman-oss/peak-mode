@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 import { useTasks } from '../hooks/useTasks'
+import { useBig3, BIG3_START_DATE } from '../hooks/useBig3'
 import { supabase } from '../lib/supabase'
 import TopBar from '../components/TopBar'
 import XPToast from '../components/XPToast'
@@ -21,6 +22,91 @@ function todayLabel() {
   return new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
 }
 
+function Big3Card({ todayBig3, todayStr, onSave }) {
+  const [editing, setEditing] = useState(!todayBig3)
+  const [items, setItems] = useState([
+    todayBig3?.item_1 ?? '',
+    todayBig3?.item_2 ?? '',
+    todayBig3?.item_3 ?? '',
+  ])
+  const [saving, setSaving] = useState(false)
+
+  // Sync when todayBig3 loads
+  if (todayBig3 && editing === false && items.every(i => i === '')) {
+    setItems([todayBig3.item_1 ?? '', todayBig3.item_2 ?? '', todayBig3.item_3 ?? ''])
+  }
+
+  async function handleSave() {
+    if (!items.some(i => i.trim())) return
+    setSaving(true)
+    try {
+      await onSave(todayStr, { item_1: items[0].trim(), item_2: items[1].trim(), item_3: items[2].trim() })
+      setEditing(false)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const set = todayBig3 && !editing
+
+  return (
+    <div className="mt-5 bg-peak-surface border border-peak-border rounded-xl overflow-hidden">
+      <div className="px-5 py-3.5 border-b border-peak-border flex items-center justify-between">
+        <div>
+          <span className="text-sm font-bold text-peak-text">Today's Big 3</span>
+          <span className="ml-2 text-[10px] text-peak-muted">Your 3 priorities for today</span>
+        </div>
+        {set && (
+          <button onClick={() => setEditing(true)} className="text-xs text-peak-accent hover:underline">Edit</button>
+        )}
+      </div>
+
+      <div className="px-5 py-4">
+        {set ? (
+          <div className="space-y-2">
+            {[todayBig3.item_1, todayBig3.item_2, todayBig3.item_3].filter(Boolean).map((item, i) => (
+              <div key={i} className="flex items-start gap-3">
+                <span className="w-5 h-5 rounded-full bg-peak-accent-light text-peak-accent text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                  {i + 1}
+                </span>
+                <span className="text-sm text-peak-text">{item}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {[0, 1, 2].map(i => (
+              <div key={i} className="flex items-center gap-3">
+                <span className="w-5 h-5 rounded-full bg-peak-accent-light text-peak-accent text-[10px] font-bold flex items-center justify-center shrink-0">
+                  {i + 1}
+                </span>
+                <input
+                  value={items[i]}
+                  onChange={e => setItems(prev => prev.map((v, idx) => idx === i ? e.target.value : v))}
+                  placeholder={`Priority ${i + 1}…`}
+                  className="flex-1 text-sm border border-peak-border rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-peak-accent/30"
+                />
+              </div>
+            ))}
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={handleSave}
+                disabled={saving || !items.some(i => i.trim())}
+                className="text-xs font-semibold bg-peak-accent text-white px-4 py-1.5 rounded-lg hover:bg-amber-500 disabled:opacity-50 transition-colors"
+              >
+                {saving ? 'Saving…' : 'Save Big 3'}
+              </button>
+              {todayBig3 && (
+                <button onClick={() => setEditing(false)} className="text-xs text-peak-muted hover:text-peak-text">Cancel</button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function StatCard({ label, value, sub, borderColor, valueColor }) {
   return (
     <div className={`bg-peak-surface border border-peak-border border-l-[3px] ${borderColor} rounded-xl px-4 py-4`}>
@@ -31,6 +117,11 @@ function StatCard({ label, value, sub, borderColor, valueColor }) {
   )
 }
 
+function localTodayStr() {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+}
+
 export default function Dashboard() {
   const { user } = useAuth()
   const { profile, addXp } = useProfile(user?.id)
@@ -38,6 +129,10 @@ export default function Dashboard() {
     tasks, arenas,
     getTodaysFocusTasks, getArenaStats, getWeekXp, isTaskDone, completeTask,
   } = useTasks(user?.id)
+  const todayStr = localTodayStr()
+  const showBig3 = todayStr >= BIG3_START_DATE
+  const { big3ByDate, saveBig3 } = useBig3(showBig3 ? user?.id : null)
+  const todayBig3 = big3ByDate[todayStr] ?? null
   const [toast, setToast] = useState(null)
   const [completing, setCompleting] = useState(null)
 
@@ -190,6 +285,11 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+
+        {/* Big 3 card — only shown from April 24 onwards */}
+        {showBig3 && (
+          <Big3Card todayBig3={todayBig3} todayStr={todayStr} onSave={saveBig3} />
+        )}
       </main>
     </div>
   )

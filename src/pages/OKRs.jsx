@@ -4,6 +4,31 @@ import { useOKRs } from '../hooks/useOKRs'
 import TopBar from '../components/TopBar'
 import Modal from '../components/ui/Modal'
 
+function ConfirmDeleteModal({ title, description, onConfirm, onClose }) {
+  return (
+    <Modal title="Confirm Delete" onClose={onClose}>
+      <p className="text-sm text-peak-text mb-1">
+        Are you sure you want to delete <span className="font-semibold">"{title}"</span>?
+      </p>
+      <p className="text-xs text-peak-muted mb-5">{description}</p>
+      <div className="flex gap-2">
+        <button
+          onClick={onConfirm}
+          className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold py-2.5 rounded-lg transition-colors"
+        >
+          Delete
+        </button>
+        <button
+          onClick={onClose}
+          className="flex-1 bg-peak-bg hover:bg-peak-border text-peak-text text-sm font-semibold py-2.5 rounded-lg transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
+    </Modal>
+  )
+}
+
 const PROGRESS_STEPS = [0, 25, 50, 75, 100]
 
 function getCurrentPeriod() {
@@ -96,6 +121,8 @@ function OKRCard({ okr, onUpdateProgress, onAddKR, onDeleteKR, onDeleteOKR }) {
   const [newKRTitle, setNewKRTitle] = useState('')
   const [savingKR, setSavingKR] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
+  const [confirmDeleteOKR, setConfirmDeleteOKR] = useState(false)
+  const [confirmDeleteKR, setConfirmDeleteKR] = useState(null) // { id, title }
 
   const progress = avgProgress(okr.key_results)
 
@@ -137,7 +164,7 @@ function OKRCard({ okr, onUpdateProgress, onAddKR, onDeleteKR, onDeleteOKR }) {
                 <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
                 <div className="absolute right-0 top-6 z-20 bg-peak-surface border border-peak-border rounded-lg shadow-lg py-1 min-w-[150px]">
                   <button
-                    onClick={() => { setShowMenu(false); onDeleteOKR(okr.id) }}
+                    onClick={() => { setShowMenu(false); setConfirmDeleteOKR(true) }}
                     className="w-full text-left text-xs text-[#DC2626] px-3 py-2 hover:bg-peak-bg transition-colors"
                   >
                     Delete objective
@@ -187,7 +214,7 @@ function OKRCard({ okr, onUpdateProgress, onAddKR, onDeleteKR, onDeleteOKR }) {
                 </div>
               </div>
               <button
-                onClick={() => onDeleteKR(kr.id)}
+                onClick={() => setConfirmDeleteKR({ id: kr.id, title: kr.title })}
                 className="text-peak-muted hover:text-[#DC2626] text-xs shrink-0 mt-0.5 transition-colors"
                 aria-label="Delete key result"
               >
@@ -225,6 +252,24 @@ function OKRCard({ okr, onUpdateProgress, onAddKR, onDeleteKR, onDeleteOKR }) {
         >
           + Add Key Result
         </button>
+      )}
+
+      {confirmDeleteOKR && (
+        <ConfirmDeleteModal
+          title={okr.title}
+          description="This will remove the objective and all its key results. This action cannot be undone."
+          onConfirm={() => { onDeleteOKR(okr.id); setConfirmDeleteOKR(false) }}
+          onClose={() => setConfirmDeleteOKR(false)}
+        />
+      )}
+
+      {confirmDeleteKR && (
+        <ConfirmDeleteModal
+          title={confirmDeleteKR.title}
+          description="This action cannot be undone."
+          onConfirm={() => { onDeleteKR(confirmDeleteKR.id); setConfirmDeleteKR(null) }}
+          onClose={() => setConfirmDeleteKR(null)}
+        />
       )}
     </div>
   )

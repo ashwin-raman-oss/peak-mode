@@ -52,6 +52,51 @@ export function useHabits(userId) {
       .map(c => c.completed_date)
   }
 
+  function getHabitStreak(habitId) {
+    const todayStr = toDateStr(new Date())
+    const dates = getHabitCompletions(habitId).sort().reverse() // newest first
+
+    function countConsecutive(startStr) {
+      let streak = 0
+      let cursor = startStr
+      for (const d of dates) {
+        if (d === cursor) {
+          streak++
+          const prev = new Date(cursor + 'T12:00:00')
+          prev.setDate(prev.getDate() - 1)
+          cursor = toDateStr(prev)
+        } else if (d < cursor) {
+          break
+        }
+      }
+      return streak
+    }
+
+    let currentStreak = countConsecutive(todayStr)
+    if (currentStreak === 0) {
+      const yesterday = new Date()
+      yesterday.setDate(yesterday.getDate() - 1)
+      currentStreak = countConsecutive(toDateStr(yesterday))
+    }
+
+    // Longest streak from ascending sort
+    const sortedAsc = [...dates].reverse()
+    let longest = sortedAsc.length > 0 ? 1 : 0
+    let current = sortedAsc.length > 0 ? 1 : 0
+    for (let i = 1; i < sortedAsc.length; i++) {
+      const prev = new Date(sortedAsc[i - 1] + 'T12:00:00')
+      prev.setDate(prev.getDate() + 1)
+      if (toDateStr(prev) === sortedAsc[i]) {
+        current++
+        if (current > longest) longest = current
+      } else {
+        current = 1
+      }
+    }
+
+    return { currentStreak, longestStreak: longest }
+  }
+
   function getFormationProgress(habitId) {
     const habit = habits.find(h => h.id === habitId)
     if (!habit) return { daysCompleted: 0, totalDays: 66, pct: 0, isGraduated: false }
@@ -150,6 +195,7 @@ export function useHabits(userId) {
     habits,
     getHabitCompletions,
     getFormationProgress,
+    getHabitStreak,
     toggleHabitDay,
     addHabit,
     deleteHabit,

@@ -1,6 +1,6 @@
 // src/pages/Dashboard.jsx
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 import { useTasks } from '../hooks/useTasks'
@@ -225,6 +225,9 @@ export default function Dashboard() {
   // Today-only completion count (not full week)
   const { completedToday, totalDailyToday, isWeekend } = getTodayCompletionCount()
 
+  // Detect if user has no tasks at all (new user)
+  const allArenasEmpty = ARENA_SLUGS.every(slug => getArenaStats(slug).total === 0)
+
   // Level display
   const level = profile?.level ?? 1
   const xpToNext = profile ? getXpToNextLevel(profile.total_xp) : XP_PER_LEVEL
@@ -315,7 +318,25 @@ export default function Dashboard() {
             </div>
             <div>
               {focusTasks.length === 0 && (
-                <p className="text-peak-muted text-sm text-center py-8">No tasks for today.</p>
+                isWeekend ? (
+                  <div className="text-center py-6 px-5">
+                    <p className="text-peak-muted text-sm">Weekend — no daily tasks required.</p>
+                    <p className="text-xs text-peak-muted mt-1">Weekly tasks are still available in each arena.</p>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 px-5">
+                    <p className="text-peak-text font-medium text-sm mb-1">No tasks for today</p>
+                    <p className="text-peak-muted text-xs mb-4">Add tasks to an arena to see your daily focus here.</p>
+                    <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                      <Link to="/arena/career" className="text-xs font-semibold text-white bg-peak-accent hover:opacity-90 px-4 py-2 rounded-lg transition-opacity">
+                        Set up Career tasks →
+                      </Link>
+                      <Link to="/arena/health" className="text-xs font-semibold text-peak-accent border border-peak-accent hover:bg-peak-accent-light px-4 py-2 rounded-lg transition-colors">
+                        Set up Health tasks →
+                      </Link>
+                    </div>
+                  </div>
+                )
               )}
               {focusTasks.map(task => {
                 const done = isTaskDone(task)
@@ -387,6 +408,11 @@ export default function Dashboard() {
                   </button>
                 )
               })}
+              {allArenasEmpty && (
+                <p className="text-xs text-peak-muted text-center pt-1">
+                  Click an arena above to add your first tasks
+                </p>
+              )}
             </div>
           </div>
         </div>

@@ -9,6 +9,7 @@ import { getXpForPriority } from '../lib/xp'
 import TopBar from '../components/TopBar'
 import Badge from '../components/ui/Badge'
 import XPToast from '../components/XPToast'
+import Modal from '../components/ui/Modal'
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -40,6 +41,7 @@ export default function ArenaDetail() {
   const [toast, setToast] = useState(null)
   const [editingId, setEditingId] = useState(null)
   const [actionError, setActionError] = useState(null)
+  const [confirmDelete, setConfirmDelete] = useState(null) // { id, title }
 
   const arena = arenas.find(a => a.slug === slug)
 
@@ -270,7 +272,7 @@ export default function ArenaDetail() {
                         ✏️
                       </button>
                       <button
-                        onClick={() => handleDelete(task.id)}
+                        onClick={() => setConfirmDelete({ id: task.id, title: task.title })}
                         className="text-peak-muted hover:text-red-500 text-xs transition-colors"
                         aria-label="Delete task"
                       >
@@ -297,6 +299,29 @@ export default function ArenaDetail() {
           )}
         </div>
       </main>
+
+      {confirmDelete && (
+        <Modal title="Confirm Delete" onClose={() => setConfirmDelete(null)}>
+          <p className="text-sm text-peak-text mb-1">
+            Are you sure you want to delete <span className="font-semibold">"{confirmDelete.title}"</span>?
+          </p>
+          <p className="text-xs text-peak-muted mb-5">This action cannot be undone.</p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => { handleDelete(confirmDelete.id); setConfirmDelete(null) }}
+              className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold py-2.5 rounded-lg transition-colors"
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => setConfirmDelete(null)}
+              className="flex-1 bg-peak-bg hover:bg-peak-border text-peak-text text-sm font-semibold py-2.5 rounded-lg transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </Modal>
+      )}
     </div>
   )
 }

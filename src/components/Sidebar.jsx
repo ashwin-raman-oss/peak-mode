@@ -1,5 +1,5 @@
 // src/components/Sidebar.jsx
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 import { useSidebar } from '../context/SidebarContext'
@@ -30,6 +30,8 @@ export default function Sidebar() {
   const { profile } = useProfile(user?.id)
   const { isOpen, close } = useSidebar()
   const navigate = useNavigate()
+  const location = useLocation()
+  const isArenaActive = location.pathname.startsWith('/arena/')
 
   const xpInLevel = profile ? getXpInLevel(profile.total_xp) : 0
   const xpPct = Math.min(100, Math.round((xpInLevel / XP_PER_LEVEL) * 100))
@@ -105,10 +107,17 @@ export default function Sidebar() {
 
           {/* Arena parent + sub-links */}
           <div className="mb-0.5">
-            <div className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-peak-sidebar-text">
+            <button
+              onClick={() => { navigate('/arena/career'); close() }}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md mb-0.5 text-sm font-medium transition-colors ${
+                isArenaActive
+                  ? 'bg-peak-sidebar-active text-white'
+                  : 'text-peak-sidebar-text hover:text-white hover:bg-peak-sidebar-hover'
+              }`}
+            >
               <span className="text-base leading-none">◈</span>
               Arena
-            </div>
+            </button>
             <div className="ml-4 border-l border-peak-sidebar-border pl-2 space-y-0.5">
               {ARENA_SLUGS.map(({ slug, label }) => (
                 <NavLink

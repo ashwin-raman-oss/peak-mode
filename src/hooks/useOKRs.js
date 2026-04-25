@@ -3,19 +3,48 @@ import { supabase } from '../lib/supabase'
 
 export function useOKRs(userId) {
   const [okrs, setOkrs] = useState([])
+  const [archivedOKRs, setArchivedOKRs] = useState([])
   const [loading, setLoading] = useState(true)
 
   const fetchOKRs = useCallback(async () => {
     if (!userId) { setLoading(false); return }
     setLoading(true)
-    const { data } = await supabase
-      .from('okrs')
-      .select('*, key_results(*)')
-      .eq('user_id', userId)
-      .eq('is_active', true)
-      .order('created_at', { ascending: true })
-      .order('created_at', { foreignTable: 'key_results', ascending: true })
-    setOkrs(data || [])
+
+    // Try with is_archived filter (requires migration); fall back gracefully if column absent
+    const [{ data: activeData, error: activeErr }, { data: archivedData }] = await Promise.all([
+      supabase
+        .from('okrs')
+        .select('*, key_results(*)')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .eq('is_archived', false)
+        .order('created_at', { ascending: true })
+        .order('created_at', { foreignTable: 'key_results', ascending: true }),
+      supabase
+        .from('okrs')
+        .select('*, key_results(*)')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .eq('is_archived', true)
+        .order('archived_at', { ascending: false }),
+    ])
+
+    if (activeErr) {
+      // Column may not exist yet — fall back to unfiltered query
+      const { data: fallback } = await supabase
+        .from('okrs')
+        .select('*, key_results(*)')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .order('created_at', { ascending: true })
+        .order('created_at', { foreignTable: 'key_results', ascending: true })
+      setOkrs(fallback || [])
+      setArchivedOKRs([])
+    } else {
+      setOkrs(activeData || [])
+      setArchivedOKRs(archivedData || [])
+    }
+
     setLoading(false)
   }, [userId])
 
@@ -59,6 +88,28 @@ export function useOKRs(userId) {
     })))
   }
 
+  async function archiveOKR(okrId) {
+    const { error } = await supabase
+      .from('okrs')
+      .update({ is_archived: true, archived_at: new Date().toISOString() })
+      .eq('id', okrId)
+    if (error) throw error
+    const okr = okrs.find(o => o.id === okrId)
+    setOkrs(prev => prev.filter(o => o.id !== okrId))
+    if (okr) setArchivedOKRs(prev => [{ ...okr, is_archived: true }, ...prev])
+  }
+
+  async function restoreOKR(okrId) {
+    const { error } = await supabase
+      .from('okrs')
+      .update({ is_archived: false, archived_at: null })
+      .eq('id', okrId)
+    if (error) throw error
+    const okr = archivedOKRs.find(o => o.id === okrId)
+    setArchivedOKRs(prev => prev.filter(o => o.id !== okrId))
+    if (okr) setOkrs(prev => [...prev, { ...okr, is_archived: false }])
+  }
+
   async function deleteOKR(okrId) {
     const { error } = await supabase
       .from('okrs')
@@ -66,6 +117,7 @@ export function useOKRs(userId) {
       .eq('id', okrId)
     if (error) throw error
     setOkrs(prev => prev.filter(o => o.id !== okrId))
+    setArchivedOKRs(prev => prev.filter(o => o.id !== okrId))
   }
 
   async function deleteKeyResult(krId) {
@@ -80,5 +132,9 @@ export function useOKRs(userId) {
     })))
   }
 
-  return { okrs, loading, addOKR, addKeyResult, updateProgress, deleteOKR, deleteKeyResult }
+  return {
+    okrs, archivedOKRs, loading,
+    addOKR, addKeyResult, updateProgress,
+    archiveOKR, restoreOKR, deleteOKR, deleteKeyResult,
+  }
 }

@@ -184,12 +184,15 @@ export function useTasks(userId, arenaSlug = null) {
     return data
   }
 
-  async function updateTask(taskId, { title, priority_override, is_one_time }) {
+  async function updateTask(taskId, { title, priority_override, is_one_time, recurrence, weekly_target, task_type }) {
     if (!userId) throw new Error('No authenticated user')
     const updates = {}
     if (title !== undefined) updates.title = title
     if (priority_override !== undefined) updates.priority_override = priority_override
     if (is_one_time !== undefined) updates.is_one_time = is_one_time
+    if (recurrence !== undefined) updates.recurrence = recurrence
+    if (weekly_target !== undefined) updates.weekly_target = weekly_target
+    if (task_type !== undefined) updates.task_type = task_type
 
     if (Object.keys(updates).length === 0) return
 

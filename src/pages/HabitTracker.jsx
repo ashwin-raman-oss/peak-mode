@@ -13,11 +13,23 @@ function addDaysToDate(startDateStr, days) {
   return d
 }
 
+function getFrequencyLabel(targetDays) {
+  if (targetDays >= 7) return 'Daily habit'
+  if (targetDays === 5) return 'Weekdays only'
+  return `${targetDays}× per week`
+}
+
 function HabitCard({ habit, getHabitCompletions, getFormationProgress, getHabitStreak, toggleHabitDay, onDeleteRequest, todayStr }) {
   const completions = getHabitCompletions(habit.id)
-  const { daysCompleted, pct, isGraduated } = getFormationProgress(habit.id)
+  const { daysCompleted } = getFormationProgress(habit.id)
   const { currentStreak, longestStreak } = getHabitStreak(habit.id)
   const completedToday = completions.includes(todayStr)
+
+  // Scale progress to target frequency (non-daily habits have a shorter effective goal)
+  const targetDays = habit.target_days_per_week ?? 7
+  const effectiveDays = targetDays >= 7 ? 66 : Math.round(66 * targetDays / 7)
+  const adjustedPct = effectiveDays > 0 ? Math.min(100, (daysCompleted / effectiveDays) * 100) : 0
+  const isGraduated = daysCompleted >= effectiveDays
 
   return (
     <div className="bg-peak-surface rounded-xl border border-peak-border p-5 mb-4">
@@ -30,6 +42,10 @@ function HabitCard({ habit, getHabitCompletions, getFormationProgress, getHabitS
               {habit.arenas.emoji} {habit.arenas.name}
             </span>
           )}
+          {/* Frequency label */}
+          <span className="block text-[10px] text-peak-muted mt-0.5">
+            {getFrequencyLabel(targetDays)}
+          </span>
         </div>
         <button
           onClick={() => onDeleteRequest(habit)}
@@ -48,13 +64,13 @@ function HabitCard({ habit, getHabitCompletions, getFormationProgress, getHabitS
       ) : (
         <div className="mb-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] text-peak-muted">Day {daysCompleted} of 66</span>
-            <span className="text-[10px] font-semibold text-peak-accent">{Math.round(pct)}%</span>
+            <span className="text-[10px] text-peak-muted">Day {daysCompleted} of {effectiveDays}</span>
+            <span className="text-[10px] font-semibold text-peak-accent">{Math.round(adjustedPct)}%</span>
           </div>
           <div className="h-1.5 bg-peak-border rounded-full overflow-hidden">
             <div
               className="h-full bg-peak-accent rounded-full transition-all"
-              style={{ width: `${pct}%` }}
+              style={{ width: `${adjustedPct}%` }}
             />
           </div>
         </div>
@@ -79,20 +95,32 @@ function HabitCard({ habit, getHabitCompletions, getFormationProgress, getHabitS
       </div>
 
       {/* 66-day grid */}
-      <div className="flex flex-wrap gap-1 mb-4">
+      <div className="flex flex-wrap gap-1 mb-2">
         {Array.from({ length: 66 }).map((_, i) => {
           const squareDate = addDaysToDate(habit.start_date, i)
           const dateStr = toDateStr(squareDate)
           const isCompleted = completions.includes(dateStr)
           const isToday = dateStr === todayStr
+          // For non-daily habits, shade weekend squares lighter
+          const dow = squareDate.getDay()
+          const isWeekendSquare = targetDays < 7 && (dow === 0 || dow === 6)
           return (
             <div
               key={i}
-              className={`w-[10px] h-[10px] rounded-sm ${isCompleted ? 'bg-peak-accent' : 'bg-peak-border'} ${isToday ? 'ring-1 ring-peak-accent ring-offset-1' : ''}`}
+              className={`w-[10px] h-[10px] rounded-sm ${
+                isCompleted ? 'bg-peak-accent' :
+                isWeekendSquare ? 'bg-[#F3F4F6]' :
+                'bg-peak-border'
+              } ${isToday ? 'ring-1 ring-peak-accent ring-offset-1' : ''}`}
             />
           )
         })}
       </div>
+
+      {/* Target summary */}
+      <p className="text-[10px] text-peak-muted mb-4">
+        Target: {targetDays}×/week · {daysCompleted} days done · {Math.round(adjustedPct)}% complete
+      </p>
 
       {/* Today toggle */}
       <button

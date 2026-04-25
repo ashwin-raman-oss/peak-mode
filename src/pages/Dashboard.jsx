@@ -8,6 +8,8 @@ import { useBig3, BIG3_START_DATE } from '../hooks/useBig3'
 import { supabase } from '../lib/supabase'
 import TopBar from '../components/TopBar'
 import XPToast from '../components/XPToast'
+import OnboardingBanner from '../components/OnboardingBanner'
+import LevelUpModal from '../components/LevelUpModal'
 import { getXpInLevel, getXpToNextLevel, XP_PER_LEVEL } from '../lib/xp'
 
 const ARENA_SLUGS = ['career', 'health', 'learning', 'misc']
@@ -208,6 +210,7 @@ export default function Dashboard() {
   const showBig3 = todayStr >= BIG3_START_DATE
   const { todayBig3, loading: big3Loading, saveBig3, markItemDone } = useBig3(showBig3 ? user?.id : null)
   const [toast, setToast] = useState(null)
+  const [levelUpLevel, setLevelUpLevel] = useState(null)
 
   const [completing, setCompleting] = useState(null)
 
@@ -242,7 +245,8 @@ export default function Dashboard() {
     setCompleting(task.id)
     try {
       const xp = await completeTask(task)
-      await addXp(xp)
+      const levelResult = await addXp(xp)
+      if (levelResult?.leveledUp) setLevelUpLevel(levelResult.newLevel)
       let message = null
       try {
         const { data: { session } } = await supabase.auth.getSession()
@@ -269,6 +273,12 @@ export default function Dashboard() {
         {toast && (
           <XPToast key={toast.id} xp={toast.xp} hypeMessage={toast.hypeMessage} onDone={() => setToast(null)} />
         )}
+        {levelUpLevel && (
+          <LevelUpModal newLevel={levelUpLevel} onClose={() => setLevelUpLevel(null)} />
+        )}
+
+        {/* FTUE onboarding banner — shown only when user has no tasks */}
+        {allArenasEmpty && <OnboardingBanner />}
 
         {/* Stats row — 2 cols on mobile, 4 on desktop */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

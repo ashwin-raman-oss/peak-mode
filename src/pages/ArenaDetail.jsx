@@ -10,6 +10,7 @@ import TopBar from '../components/TopBar'
 import Badge from '../components/ui/Badge'
 import XPToast from '../components/XPToast'
 import Modal from '../components/ui/Modal'
+import LevelUpModal from '../components/LevelUpModal'
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -42,6 +43,7 @@ export default function ArenaDetail() {
   const [editingId, setEditingId] = useState(null)
   const [actionError, setActionError] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(null) // { id, title }
+  const [levelUpLevel, setLevelUpLevel] = useState(null)
 
   const arena = arenas.find(a => a.slug === slug)
 
@@ -85,7 +87,10 @@ export default function ArenaDetail() {
         await uncompleteTask(task.id, selectedDay)
       } else if (!done || isWeeklyCount) {
         const xp = await completeTask(task, selectedDay)
-        if (xp > 0) await addXp(xp)
+        if (xp > 0) {
+          const levelResult = await addXp(xp)
+          if (levelResult?.leveledUp) setLevelUpLevel(levelResult.newLevel)
+        }
 
         let message = null
         try {
@@ -144,6 +149,9 @@ export default function ArenaDetail() {
       <main className="flex-1 overflow-y-auto bg-peak-bg px-4 py-4 lg:px-6">
         {toast && (
           <XPToast key={toast.id} xp={toast.xp} hypeMessage={toast.hypeMessage} onDone={() => setToast(null)} />
+        )}
+        {levelUpLevel && (
+          <LevelUpModal newLevel={levelUpLevel} onClose={() => setLevelUpLevel(null)} />
         )}
 
         {/* Day tab bar */}
@@ -350,22 +358,43 @@ export default function ArenaDetail() {
 function EditTaskForm({ task, onSave, onCancel }) {
   const [title, setTitle] = useState(task.title)
   const [priority, setPriority] = useState(task.priority_override ?? task.priority)
-  const [isOneTime, setIsOneTime] = useState(task.is_one_time ?? false)
   const [saving, setSaving] = useState(false)
+
+  // Determine initial task type from task fields
+  function getInitialType() {
+    if (task.is_one_time) return 'onetime'
+    if (task.recurrence === 'daily') return 'daily'
+    if (task.recurrence === 'weekly') return 'weekly'
+    return 'onetime'
+  }
+
+  const [taskType, setTaskType] = useState(getInitialType)
+  const [weeklyTarget, setWeeklyTarget] = useState(task.weekly_target ?? 1)
+
+  const isCurrentlyRecurring = task.recurrence === 'daily' || task.recurrence === 'weekly'
 
   async function handleSubmit(e) {
     e.preventDefault()
     if (!title.trim()) return
     setSaving(true)
     try {
-      await onSave({ title: title.trim(), priority_override: priority, is_one_time: isOneTime })
+      let updates = { title: title.trim(), priority_override: priority }
+      if (taskType === 'daily') {
+        updates = { ...updates, task_type: 'recurring', recurrence: 'daily', weekly_target: 1, is_one_time: false }
+      } else if (taskType === 'weekly') {
+        updates = { ...updates, task_type: 'recurring', recurrence: 'weekly', weekly_target: Number(weeklyTarget), is_one_time: false }
+      } else {
+        updates = { ...updates, task_type: 'misc', recurrence: 'none', weekly_target: 1, is_one_time: true }
+      }
+      await onSave(updates)
     } finally {
       setSaving(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-1.5 col-span-1">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-2 col-span-1">
+      {/* Title + priority + save/cancel */}
       <div className="flex items-center gap-2">
         <input
           autoFocus
@@ -387,18 +416,44 @@ function EditTaskForm({ task, onSave, onCancel }) {
         </button>
         <button type="button" onClick={onCancel} className="text-xs text-peak-muted hover:text-peak-text">Cancel</button>
       </div>
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={isOneTime}
-          onChange={e => setIsOneTime(e.target.checked)}
-          className="w-3.5 h-3.5 rounded accent-peak-accent"
-        />
-        <span className="text-[10px] text-peak-muted">One-time task</span>
-        {isOneTime && (
-          <span className="text-[10px] text-peak-muted italic">· disappears after this week</span>
+
+      {/* Warning for currently recurring tasks */}
+      {isCurrentlyRecurring && (
+        <p className="text-[10px] text-amber-600 bg-amber-50 border border-amber-200 rounded-md px-2 py-1">
+          ⚠ Recurring task — changes apply permanently
+        </p>
+      )}
+
+      {/* Task type selector */}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {TASK_TYPES.map(opt => (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => setTaskType(opt.value)}
+            className={`text-[10px] px-2.5 py-1 rounded-lg font-medium border transition-colors ${
+              taskType === opt.value
+                ? 'bg-peak-accent border-peak-accent text-white'
+                : 'border-peak-border text-peak-muted hover:border-peak-accent hover:text-peak-accent'
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+        {taskType === 'weekly' && (
+          <div className="flex items-center gap-1 ml-1">
+            <span className="text-[10px] text-peak-muted">×/week:</span>
+            <input
+              type="number"
+              min={1}
+              max={7}
+              value={weeklyTarget}
+              onChange={e => setWeeklyTarget(e.target.value)}
+              className="w-12 text-xs border border-peak-border rounded-lg px-1.5 py-1 focus:outline-none focus:ring-2 focus:ring-peak-accent/30"
+            />
+          </div>
         )}
-      </label>
+      </div>
     </form>
   )
 }

@@ -26,6 +26,7 @@ export default {
         'fade-in': 'fadeIn 0.15s ease-out',
         'level-up': 'levelUp 2.2s ease-out forwards',
         'form-dip': 'fadeIn 0.3s ease-out',
+        'confetti': 'confetti 1.4s ease-out forwards',
       },
       keyframes: {
         xpFloat: {
@@ -41,6 +42,11 @@ export default {
           '20%':  { opacity: '1', transform: 'scale(1.15)' },
           '70%':  { opacity: '1', transform: 'scale(1)' },
           '100%': { opacity: '0', transform: 'scale(1)' },
+        },
+        confetti: {
+          '0%':   { opacity: '1', transform: 'translateY(0) scale(1)' },
+          '60%':  { opacity: '0.6' },
+          '100%': { opacity: '0', transform: 'translateY(-80px) scale(0.3)' },
         },
       },
     },

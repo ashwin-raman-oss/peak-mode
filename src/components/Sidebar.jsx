@@ -149,12 +149,30 @@ export default function Sidebar() {
                     ? 'bg-peak-sidebar-active text-white'
                     : 'text-peak-sidebar-text hover:text-white hover:bg-peak-sidebar-hover'
                 }`
-            }
+              }
             >
               <span className="text-base leading-none">{icon}</span>
               {label}
             </NavLink>
           ))}
+
+          {/* Settings — separated at bottom of nav */}
+          <div className="mt-2 pt-2 border-t border-peak-sidebar-border">
+            <NavLink
+              to="/settings"
+              onClick={handleNavClick}
+              className={({ isActive }) =>
+                `flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'bg-peak-sidebar-active text-white'
+                    : 'text-peak-sidebar-text hover:text-white hover:bg-peak-sidebar-hover'
+                }`
+              }
+            >
+              <span className="text-base leading-none">⚙</span>
+              Settings
+            </NavLink>
+          </div>
         </nav>
 
         {/* User / XP footer */}
@@ -165,7 +183,7 @@ export default function Sidebar() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-white text-xs font-semibold truncate">
-                {user?.email?.split('@')[0] ?? 'User'}
+                {profile?.display_name || (user?.email?.split('@')[0] ?? 'User')}
               </p>
               <p className="text-peak-sidebar-text text-[10px]">Level {profile?.level ?? 1}</p>
             </div>

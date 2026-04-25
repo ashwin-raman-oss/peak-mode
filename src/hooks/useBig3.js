@@ -92,9 +92,10 @@ export function useBig3(userId) {
 
   async function getWeekBig3(weekStartStr) {
     if (!userId) return []
-    const weekEnd = new Date(weekStartStr)
+    // Parse as local noon to avoid timezone-driven day shift
+    const weekEnd = new Date(weekStartStr + 'T12:00:00')
     weekEnd.setDate(weekEnd.getDate() + 6)
-    const weekEndStr = weekEnd.toISOString().split('T')[0]
+    const weekEndStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth()+1).padStart(2,'0')}-${String(weekEnd.getDate()).padStart(2,'0')}`
     const { data, error } = await supabase
       .from('daily_big3')
       .select('*')

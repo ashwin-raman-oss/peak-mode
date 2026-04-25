@@ -42,7 +42,7 @@ export default function OKRs() {
         }
       />
 
-      <main className="flex-1 overflow-y-auto bg-peak-bg p-6">
+      <main className="flex-1 overflow-y-auto bg-peak-bg px-4 py-4 lg:px-6">
         {okrs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <p className="text-peak-muted text-sm mb-4">No objectives yet. Add your first OKR to get started.</p>

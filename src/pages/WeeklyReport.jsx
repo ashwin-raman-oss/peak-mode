@@ -62,14 +62,15 @@ export default function WeeklyReport() {
       setBig3ByDate(map)
     })
   }, [user?.id, weekStartStr]) // eslint-disable-line react-hooks/exhaustive-deps
-  const weekRange = formatWeekRange(new Date(weekStartStr + 'T00:00:00Z'))
+  // Parse as local noon to avoid timezone-driven day shift on week boundaries
+  const weekRange = formatWeekRange(new Date(weekStartStr + 'T12:00:00'))
   const currentWeekStart = toDateStr(getWeekStart(new Date()))
   const isCurrentWeek = weekStartStr === currentWeekStart
 
-  // Mathematical prev/next — never rely on allReports existing
-  const prevWeekStr = toDateStr(new Date(new Date(weekStartStr + 'T00:00:00Z').getTime() - 7 * 24 * 60 * 60 * 1000))
-  const nextWeekStr = toDateStr(new Date(new Date(weekStartStr + 'T00:00:00Z').getTime() + 7 * 24 * 60 * 60 * 1000))
-  const twelveWeeksAgo = toDateStr(new Date(new Date(currentWeekStart + 'T00:00:00Z').getTime() - 12 * 7 * 24 * 60 * 60 * 1000))
+  // Mathematical prev/next — parse as local noon, arithmetic in ms is timezone-safe
+  const prevWeekStr = toDateStr(new Date(new Date(weekStartStr + 'T12:00:00').getTime() - 7 * 24 * 60 * 60 * 1000))
+  const nextWeekStr = toDateStr(new Date(new Date(weekStartStr + 'T12:00:00').getTime() + 7 * 24 * 60 * 60 * 1000))
+  const twelveWeeksAgo = toDateStr(new Date(new Date(currentWeekStart + 'T12:00:00').getTime() - 12 * 7 * 24 * 60 * 60 * 1000))
   const canGoPrev = weekStartStr > twelveWeeksAgo
   const canGoNext = !isCurrentWeek
 
@@ -205,7 +206,7 @@ export default function WeeklyReport() {
           </div>
         }
       />
-      <main className="flex-1 overflow-y-auto bg-peak-bg p-6">
+      <main className="flex-1 overflow-y-auto bg-peak-bg px-4 py-4 lg:px-6">
         <div className="max-w-3xl mx-auto space-y-5">
           {generateError && (
             <p role="alert" className="text-[#DC2626] text-xs font-medium bg-[#FEF2F2] border border-[#FCA5A5] rounded-lg px-3 py-2">
@@ -238,16 +239,15 @@ export default function WeeklyReport() {
 
           {/* Big 3 Consistency — shown whenever week has days >= BIG3_START_DATE */}
           {(() => {
-            const now = new Date()
-            const todayLocal = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`
-            // Mon–Fri for this week
+            const todayLocal = toDateStr(new Date()) // local date
+            const DAY_MAP = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+            // Mon–Fri for this week — parse as local noon to avoid timezone shift
             const weekdays = Array.from({ length: 5 }, (_, i) => {
-              const d = new Date(weekStartStr + 'T00:00:00Z')
-              d.setUTCDate(d.getUTCDate() + i)
-              return d.toISOString().slice(0, 10)
+              const d = new Date(weekStartStr + 'T12:00:00')
+              d.setDate(d.getDate() + i)
+              return toDateStr(d)
             }).filter(d => d >= BIG3_START_DATE)
             if (weekdays.length === 0) return null
-            const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
             const validDays = weekdays.filter(d => d <= todayLocal)
             const setCount = validDays.filter(d => big3ByDate[d]).length
             return (
@@ -257,13 +257,15 @@ export default function WeeklyReport() {
                   <span className="text-xs font-semibold text-peak-accent">{setCount} of {validDays.length} days</span>
                 </div>
                 <div className="flex gap-2">
-                  {weekdays.map((dateStr, i) => {
+                  {weekdays.map((dateStr) => {
                     const isSet = !!big3ByDate[dateStr]
                     const isPast = dateStr <= todayLocal
                     const big3 = big3ByDate[dateStr]
+                    // Derive day label from the actual local date, not array index
+                    const dayLabel = DAY_MAP[new Date(dateStr + 'T12:00:00').getDay()]
                     return (
                       <div key={dateStr} className="flex-1 flex flex-col items-center gap-1">
-                        <span className="text-[10px] font-semibold text-peak-muted">{DAY_LABELS[i]}</span>
+                        <span className="text-[10px] font-semibold text-peak-muted">{dayLabel}</span>
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm border-2 transition-colors ${
                           isSet
                             ? 'bg-peak-accent border-peak-accent text-white'

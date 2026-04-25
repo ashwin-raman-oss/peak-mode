@@ -266,7 +266,7 @@ export function useTasks(userId, arenaSlug = null) {
 
   function getTodaysFocusTasks() {
     const today = new Date()
-    const dayOfWeek = today.getUTCDay() // 0=Sun, 6=Sat
+    const dayOfWeek = today.getDay() // local: 0=Sun, 6=Sat
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
 
     if (isWeekend) {

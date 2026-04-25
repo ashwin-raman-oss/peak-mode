@@ -67,7 +67,7 @@ export default function Journal() {
           </button>
         }
       />
-      <main className="flex-1 overflow-y-auto bg-peak-bg p-6">
+      <main className="flex-1 overflow-y-auto bg-peak-bg px-4 py-4 lg:px-6">
         {/* Today's check-in buttons */}
         <div className="flex gap-2 mb-6">
           <button

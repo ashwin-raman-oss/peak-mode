@@ -72,7 +72,7 @@ export default function MonthlyTracker() {
           </div>
         }
       />
-      <main className="flex-1 overflow-y-auto bg-peak-bg p-6">
+      <main className="flex-1 overflow-y-auto bg-peak-bg px-4 py-4 lg:px-6">
         <div className="bg-peak-surface border border-peak-border rounded-xl overflow-hidden">
           {/* Day-of-week headers */}
           <div className="grid grid-cols-7 border-b border-peak-border">

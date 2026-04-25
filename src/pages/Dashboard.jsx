@@ -262,13 +262,13 @@ export default function Dashboard() {
         title="Dashboard"
         subtitle={todayLabel()}
       />
-      <main className="flex-1 overflow-y-auto bg-peak-bg p-6">
+      <main className="flex-1 overflow-y-auto bg-peak-bg px-4 py-4 lg:px-6">
         {toast && (
           <XPToast key={toast.id} xp={toast.xp} hypeMessage={toast.hypeMessage} onDone={() => setToast(null)} />
         )}
 
-        {/* Stats row */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
+        {/* Stats row — 2 cols on mobile, 4 on desktop */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {/* FIX 1: Streak card — tied to Big 3 */}
           <StatCard
             label="Big 3 Streak"
@@ -305,8 +305,8 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Two-column */}
-        <div className="flex gap-5">
+        {/* Two-column — stacked on mobile, side-by-side on desktop */}
+        <div className="flex flex-col lg:flex-row gap-4">
           {/* Today's Focus */}
           <div className="flex-1 bg-peak-surface border border-peak-border rounded-xl overflow-hidden">
             <div className="px-5 py-3.5 border-b border-peak-border flex items-center justify-between">
@@ -354,7 +354,7 @@ export default function Dashboard() {
           </div>
 
           {/* Arena Progress */}
-          <div className="w-[320px] shrink-0 bg-peak-surface border border-peak-border rounded-xl overflow-hidden">
+          <div className="w-full lg:w-[320px] lg:shrink-0 bg-peak-surface border border-peak-border rounded-xl overflow-hidden">
             <div className="px-5 py-3.5 border-b border-peak-border">
               <span className="text-sm font-bold text-peak-text">Arena Progress</span>
             </div>

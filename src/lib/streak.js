@@ -2,21 +2,21 @@ export const BIG3_STREAK_START = '2026-04-24'
 
 /**
  * Returns the most recent previous weekday (Mon–Fri), skipping weekends.
- * All date arithmetic is performed in UTC to avoid timezone-dependent results.
+ * Uses LOCAL time so the result matches the user's local calendar.
  * @param {Date} [today=new Date()] - reference date (injectable for testing)
  * @returns {Date}
  */
 export function getPreviousWeekday(today = new Date()) {
   const d = new Date(today)
-  const day = d.getUTCDay() // 0=Sun, 1=Mon, ..., 6=Sat
+  const day = d.getDay() // local: 0=Sun, 1=Mon, ..., 6=Sat
   if (day === 1) {
-    d.setUTCDate(d.getUTCDate() - 3) // Mon → Fri
+    d.setDate(d.getDate() - 3) // Mon → Fri
   } else if (day === 0) {
-    d.setUTCDate(d.getUTCDate() - 2) // Sun → Fri
+    d.setDate(d.getDate() - 2) // Sun → Fri
   } else if (day === 6) {
-    d.setUTCDate(d.getUTCDate() - 1) // Sat → Fri
+    d.setDate(d.getDate() - 1) // Sat → Fri
   } else {
-    d.setUTCDate(d.getUTCDate() - 1) // Tue-Fri → previous day
+    d.setDate(d.getDate() - 1) // Tue-Fri → previous day
   }
   return d
 }

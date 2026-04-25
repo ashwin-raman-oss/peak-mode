@@ -311,7 +311,7 @@ export default function HabitTracker() {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <TopBar title="Habit Tracker" subtitle="66-day challenge" />
-      <main className="flex-1 overflow-y-auto bg-peak-bg p-6">
+      <main className="flex-1 overflow-y-auto bg-peak-bg px-4 py-4 lg:px-6">
         {/* Streak stat cards */}
         <div className="grid grid-cols-2 gap-4 mb-6 max-w-sm">
           <div className="bg-peak-surface border border-peak-border border-l-[3px] border-l-peak-accent rounded-xl px-4 py-4">

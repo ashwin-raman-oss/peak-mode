@@ -5,6 +5,7 @@ import { useProfile } from '../hooks/useProfile'
 import { useTasks } from '../hooks/useTasks'
 import { supabase } from '../lib/supabase'
 import { getWeekStart, toDateStr } from '../lib/dates'
+import { getXpForPriority } from '../lib/xp'
 import TopBar from '../components/TopBar'
 import Badge from '../components/ui/Badge'
 import XPToast from '../components/XPToast'
@@ -12,10 +13,10 @@ import XPToast from '../components/XPToast'
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 function getWeekDays() {
-  const monday = getWeekStart(new Date())
+  const monday = getWeekStart(new Date()) // local Monday midnight
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(monday)
-    d.setUTCDate(d.getUTCDate() + i)
+    d.setDate(d.getDate() + i) // local date arithmetic
     return toDateStr(d)
   })
 }
@@ -117,7 +118,7 @@ export default function ArenaDetail() {
         title={arena?.name ?? slug}
         subtitle={`${tasks.length} task${tasks.length !== 1 ? 's' : ''}`}
       />
-      <main className="flex-1 overflow-y-auto bg-peak-bg p-6">
+      <main className="flex-1 overflow-y-auto bg-peak-bg px-4 py-4 lg:px-6">
         {toast && (
           <XPToast key={toast.id} xp={toast.xp} hypeMessage={toast.hypeMessage} onDone={() => setToast(null)} />
         )}
@@ -250,7 +251,7 @@ export default function ArenaDetail() {
                     )}
 
                     <Badge priority={task.priority_override ?? task.priority} />
-                    <span className="text-xs text-peak-muted font-medium">{task.xp_value ?? 10} XP</span>
+                    <span className="text-xs text-peak-muted font-medium">{getXpForPriority(task.priority_override ?? task.priority)} XP</span>
 
                     {/* Edit / delete — visible on row hover */}
                     <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">

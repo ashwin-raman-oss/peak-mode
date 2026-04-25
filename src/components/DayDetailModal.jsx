@@ -16,6 +16,9 @@ export default function DayDetailModal({ date, userId, onClose }) {
   const [completions, setCompletions] = useState([])
   const [tasksLoading, setTasksLoading] = useState(true)
 
+  // Big 3 state
+  const [big3, setBig3] = useState(null)
+
   // Journal state
   const [journalEntries, setJournalEntries] = useState({ morning: null, evening: null })
   const [journalLoading, setJournalLoading] = useState(true)
@@ -27,7 +30,7 @@ export default function DayDetailModal({ date, userId, onClose }) {
   useEffect(() => {
     async function fetchTasks() {
       setTasksLoading(true)
-      const [{ data: tasksData }, { data: completionsData }] = await Promise.all([
+      const [{ data: tasksData }, { data: completionsData }, { data: big3Data }] = await Promise.all([
         supabase
           .from('tasks')
           .select('*, arenas(id, name, slug, emoji)')
@@ -40,9 +43,16 @@ export default function DayDetailModal({ date, userId, onClose }) {
           .eq('user_id', userId)
           .gte('completed_at', date + 'T00:00:00Z')
           .lt('completed_at', date + 'T23:59:59Z'),
+        supabase
+          .from('daily_big3')
+          .select('task_1, task_2, task_3, task_1_done, task_2_done, task_3_done')
+          .eq('user_id', userId)
+          .eq('date', date)
+          .maybeSingle(),
       ])
       setTasks(tasksData || [])
       setCompletions(completionsData || [])
+      setBig3(big3Data ?? null)
       setTasksLoading(false)
     }
     fetchTasks()
@@ -152,6 +162,36 @@ export default function DayDetailModal({ date, userId, onClose }) {
                 Future date — view only
               </p>
             )}
+
+            {/* Big 3 section */}
+            {(() => {
+              if (!big3) return null
+              const items = [
+                { text: big3.task_1, done: !!big3.task_1_done },
+                { text: big3.task_2, done: !!big3.task_2_done },
+                { text: big3.task_3, done: !!big3.task_3_done },
+              ].filter(item => item.text)
+              if (items.length === 0) return null
+              return (
+                <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-3">
+                  <p className="text-[10px] font-semibold text-amber-600 uppercase tracking-widest mb-2">★ Big 3</p>
+                  <div className="space-y-1.5">
+                    {items.map((item, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className={`text-sm shrink-0 ${item.done ? 'text-amber-500' : 'text-amber-300'}`}>★</span>
+                        <span className={`text-sm flex-1 ${item.done ? 'text-peak-text' : 'text-peak-muted italic'}`}>
+                          {item.text}
+                        </span>
+                        {item.done && (
+                          <span className="text-[10px] font-semibold text-amber-600 shrink-0">✓</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
+
             <p className="text-xs text-peak-muted mb-4">
               {dailyDone} of {dailyTasks.length} daily tasks completed
             </p>

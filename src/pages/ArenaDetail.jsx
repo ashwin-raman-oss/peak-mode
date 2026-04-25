@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 import { useTasks } from '../hooks/useTasks'
@@ -53,10 +53,22 @@ export default function ArenaDetail() {
     )
   }
 
-  if (!arena) {
+  if (!loading && arenas.length > 0 && !arena) {
     return (
-      <div className="min-h-screen bg-peak-bg flex items-center justify-center">
-        <p className="text-peak-muted">Arena not found.</p>
+      <div className="flex flex-col h-full overflow-hidden">
+        <div className="flex-1 flex flex-col items-center justify-center bg-peak-bg px-6 text-center">
+          <p className="text-4xl mb-4">🏟️</p>
+          <h1 className="text-lg font-bold text-peak-text mb-2">Arena not found</h1>
+          <p className="text-sm text-peak-muted mb-6">
+            The arena "{slug}" doesn't exist. Choose one from the sidebar.
+          </p>
+          <Link
+            to="/arena/career"
+            className="text-sm font-semibold text-white bg-peak-accent hover:opacity-90 px-5 py-2.5 rounded-lg transition-opacity"
+          >
+            Go to Career →
+          </Link>
+        </div>
       </div>
     )
   }
@@ -104,9 +116,18 @@ export default function ArenaDetail() {
     }
   }
 
-  async function handleAddTask({ title, priority, is_one_time }) {
+  async function handleAddTask({ title, priority, taskType, weeklyTarget }) {
+    let options
+    if (taskType === 'daily') {
+      options = { task_type: 'recurring', recurrence: 'daily', weekly_target: 1, is_one_time: false }
+    } else if (taskType === 'weekly') {
+      options = { task_type: 'recurring', recurrence: 'weekly', weekly_target: weeklyTarget, is_one_time: false }
+    } else {
+      // one-time
+      options = { task_type: 'misc', recurrence: 'none', weekly_target: 1, is_one_time: true }
+    }
     try {
-      await addMiscTask(arena.id, title, priority, is_one_time)
+      await addMiscTask(arena.id, title, priority, options)
       setShowAddForm(false)
     } catch (err) {
       console.error('Failed to add task:', err)
@@ -382,20 +403,32 @@ function EditTaskForm({ task, onSave, onCancel }) {
   )
 }
 
+const TASK_TYPES = [
+  { value: 'onetime', label: 'One-time' },
+  { value: 'daily',   label: 'Daily' },
+  { value: 'weekly',  label: 'Weekly' },
+]
+
 function AddTaskForm({ onSave, onCancel }) {
   const [title, setTitle] = useState('')
   const [priority, setPriority] = useState('medium')
-  const [isOneTime, setIsOneTime] = useState(false)
+  const [taskType, setTaskType] = useState('onetime')
+  const [weeklyTarget, setWeeklyTarget] = useState(1)
 
   function handleSubmit(e) {
     e.preventDefault()
     if (!title.trim()) return
-    onSave({ title: title.trim(), priority, is_one_time: isOneTime })
+    onSave({ title: title.trim(), priority, taskType, weeklyTarget: Number(weeklyTarget) })
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-      <div className="flex items-center gap-3">
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <p className="text-[10px] text-peak-muted">
+        One-time tasks expire after this week. Recurring tasks repeat automatically.
+      </p>
+
+      {/* Title + priority row */}
+      <div className="flex items-center gap-2">
         <input
           autoFocus
           value={title}
@@ -412,21 +445,52 @@ function AddTaskForm({ onSave, onCancel }) {
           <option value="medium">Medium</option>
           <option value="optional">Optional</option>
         </select>
-        <button type="submit" className="text-xs font-semibold bg-peak-accent text-white px-3 py-1.5 rounded-lg hover:bg-amber-500">Save</button>
-        <button type="button" onClick={onCancel} className="text-xs text-peak-muted hover:text-peak-text">Cancel</button>
       </div>
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={isOneTime}
-          onChange={e => setIsOneTime(e.target.checked)}
-          className="w-3.5 h-3.5 rounded accent-peak-accent"
-        />
-        <span className="text-xs text-peak-muted">One-time task</span>
-        {isOneTime && (
-          <span className="text-[10px] text-peak-muted italic">· will disappear after this week</span>
+
+      {/* Task type selector */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {TASK_TYPES.map(opt => (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => setTaskType(opt.value)}
+            className={`text-xs px-3 py-1.5 rounded-lg font-medium border transition-colors ${
+              taskType === opt.value
+                ? 'bg-peak-accent border-peak-accent text-white'
+                : 'border-peak-border text-peak-muted hover:border-peak-accent hover:text-peak-accent'
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+        {taskType === 'weekly' && (
+          <div className="flex items-center gap-1.5 ml-1">
+            <span className="text-[11px] text-peak-muted">×/week:</span>
+            <input
+              type="number"
+              min={1}
+              max={7}
+              value={weeklyTarget}
+              onChange={e => setWeeklyTarget(e.target.value)}
+              className="w-14 text-xs border border-peak-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-peak-accent/30"
+            />
+          </div>
         )}
-      </label>
+      </div>
+
+      {/* Actions */}
+      <div className="flex gap-2">
+        <button
+          type="submit"
+          disabled={!title.trim()}
+          className="text-xs font-semibold bg-peak-accent text-white px-4 py-1.5 rounded-lg hover:bg-amber-500 disabled:opacity-50"
+        >
+          Add Task
+        </button>
+        <button type="button" onClick={onCancel} className="text-xs text-peak-muted hover:text-peak-text">
+          Cancel
+        </button>
+      </div>
     </form>
   )
 }

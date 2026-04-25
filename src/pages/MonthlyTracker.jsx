@@ -118,15 +118,26 @@ export default function MonthlyTracker() {
 
                   {visible.length > 0 && (
                     <div className="mt-1 space-y-0.5 flex-1">
-                      {visible.map((t, idx) => (
-                        <p
-                          key={idx}
-                          className="text-[10px] leading-tight truncate font-medium"
-                          style={{ color: ARENA_COLORS[t.arenaSlug] ?? ARENA_COLORS.misc }}
-                        >
-                          {t.title}
-                        </p>
-                      ))}
+                      {visible.map((t, idx) =>
+                        t.arenaSlug === 'big3' ? (
+                          <p
+                            key={idx}
+                            className={`text-[10px] leading-tight truncate font-medium ${
+                              t.isDone ? 'text-amber-600' : 'text-amber-400 italic'
+                            }`}
+                          >
+                            ★ {t.title}
+                          </p>
+                        ) : (
+                          <p
+                            key={idx}
+                            className="text-[10px] leading-tight truncate font-medium"
+                            style={{ color: ARENA_COLORS[t.arenaSlug] ?? ARENA_COLORS.misc }}
+                          >
+                            {t.title}
+                          </p>
+                        )
+                      )}
                       {extra > 0 && (
                         <p className="text-[10px] leading-tight text-peak-muted">+{extra} more</p>
                       )}

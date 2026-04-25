@@ -17,7 +17,13 @@ export function useMonthlyData(userId, year, month) {
     const firstDayStr = toDateStr(firstDay)
     const lastDayStr  = toDateStr(lastDay)
 
-    const [{ data: completions }, { data: highTasks }] = await Promise.all([
+    // Local date range for Big3 (date column is local YYYY-MM-DD)
+    const big3FirstDay = `${year}-${String(month).padStart(2, '0')}-01`
+    const big3NextYear  = month === 12 ? year + 1 : year
+    const big3NextMonth = month === 12 ? 1 : month + 1
+    const big3LastDay = `${big3NextYear}-${String(big3NextMonth).padStart(2, '0')}-01`
+
+    const [{ data: completions }, { data: highTasks }, { data: big3Data }] = await Promise.all([
       supabase
         .from('task_completions')
         .select('id, task_id, completed_at, xp_earned, tasks(title, arenas(slug))')
@@ -31,6 +37,12 @@ export function useMonthlyData(userId, year, month) {
         .eq('is_active', true)
         .eq('recurrence', 'daily')
         .eq('priority', 'high'),
+      supabase
+        .from('daily_big3')
+        .select('date, task_1, task_2, task_3, task_1_done, task_2_done, task_3_done')
+        .eq('user_id', userId)
+        .gte('date', big3FirstDay)
+        .lt('date', big3LastDay),
     ])
 
     const highTaskIds = new Set((highTasks || []).map(t => t.id))
@@ -87,6 +99,22 @@ export function useMonthlyData(userId, year, month) {
         highTotal: isWeekend || isFuture ? 0 : highCount,
         xp: day?.xp ?? 0,
       }
+    }
+
+    // Prepend Big3 items at the front of each day's completions
+    for (const b3 of (big3Data || [])) {
+      const items = [
+        { text: b3.task_1, done: !!b3.task_1_done },
+        { text: b3.task_2, done: !!b3.task_2_done },
+        { text: b3.task_3, done: !!b3.task_3_done },
+      ].filter(item => item.text)
+      if (items.length === 0) continue
+      const big3Items = items.map(item => ({
+        title: item.text,
+        arenaSlug: 'big3',
+        isDone: item.done,
+      }))
+      completionsByDate[b3.date] = [...big3Items, ...(completionsByDate[b3.date] ?? [])]
     }
 
     setDailyStatus(statusMap)

@@ -156,18 +156,24 @@ export function useTasks(userId, arenaSlug = null) {
     window.dispatchEvent(new CustomEvent('peak-task-changed'))
   }
 
-  async function addMiscTask(arenaId, title, priority, is_one_time = false) {
+  async function addMiscTask(arenaId, title, priority, options = {}) {
     if (!userId) throw new Error('No authenticated user')
+    const {
+      task_type = 'misc',
+      recurrence = 'none',
+      weekly_target = 1,
+      is_one_time = false,
+    } = options
     const { data, error: insertErr } = await supabase
       .from('tasks')
       .insert({
         user_id: userId,
         arena_id: arenaId,
         title,
-        task_type: 'misc',
-        recurrence: 'none',
+        task_type,
+        recurrence,
         priority,
-        weekly_target: 1,
+        weekly_target,
         is_one_time,
       })
       .select('*, arenas(id, name, emoji, slug, default_priority)')

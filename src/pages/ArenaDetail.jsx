@@ -126,7 +126,7 @@ export default function ArenaDetail() {
         {/* Day tab bar */}
         <div className="flex gap-1 mb-4 bg-peak-surface border border-peak-border rounded-xl p-1.5">
           {weekDays.map((dateStr, i) => {
-            const date = new Date(dateStr + 'T00:00:00Z')
+            const date = new Date(dateStr + 'T12:00:00')
             const isSelected = selectedDay === dateStr
             const isToday = dateStr === todayStr
             const isFuture = dateStr > todayStr
@@ -145,7 +145,7 @@ export default function ArenaDetail() {
               >
                 <span className="text-[10px] font-semibold uppercase">{DAY_LABELS[i]}</span>
                 <span className={`text-sm font-bold mt-0.5 ${isToday && !isSelected ? 'text-peak-accent' : ''}`}>
-                  {date.getUTCDate()}
+                  {date.getDate()}
                 </span>
               </button>
             )
@@ -172,11 +172,11 @@ export default function ArenaDetail() {
           ) : (
             <>
               {/* Header row */}
-              <div className="grid grid-cols-[36px_1fr_80px_60px_56px] gap-3 px-5 py-2.5 border-b border-peak-border">
+              <div className="grid grid-cols-[36px_1fr_56px] lg:grid-cols-[36px_1fr_80px_60px_56px] gap-3 px-5 py-2.5 border-b border-peak-border">
                 <span />
                 <span className="text-[10px] font-semibold text-peak-muted uppercase tracking-wider">Task</span>
-                <span className="text-[10px] font-semibold text-peak-muted uppercase tracking-wider">Priority</span>
-                <span className="text-[10px] font-semibold text-peak-muted uppercase tracking-wider">XP</span>
+                <span className="hidden lg:block text-[10px] font-semibold text-peak-muted uppercase tracking-wider">Priority</span>
+                <span className="hidden lg:block text-[10px] font-semibold text-peak-muted uppercase tracking-wider">XP</span>
                 <span />
               </div>
 
@@ -190,7 +190,7 @@ export default function ArenaDetail() {
                 return (
                   <div
                     key={task.id}
-                    className="group grid grid-cols-[36px_1fr_80px_60px_56px] gap-3 items-center px-5 py-3 border-b border-peak-border last:border-0 hover:bg-peak-bg transition-colors"
+                    className="group grid grid-cols-[36px_1fr_56px] lg:grid-cols-[36px_1fr_80px_60px_56px] gap-3 items-center px-5 py-3 border-b border-peak-border last:border-0 hover:bg-peak-bg transition-colors"
                   >
                     {/* Completion toggle */}
                     {isWeeklyCount ? (
@@ -247,11 +247,18 @@ export default function ArenaDetail() {
                         {isWeeklyCount && (
                           <span className="ml-2 text-[10px] text-peak-muted">{count}/{target} this week</span>
                         )}
+                        {/* Mobile-only: compact priority + XP indicator */}
+                        <div className="flex items-center gap-1.5 mt-0.5 lg:hidden">
+                          <Badge priority={task.priority_override ?? task.priority} />
+                          <span className="text-[10px] text-peak-muted">{getXpForPriority(task.priority_override ?? task.priority)} XP</span>
+                        </div>
                       </div>
                     )}
 
-                    <Badge priority={task.priority_override ?? task.priority} />
-                    <span className="text-xs text-peak-muted font-medium">{getXpForPriority(task.priority_override ?? task.priority)} XP</span>
+                    <div className="hidden lg:flex">
+                      <Badge priority={task.priority_override ?? task.priority} />
+                    </div>
+                    <span className="hidden lg:block text-xs text-peak-muted font-medium">{getXpForPriority(task.priority_override ?? task.priority)} XP</span>
 
                     {/* Edit / delete — visible on row hover */}
                     <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">

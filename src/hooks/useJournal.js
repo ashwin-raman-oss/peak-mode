@@ -1,5 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { toDateStr } from '../lib/dates'
+
+function getNinetyDaysAgoStr() {
+  const d = new Date()
+  d.setDate(d.getDate() - 90)
+  return toDateStr(d)
+}
 
 export function useJournal(userId) {
   const [entries, setEntries] = useState([])
@@ -15,6 +22,7 @@ export function useJournal(userId) {
       .from('daily_checkins')
       .select('*')
       .eq('user_id', userId)
+      .gte('date', getNinetyDaysAgoStr())
       .order('date', { ascending: false })
 
     if (!error && data) setEntries(data)

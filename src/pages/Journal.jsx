@@ -100,6 +100,9 @@ export default function Journal() {
         </div>
 
         {/* Timeline */}
+        {filter === 'all' && (
+          <p className="text-[10px] text-peak-muted text-center mb-3">Showing last 90 days</p>
+        )}
         {grouped.length === 0 && (
           <p className="text-center text-peak-muted text-sm py-16">No entries yet.</p>
         )}

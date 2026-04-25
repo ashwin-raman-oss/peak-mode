@@ -41,11 +41,12 @@ export function useTasks(userId, arenaSlug = null) {
       const { data: taskData, error: taskErr } = await taskQuery.order('created_at')
       if (taskErr) throw taskErr
 
-      // Filter out expired one-time tasks (created before this week)
+      // Filter out expired one-time tasks (created/due before this week)
       const activeTaskData = (taskData || []).filter(task => {
         if (!task.is_one_time) return true
-        const createdStr = task.created_at?.slice(0, 10) ?? ''
-        return createdStr >= weekStartStr
+        // Prefer explicit due_date; fall back to local interpretation of created_at
+        const expiryStr = task.due_date ?? toDateStr(new Date(task.created_at))
+        return expiryStr >= weekStartStr
       })
       setTasks(activeTaskData)
 
@@ -95,7 +96,7 @@ export function useTasks(userId, arenaSlug = null) {
     const isRetroactive = dateStr !== todayStr
     const effectivePriority = task.priority_override ?? task.priority
     const xp = isRetroactive ? 0 : getXpForPriority(effectivePriority)
-    const completedAt = isRetroactive ? dateStr + 'T12:00:00Z' : new Date().toISOString()
+    const completedAt = isRetroactive ? dateStr + 'T12:00:00Z' : new Date(toDateStr(new Date()) + 'T12:00:00').toISOString()
 
     // Optimistic update
     const optimisticCompletion = {
@@ -312,7 +313,7 @@ export function useTasks(userId, arenaSlug = null) {
       c.completed_at.slice(0, 10) === todayStr
     ).length
 
-    const totalDailyToday = tasks.filter(t => t.recurrence === 'daily').length
+    const totalDailyToday = tasks.length
 
     return { completedToday, totalDailyToday, isWeekend: false }
   }

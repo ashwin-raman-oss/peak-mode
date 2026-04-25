@@ -6,6 +6,12 @@ import Modal from '../components/ui/Modal'
 
 const PROGRESS_STEPS = [0, 25, 50, 75, 100]
 
+function getCurrentPeriod() {
+  const now = new Date()
+  const half = now.getMonth() < 6 ? 'H1' : 'H2'
+  return `${half} ${now.getFullYear()}`
+}
+
 function avgProgress(keyResults) {
   if (!keyResults.length) return 0
   return Math.round(keyResults.reduce((s, kr) => s + kr.progress, 0) / keyResults.length)
@@ -30,7 +36,7 @@ export default function OKRs() {
         title="OKRs"
         subtitle={<span className="inline-flex items-center gap-1.5">
           Objectives & Key Results
-          <span className="text-[10px] font-semibold bg-peak-accent-light text-peak-accent px-2 py-0.5 rounded-full">H1 2026</span>
+          <span className="text-[10px] font-semibold bg-peak-accent-light text-peak-accent px-2 py-0.5 rounded-full">{getCurrentPeriod()}</span>
         </span>}
         action={
           <button
@@ -227,7 +233,7 @@ function OKRCard({ okr, onUpdateProgress, onAddKR, onDeleteKR, onDeleteOKR }) {
 function AddOKRModal({ onClose, onSave }) {
   const [title, setTitle] = useState('')
   const [why, setWhy] = useState('')
-  const [period, setPeriod] = useState('H1 2026')
+  const [period, setPeriod] = useState(getCurrentPeriod)
   const [keyResults, setKeyResults] = useState([''])
   const [submitting, setSubmitting] = useState(false)
 

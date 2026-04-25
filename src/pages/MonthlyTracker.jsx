@@ -39,8 +39,8 @@ export default function MonthlyTracker() {
   }
 
   // Build flat calendarDays array (Sun-start grid)
-  const firstDow = new Date(Date.UTC(year, month - 1, 1)).getUTCDay()
-  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate()
+  const firstDow = new Date(year, month - 1, 1).getDay()
+  const daysInMonth = new Date(year, month, 0).getDate()
   const calendarDays = []
   for (let i = 0; i < firstDow; i++) calendarDays.push(null)
   for (let d = 1; d <= daysInMonth; d++) {

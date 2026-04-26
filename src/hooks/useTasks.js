@@ -308,28 +308,32 @@ export function useTasks(userId, arenaSlug = null) {
 
   // Count completions for today only (not the full week)
   function getTodayCompletionCount() {
-    const todayStr = toDateStr(new Date())
-    const dayOfWeek = new Date().getDay() // 0=Sun, 6=Sat
+    const now = new Date()
+    const yyyy = now.getFullYear()
+    const mm = String(now.getMonth() + 1).padStart(2, '0')
+    const dd = String(now.getDate()).padStart(2, '0')
+    const todayStr = `${yyyy}-${mm}-${dd}`
+
+    const dayOfWeek = now.getDay()
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
 
-    if (isWeekend) {
-      // Weekends: count this week's completions against weekly + misc tasks only
-      const weekendTasks = tasks.filter(t => t.recurrence === 'weekly' || t.task_type === 'misc')
-      const completedWeekend = completions.filter(c => {
-        if (!c.completed_at) return false
-        return weekendTasks.some(t => t.id === c.task_id)
-      }).length
-      return { completedToday: completedWeekend, totalDailyToday: weekendTasks.length, isWeekend: true }
-    }
-
+    // Count completions where the LOCAL date matches today.
+    // completed_at is stored as ISO UTC (local noon → UTC).
+    // Parse with Date so the browser applies its own timezone offset.
     const completedToday = completions.filter(c => {
       if (!c.completed_at) return false
-      return c.completed_at.slice(0, 10) === todayStr
+      const d = new Date(c.completed_at)
+      const cYyyy = d.getFullYear()
+      const cMm = String(d.getMonth() + 1).padStart(2, '0')
+      const cDd = String(d.getDate()).padStart(2, '0')
+      return `${cYyyy}-${cMm}-${cDd}` === todayStr
     }).length
 
-    const totalDailyToday = tasks.length
+    const totalForToday = isWeekend
+      ? tasks.filter(t => t.recurrence === 'weekly' || t.task_type === 'misc').length
+      : tasks.length
 
-    return { completedToday, totalDailyToday, isWeekend: false }
+    return { completedToday, totalDailyToday: totalForToday, isWeekend }
   }
 
   return {

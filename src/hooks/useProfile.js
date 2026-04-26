@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { getLevel } from '../lib/xp'
-import { getPreviousWeekday, computeNewStreakFromBig3, BIG3_STREAK_START } from '../lib/streak'
+import { computeNewStreakFromBig3, BIG3_STREAK_START } from '../lib/streak'
 import { toDateStr } from '../lib/dates'
 
 export function useProfile(userId) {
@@ -23,7 +23,9 @@ export function useProfile(userId) {
       const today = toDateStr(new Date())
 
       if (profileData.last_active_date !== today) {
-        const prevDay = getPreviousWeekday(new Date())
+        // Every day counts — weekends are full streak days, use simple yesterday
+        const prevDay = new Date()
+        prevDay.setDate(prevDay.getDate() - 1)
         const prevDayStr = toDateStr(prevDay)
 
         let streakUpdate

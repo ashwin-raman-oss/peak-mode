@@ -183,13 +183,14 @@ function Big3Card({ todayBig3, onSave, onMarkDone, loading }) {
 }
 
 function isBig3AllDone(big3) {
-  if (!big3?.task_1) return false
-  const items = [
-    { text: big3.task_1, done: big3.task_1_done },
-    { text: big3.task_2, done: big3.task_2_done },
-    { text: big3.task_3, done: big3.task_3_done },
-  ].filter(t => t.text)
-  return items.length > 0 && items.every(t => t.done)
+  if (!big3) return false
+  // At least one task must be set
+  if (!big3.task_1 && !big3.task_2 && !big3.task_3) return false
+  // All SET tasks must be done
+  if (big3.task_1 && !big3.task_1_done) return false
+  if (big3.task_2 && !big3.task_2_done) return false
+  if (big3.task_3 && !big3.task_3_done) return false
+  return true
 }
 
 function StatCard({ label, value, sub, borderColor, valueColor }) {
@@ -235,8 +236,9 @@ export default function Dashboard() {
   const weekXp = getWeekXp()
   const doneTasks = focusTasks.filter(t => isTaskDone(t)).length
 
-  // Today-only completion count (not full week)
-  const { completedToday, totalDailyToday, isWeekend } = getTodayCompletionCount()
+  // Today-only completion count (not full week) — capped to prevent impossible numbers
+  const { completedToday: rawCompletedToday, totalDailyToday, isWeekend } = getTodayCompletionCount()
+  const completedToday = Math.min(rawCompletedToday, totalDailyToday)
 
   // Detect if user has no tasks at all (new user)
   const allArenasEmpty = ARENA_SLUGS.every(slug => getArenaStats(slug).total === 0)
@@ -246,11 +248,13 @@ export default function Dashboard() {
   const xpToNext = profile ? getXpToNextLevel(profile.total_xp) : XP_PER_LEVEL
   const levelTitle = getLevelTitle(level)
 
-  // Streak — add 1 optimistically if today's Big 3 is all done but profile not yet updated
+  // Streak — add 1 optimistically if today's Big 3 is already complete
   const streak = profile?.current_streak ?? 0
   const todayBig3AllDone = isBig3AllDone(todayBig3)
   const displayStreak = streak + (todayBig3AllDone ? 1 : 0)
-  const streakSub = displayStreak > 0 ? '🔥 Keep it going' : showBig3 ? 'Start today — set your Big 3' : 'Starts Apr 24'
+  const streakSub = displayStreak > 0
+    ? `🔥 ${displayStreak} day streak`
+    : 'Complete today\'s Big 3 to start'
 
   async function handleComplete(task) {
     if (isTaskDone(task) || completing === task.id) return
@@ -294,9 +298,9 @@ export default function Dashboard() {
 
         {/* Stats row — 2 cols on mobile, 4 on desktop */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {/* FIX 1: Streak card — tied to Big 3 */}
+          {/* Streak card — tied to Big 3, weekends included */}
           <StatCard
-            label="Big 3 Streak"
+            label="BIG 3 STREAK"
             value={displayStreak}
             sub={streakSub}
             borderColor="border-peak-accent"

@@ -32,7 +32,7 @@ function HabitCard({ habit, getHabitCompletions, getFormationProgress, getHabitS
   const isGraduated = daysCompleted >= effectiveDays
 
   return (
-    <div className="bg-peak-surface rounded-xl border border-peak-border p-5 mb-4">
+    <div className="bg-peak-surface rounded-xl border border-peak-border shadow-sm p-5 mb-4">
       {/* Top row: name + arena badge + delete */}
       <div className="flex items-start justify-between mb-3">
         <div>
@@ -79,7 +79,7 @@ function HabitCard({ habit, getHabitCompletions, getFormationProgress, getHabitS
       {/* Per-habit streak stats */}
       <div className="flex items-center gap-4 mb-3">
         <div>
-          <p className="text-[9px] font-semibold text-peak-muted uppercase tracking-widest">Streak</p>
+          <p className="text-[11px] font-semibold text-peak-muted uppercase tracking-widest">Streak</p>
           {currentStreak > 0 ? (
             <p className="text-sm font-bold text-peak-text">🔥 {currentStreak} day{currentStreak !== 1 ? 's' : ''}</p>
           ) : (
@@ -88,7 +88,7 @@ function HabitCard({ habit, getHabitCompletions, getFormationProgress, getHabitS
         </div>
         {longestStreak > 0 && (
           <div>
-            <p className="text-[9px] font-semibold text-peak-muted uppercase tracking-widest">Best</p>
+            <p className="text-[11px] font-semibold text-peak-muted uppercase tracking-widest">Best</p>
             <p className="text-sm font-bold text-peak-text">{longestStreak} day{longestStreak !== 1 ? 's' : ''}</p>
           </div>
         )}
@@ -136,7 +136,7 @@ function HabitCard({ habit, getHabitCompletions, getFormationProgress, getHabitS
 
       {/* Retroactive 7-day pill row */}
       <div className="mt-3">
-        <p className="text-[9px] font-semibold text-peak-muted uppercase tracking-widest mb-1.5">Log past days</p>
+        <p className="text-[11px] font-semibold text-peak-muted uppercase tracking-widest mb-1.5">Log past days</p>
         <div className="flex gap-1 flex-wrap">
           {Array.from({ length: 7 }, (_, i) => {
             const d = new Date()

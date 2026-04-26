@@ -60,7 +60,7 @@ function Big3Card({ todayBig3, onSave, onMarkDone, loading }) {
   // Show skeleton while Supabase fetch is in-flight — prevents cold-start race
   if (loading) {
     return (
-      <div className="mt-5 bg-peak-surface border border-peak-border rounded-xl p-6">
+      <div className="mt-5 bg-peak-surface border border-peak-border rounded-xl shadow-sm p-6">
         <p className="text-sm text-peak-muted">Loading your Big 3…</p>
       </div>
     )
@@ -102,7 +102,7 @@ function Big3Card({ todayBig3, onSave, onMarkDone, loading }) {
   const allDone = itemEntries.length > 0 && itemEntries.every(e => e.done)
 
   return (
-    <div className="mt-5 bg-peak-surface border border-peak-border rounded-xl overflow-hidden">
+    <div className="mt-5 bg-peak-surface border border-peak-border rounded-xl shadow-sm overflow-hidden">
       <div className="px-5 py-3.5 border-b border-peak-border flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-sm font-bold text-peak-text">Today's Big 3</span>
@@ -167,7 +167,7 @@ function Big3Card({ todayBig3, onSave, onMarkDone, loading }) {
               <button
                 onClick={handleSave}
                 disabled={saving || !items.some(i => i.trim())}
-                className="text-xs font-semibold bg-peak-accent text-white px-4 py-1.5 rounded-lg hover:bg-amber-500 disabled:opacity-50 transition-colors"
+                className="text-xs font-semibold bg-peak-accent text-white px-4 py-1.5 rounded-lg hover:bg-amber-600 active:scale-[0.98] disabled:opacity-50 transition-all"
               >
                 {saving ? 'Saving…' : 'Save Big 3'}
               </button>
@@ -195,9 +195,9 @@ function isBig3AllDone(big3) {
 
 function StatCard({ label, value, sub, borderColor, valueColor }) {
   return (
-    <div className={`bg-peak-surface border border-peak-border border-l-[3px] ${borderColor} rounded-xl px-4 py-4`}>
-      <p className="text-[9px] font-semibold text-peak-muted uppercase tracking-widest mb-1">{label}</p>
-      <p className={`text-2xl font-extrabold tracking-tight ${valueColor}`}>{value}</p>
+    <div className={`bg-peak-surface border border-peak-border border-l-[3px] ${borderColor} rounded-xl px-4 py-4 shadow-sm`}>
+      <p className="text-[11px] font-semibold text-peak-muted uppercase tracking-widest mb-1">{label}</p>
+      <p className={`text-2xl font-bold tracking-tight ${valueColor}`}>{value}</p>
       <p className="text-[10px] text-peak-muted mt-0.5">{sub}</p>
     </div>
   )
@@ -323,11 +323,11 @@ export default function Dashboard() {
             valueColor="text-peak-accent"
           />
 
-          {/* FIX 3: Level card — with title and XP to next */}
-          <div className="bg-peak-surface border border-peak-border border-l-[3px] border-l-peak-accent rounded-xl px-4 py-4">
-            <p className="text-[9px] font-semibold text-peak-muted uppercase tracking-widest mb-1">Level</p>
+          {/* Level card */}
+          <div className="bg-peak-surface border border-peak-border border-l-[3px] border-l-peak-accent rounded-xl px-4 py-4 shadow-sm">
+            <p className="text-[11px] font-semibold text-peak-muted uppercase tracking-widest mb-1">Level</p>
             <div className="flex items-baseline gap-2">
-              <p className="text-2xl font-extrabold tracking-tight text-peak-text">{level}</p>
+              <p className="text-2xl font-bold tracking-tight text-peak-text">{level}</p>
               <p className="text-xs font-bold text-peak-accent">{levelTitle}</p>
             </div>
             <p className="text-[10px] text-peak-muted mt-0.5">{xpToNext} XP to Level {level + 1}</p>
@@ -337,7 +337,7 @@ export default function Dashboard() {
         {/* Two-column — stacked on mobile, side-by-side on desktop */}
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Today's Focus */}
-          <div className="flex-1 bg-peak-surface border border-peak-border rounded-xl overflow-hidden">
+          <div className="flex-1 bg-peak-surface border border-peak-border rounded-xl shadow-sm overflow-hidden">
             <div className="px-5 py-3.5 border-b border-peak-border flex items-center justify-between">
               <span className="text-sm font-bold text-peak-text">Today's Focus</span>
               <span className="text-xs text-peak-muted">{doneTasks} of {focusTasks.length} complete</span>
@@ -354,7 +354,7 @@ export default function Dashboard() {
                     <p className="text-peak-text font-medium text-sm mb-1">No tasks for today</p>
                     <p className="text-peak-muted text-xs mb-4">Add tasks to an arena to see your daily focus here.</p>
                     <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                      <Link to="/arena/career" className="text-xs font-semibold text-white bg-peak-accent hover:opacity-90 px-4 py-2 rounded-lg transition-opacity">
+                      <Link to="/arena/career" className="text-xs font-semibold text-white bg-peak-accent hover:bg-amber-600 active:scale-[0.98] px-4 py-2 rounded-lg transition-all">
                         Set up Career tasks →
                       </Link>
                       <Link to="/arena/health" className="text-xs font-semibold text-peak-accent border border-peak-accent hover:bg-peak-accent-light px-4 py-2 rounded-lg transition-colors">
@@ -401,7 +401,7 @@ export default function Dashboard() {
           </div>
 
           {/* Arena Progress */}
-          <div className="w-full lg:w-[320px] lg:shrink-0 bg-peak-surface border border-peak-border rounded-xl overflow-hidden">
+          <div className="w-full lg:w-[320px] lg:shrink-0 bg-peak-surface border border-peak-border rounded-xl shadow-sm overflow-hidden">
             <div className="px-5 py-3.5 border-b border-peak-border">
               <span className="text-sm font-bold text-peak-text">Arena Progress</span>
             </div>

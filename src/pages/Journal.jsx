@@ -108,11 +108,11 @@ export default function Journal() {
         )}
         <div className="space-y-4">
           {grouped.map(([date, { morning, evening }]) => (
-            <div key={date} className="bg-peak-surface border border-peak-border rounded-xl overflow-hidden">
+            <div key={date} className="bg-peak-surface border border-peak-border rounded-xl shadow-sm overflow-hidden">
               <div className="px-5 py-3 border-b border-peak-border flex items-center justify-between">
                 <span className="text-xs font-bold text-peak-text">{formatJournalDate(date)}</span>
                 {date !== new Date().toISOString().slice(0, 10) && (
-                  <span className="text-[9px] text-peak-muted">· backdated</span>
+                  <span className="text-[11px] text-peak-muted">· backdated</span>
                 )}
               </div>
               {morning && <JournalEntry entry={morning} type="morning" />}

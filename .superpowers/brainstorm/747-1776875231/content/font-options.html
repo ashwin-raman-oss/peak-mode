@@ -1,0 +1,125 @@
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<h2>Which font feels right?</h2>
+<p class="subtitle">Same dashboard card shown in three different fonts. Same layout, same colors — only the typeface changes.</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#18181B;padding:0;border-bottom:1px solid #27272A;font-family:'Geist',sans-serif;">
+      <div style="display:flex;min-height:180px;">
+        <div style="width:110px;flex-shrink:0;background:#18181B;border-right:1px solid #27272A;padding:14px 10px;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;">
+            <div style="width:20px;height:20px;background:#F59E0B;border-radius:5px;display:flex;align-items:center;justify-content:center;"><span style="color:#000;font-weight:800;font-size:10px;">P</span></div>
+            <span style="color:#fff;font-weight:700;font-size:12px;">Peak Mode</span>
+          </div>
+          <div style="font-size:10px;color:#fff;background:#27272A;padding:4px 8px;border-radius:5px;margin-bottom:3px;font-weight:600;">Dashboard</div>
+          <div style="font-size:10px;color:#71717A;padding:4px 8px;margin-bottom:2px;">Arena</div>
+          <div style="font-size:10px;color:#71717A;padding:4px 8px;margin-bottom:2px;">Habits</div>
+          <div style="font-size:10px;color:#71717A;padding:4px 8px;">Journal</div>
+        </div>
+        <div style="flex:1;background:#F8F9FA;padding:14px;">
+          <div style="font-size:15px;font-weight:800;color:#09090B;letter-spacing:-0.03em;margin-bottom:10px;">Good morning, Ashwin</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+            <div style="background:#fff;border:1px solid #E4E4E7;border-radius:8px;padding:10px;border-left:3px solid #F59E0B;">
+              <div style="font-size:9px;color:#71717A;text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:2px;">Streak</div>
+              <div style="font-size:20px;font-weight:800;color:#09090B;letter-spacing:-0.03em;">14</div>
+            </div>
+            <div style="background:#fff;border:1px solid #E4E4E7;border-radius:8px;padding:10px;border-left:3px solid #22C55E;">
+              <div style="font-size:9px;color:#71717A;text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:2px;">Today</div>
+              <div style="font-size:20px;font-weight:800;color:#09090B;letter-spacing:-0.03em;">5<span style="font-size:12px;color:#71717A;font-weight:500;">/7</span></div>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #E4E4E7;border-radius:8px;padding:10px;">
+            <div style="font-size:11px;font-weight:700;color:#09090B;margin-bottom:6px;">Today's Focus</div>
+            <div style="font-size:11px;color:#09090B;padding:4px 0;border-bottom:1px solid #F4F4F5;">☐ Complete project proposal</div>
+            <div style="font-size:11px;color:#71717A;padding:4px 0;text-decoration:line-through;">✓ Morning workout</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Geist</h3>
+      <p>Vercel's own font. Highly geometric, very tight letter-spacing at large sizes. The most "dev tool" / technical feel of the three.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#18181B;padding:0;border-bottom:1px solid #27272A;font-family:'Plus Jakarta Sans',sans-serif;">
+      <div style="display:flex;min-height:180px;">
+        <div style="width:110px;flex-shrink:0;background:#18181B;border-right:1px solid #27272A;padding:14px 10px;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;">
+            <div style="width:20px;height:20px;background:#F59E0B;border-radius:5px;display:flex;align-items:center;justify-content:center;"><span style="color:#000;font-weight:800;font-size:10px;">P</span></div>
+            <span style="color:#fff;font-weight:700;font-size:12px;">Peak Mode</span>
+          </div>
+          <div style="font-size:10px;color:#fff;background:#27272A;padding:4px 8px;border-radius:5px;margin-bottom:3px;font-weight:600;">Dashboard</div>
+          <div style="font-size:10px;color:#71717A;padding:4px 8px;margin-bottom:2px;">Arena</div>
+          <div style="font-size:10px;color:#71717A;padding:4px 8px;margin-bottom:2px;">Habits</div>
+          <div style="font-size:10px;color:#71717A;padding:4px 8px;">Journal</div>
+        </div>
+        <div style="flex:1;background:#F8F9FA;padding:14px;">
+          <div style="font-size:15px;font-weight:800;color:#09090B;letter-spacing:-0.02em;margin-bottom:10px;">Good morning, Ashwin</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+            <div style="background:#fff;border:1px solid #E4E4E7;border-radius:8px;padding:10px;border-left:3px solid #F59E0B;">
+              <div style="font-size:9px;color:#71717A;text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:2px;">Streak</div>
+              <div style="font-size:20px;font-weight:800;color:#09090B;">14</div>
+            </div>
+            <div style="background:#fff;border:1px solid #E4E4E7;border-radius:8px;padding:10px;border-left:3px solid #22C55E;">
+              <div style="font-size:9px;color:#71717A;text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:2px;">Today</div>
+              <div style="font-size:20px;font-weight:800;color:#09090B;">5<span style="font-size:12px;color:#71717A;font-weight:500;">/7</span></div>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #E4E4E7;border-radius:8px;padding:10px;">
+            <div style="font-size:11px;font-weight:700;color:#09090B;margin-bottom:6px;">Today's Focus</div>
+            <div style="font-size:11px;color:#09090B;padding:4px 0;border-bottom:1px solid #F4F4F5;">☐ Complete project proposal</div>
+            <div style="font-size:11px;color:#71717A;padding:4px 0;text-decoration:line-through;">✓ Morning workout</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Plus Jakarta Sans</h3>
+      <p>Friendly but polished. Slightly more personality than Inter — rounder, warmer. Popular in modern SaaS products and Figma templates.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#18181B;padding:0;border-bottom:1px solid #27272A;font-family:'Outfit',sans-serif;">
+      <div style="display:flex;min-height:180px;">
+        <div style="width:110px;flex-shrink:0;background:#18181B;border-right:1px solid #27272A;padding:14px 10px;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;">
+            <div style="width:20px;height:20px;background:#F59E0B;border-radius:5px;display:flex;align-items:center;justify-content:center;"><span style="color:#000;font-weight:800;font-size:10px;">P</span></div>
+            <span style="color:#fff;font-weight:700;font-size:12px;">Peak Mode</span>
+          </div>
+          <div style="font-size:10px;color:#fff;background:#27272A;padding:4px 8px;border-radius:5px;margin-bottom:3px;font-weight:600;">Dashboard</div>
+          <div style="font-size:10px;color:#71717A;padding:4px 8px;margin-bottom:2px;">Arena</div>
+          <div style="font-size:10px;color:#71717A;padding:4px 8px;margin-bottom:2px;">Habits</div>
+          <div style="font-size:10px;color:#71717A;padding:4px 8px;">Journal</div>
+        </div>
+        <div style="flex:1;background:#F8F9FA;padding:14px;">
+          <div style="font-size:15px;font-weight:800;color:#09090B;margin-bottom:10px;">Good morning, Ashwin</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+            <div style="background:#fff;border:1px solid #E4E4E7;border-radius:8px;padding:10px;border-left:3px solid #F59E0B;">
+              <div style="font-size:9px;color:#71717A;text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:2px;">Streak</div>
+              <div style="font-size:20px;font-weight:800;color:#09090B;">14</div>
+            </div>
+            <div style="background:#fff;border:1px solid #E4E4E7;border-radius:8px;padding:10px;border-left:3px solid #22C55E;">
+              <div style="font-size:9px;color:#71717A;text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:2px;">Today</div>
+              <div style="font-size:20px;font-weight:800;color:#09090B;">5<span style="font-size:12px;color:#71717A;font-weight:500;">/7</span></div>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #E4E4E7;border-radius:8px;padding:10px;">
+            <div style="font-size:11px;font-weight:700;color:#09090B;margin-bottom:6px;">Today's Focus</div>
+            <div style="font-size:11px;color:#09090B;padding:4px 0;border-bottom:1px solid #F4F4F5;">☐ Complete project proposal</div>
+            <div style="font-size:11px;color:#71717A;padding:4px 0;text-decoration:line-through;">✓ Morning workout</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Outfit</h3>
+      <p>Clean, geometric, slightly more open and airy than the others. Reads well at small sizes. Sits between "technical" and "approachable".</p>
+    </div>
+  </div>
+
+</div>

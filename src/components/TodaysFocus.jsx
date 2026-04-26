@@ -20,17 +20,17 @@ export default function TodaysFocus({ tasks = [], onComplete, completing, weekSu
           <p className="text-[10px] font-bold tracking-widest uppercase mb-3" style={labelStyle}>Week in Review</p>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <p className="text-[9px] font-bold tracking-widest uppercase text-peak-muted mb-0.5">Tasks</p>
+              <p className="text-[11px] font-bold tracking-widest uppercase text-peak-muted mb-0.5">Tasks</p>
               <p className="text-lg font-extrabold text-peak-primary tabular-nums leading-tight">
                 {weekSummary.completed}<span className="text-peak-muted font-normal text-xs">/{weekSummary.total}</span>
               </p>
             </div>
             <div>
-              <p className="text-[9px] font-bold tracking-widest uppercase text-peak-muted mb-0.5">XP Earned</p>
+              <p className="text-[11px] font-bold tracking-widest uppercase text-peak-muted mb-0.5">XP Earned</p>
               <p className="text-lg font-extrabold text-peak-xp tabular-nums leading-tight">{weekSummary.weekXp}</p>
             </div>
             <div>
-              <p className="text-[9px] font-bold tracking-widest uppercase text-peak-muted mb-0.5">Best Arena</p>
+              <p className="text-[11px] font-bold tracking-widest uppercase text-peak-muted mb-0.5">Best Arena</p>
               <p className="text-sm font-bold text-peak-primary leading-tight truncate">{weekSummary.bestArena}</p>
             </div>
           </div>

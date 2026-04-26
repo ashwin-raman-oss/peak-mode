@@ -20,7 +20,7 @@ export default function TopBar({ title, subtitle, action }) {
           </button>
         )}
         <div className="min-w-0">
-          <h1 className="text-sm font-bold text-peak-text leading-tight truncate">{title}</h1>
+          <h1 className="text-base font-semibold text-peak-text leading-tight truncate">{title}</h1>
           {subtitle && <p className="text-xs text-peak-muted truncate">{subtitle}</p>}
         </div>
       </div>

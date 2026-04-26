@@ -236,7 +236,7 @@ export default function WeeklyReport() {
 
           {/* No report yet */}
           {!report && isCurrentWeek && (
-            <div className="bg-peak-surface border border-peak-border rounded-xl p-6 text-center space-y-3">
+            <div className="bg-peak-surface border border-peak-border rounded-xl shadow-sm p-6 text-center space-y-3">
               <p className="text-peak-muted text-sm">No report generated yet for this week.</p>
               <Button onClick={handleGenerate} size="lg" disabled={generating}>
                 {generating ? 'Generating...' : 'Generate Report'}
@@ -245,7 +245,7 @@ export default function WeeklyReport() {
           )}
 
           {!report && !isCurrentWeek && (
-            <div className="bg-peak-surface border border-peak-border rounded-xl p-6 text-center space-y-3">
+            <div className="bg-peak-surface border border-peak-border rounded-xl shadow-sm p-6 text-center space-y-3">
               {generating ? (
                 <>
                   <div className="w-6 h-6 border-2 border-peak-accent border-t-transparent rounded-full animate-spin mx-auto" />
@@ -271,7 +271,7 @@ export default function WeeklyReport() {
             const validDays = weekdays.filter(d => d <= todayLocal)
             const setCount = validDays.filter(d => big3ByDate[d]).length
             return (
-              <div className="bg-peak-surface border border-peak-border rounded-xl p-4">
+              <div className="bg-peak-surface border border-peak-border rounded-xl shadow-sm p-4">
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-[10px] font-semibold tracking-widest uppercase text-peak-muted">Big 3 Consistency</p>
                   <span className="text-xs font-semibold text-peak-accent">{setCount} of {validDays.length} days</span>
@@ -298,7 +298,7 @@ export default function WeeklyReport() {
                         {big3 && (
                           <div className="w-full space-y-0.5">
                             {[big3.task_1, big3.task_2, big3.task_3].filter(Boolean).map((item, j) => (
-                              <p key={j} className="text-[9px] text-peak-muted leading-tight truncate text-center">{item}</p>
+                              <p key={j} className="text-[11px] text-peak-muted leading-tight truncate text-center">{item}</p>
                             ))}
                           </div>
                         )}
@@ -315,22 +315,22 @@ export default function WeeklyReport() {
             <>
               {/* Stats summary */}
               <div className="grid grid-cols-3 gap-3">
-                <div className="bg-peak-surface border border-peak-border rounded-xl p-4 text-center">
+                <div className="bg-peak-surface border border-peak-border rounded-xl shadow-sm p-4 text-center">
                   <p className="text-2xl font-black text-peak-text">{report.tasks_completed}<span className="text-peak-muted text-base">/{report.tasks_total}</span></p>
                   <p className="text-[10px] font-semibold tracking-widest uppercase text-peak-muted mt-1">Tasks</p>
                 </div>
-                <div className="bg-peak-surface border border-peak-border rounded-xl p-4 text-center">
+                <div className="bg-peak-surface border border-peak-border rounded-xl shadow-sm p-4 text-center">
                   <p className="text-2xl font-black text-peak-accent">{report.xp_earned}</p>
                   <p className="text-[10px] font-semibold tracking-widest uppercase text-peak-muted mt-1">XP</p>
                 </div>
-                <div className="bg-peak-surface border border-peak-border rounded-xl p-4 text-center">
+                <div className="bg-peak-surface border border-peak-border rounded-xl shadow-sm p-4 text-center">
                   <p className="text-2xl font-black text-peak-text">{report.streak_held ? '✓' : '✗'}</p>
                   <p className="text-[10px] font-semibold tracking-widest uppercase text-peak-muted mt-1">Streak</p>
                 </div>
               </div>
 
               {/* Arena breakdown with Dig Deeper */}
-              <div className="bg-peak-surface border border-peak-border rounded-xl p-4">
+              <div className="bg-peak-surface border border-peak-border rounded-xl shadow-sm p-4">
                 <p className="text-[10px] font-semibold tracking-widest uppercase text-peak-muted mb-3">Arena Breakdown</p>
                 <div className="space-y-1">
                   {Object.entries(report.arena_breakdown || {}).map(([name, stats]) => {
@@ -394,7 +394,7 @@ export default function WeeklyReport() {
                                 <p className="text-[15px] text-peak-text leading-[1.7]">{dive.pattern}</p>
                                 {dive.actionPlan?.length > 0 && (
                                   <div>
-                                    <p className="text-[9px] font-semibold tracking-widest uppercase text-peak-muted mb-2">Action Plan</p>
+                                    <p className="text-[11px] font-semibold tracking-widest uppercase text-peak-muted mb-2">Action Plan</p>
                                     <ol className="space-y-2">
                                       {dive.actionPlan.map((step, i) => (
                                         <li key={i} className="flex gap-2.5">

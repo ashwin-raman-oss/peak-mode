@@ -5,24 +5,39 @@ import { useProfile } from '../hooks/useProfile'
 import { useSidebar } from '../context/SidebarContext'
 import { getXpInLevel, XP_PER_LEVEL } from '../lib/xp'
 import { supabase } from '../lib/supabase'
+import {
+  Squares2X2Icon,
+  BriefcaseIcon,
+  HeartIcon,
+  AcademicCapIcon,
+  InboxIcon,
+  FireIcon,
+  BookOpenIcon,
+  ChartBarIcon,
+  CalendarDaysIcon,
+  BoltIcon,
+  Cog6ToothIcon,
+  TrophyIcon,
+  ArrowRightOnRectangleIcon,
+} from '@heroicons/react/24/outline'
 
 const NAV_ITEMS_BEFORE = [
-  { to: '/', label: 'Dashboard', icon: '⊞' },
+  { to: '/', label: 'Dashboard', Icon: Squares2X2Icon },
 ]
 
 const ARENA_SLUGS = [
-  { slug: 'career',   label: 'Career' },
-  { slug: 'health',   label: 'Health' },
-  { slug: 'learning', label: 'Learning' },
-  { slug: 'misc',     label: 'Misc' },
+  { slug: 'career',   label: 'Career',   Icon: BriefcaseIcon },
+  { slug: 'health',   label: 'Health',   Icon: HeartIcon },
+  { slug: 'learning', label: 'Learning', Icon: AcademicCapIcon },
+  { slug: 'misc',     label: 'Misc',     Icon: InboxIcon },
 ]
 
 const NAV_ITEMS_AFTER = [
-  { to: '/habits',  label: 'Habits',        icon: '◷' },
-  { to: '/journal', label: 'Journal',       icon: '✎' },
-  { to: '/okrs',    label: 'OKRs',          icon: '◎' },
-  { to: '/month',   label: 'Monthly',       icon: '▦' },
-  { to: '/report',  label: 'Weekly Report', icon: '⚡' },
+  { to: '/habits',  label: 'Habits',        Icon: FireIcon },
+  { to: '/journal', label: 'Journal',       Icon: BookOpenIcon },
+  { to: '/okrs',    label: 'OKRs',          Icon: ChartBarIcon },
+  { to: '/month',   label: 'Monthly',       Icon: CalendarDaysIcon },
+  { to: '/report',  label: 'Weekly Report', Icon: BoltIcon },
 ]
 
 export default function Sidebar() {
@@ -46,7 +61,6 @@ export default function Sidebar() {
     navigate('/login')
   }
 
-  // Closes sidebar on mobile when a nav link is clicked
   function handleNavClick() {
     close()
   }
@@ -84,23 +98,23 @@ export default function Sidebar() {
 
         {/* Nav */}
         <nav className="flex-1 px-2 py-3 overflow-y-auto">
-          <p className="text-[9px] font-semibold text-peak-sidebar-text uppercase tracking-widest px-2 mb-2">Main</p>
+          <p className="text-[11px] font-semibold text-peak-sidebar-text uppercase tracking-widest px-3 mb-2">Main</p>
 
-          {NAV_ITEMS_BEFORE.map(({ to, label, icon }) => (
+          {NAV_ITEMS_BEFORE.map(({ to, label, Icon }) => (
             <NavLink
               key={to}
               to={to}
               end
               onClick={handleNavClick}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 px-3 py-2 rounded-md mb-0.5 text-sm font-medium transition-colors ${
+                `flex items-center gap-2.5 px-3 py-2 rounded-md mb-0.5 text-sm font-medium transition-colors border-l-2 ${
                   isActive
-                    ? 'bg-peak-sidebar-active text-white'
-                    : 'text-peak-sidebar-text hover:text-white hover:bg-peak-sidebar-hover'
+                    ? 'bg-peak-sidebar-active text-white border-peak-accent'
+                    : 'text-peak-sidebar-text hover:text-white hover:bg-peak-sidebar-hover border-transparent'
                 }`
               }
             >
-              <span className="text-base leading-none">{icon}</span>
+              <Icon className="w-4 h-4 shrink-0" />
               {label}
             </NavLink>
           ))}
@@ -109,49 +123,50 @@ export default function Sidebar() {
           <div className="mb-0.5">
             <button
               onClick={() => { navigate('/arena/career'); close() }}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md mb-0.5 text-sm font-medium transition-colors ${
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md mb-0.5 text-sm font-medium transition-colors border-l-2 ${
                 isArenaActive
-                  ? 'bg-peak-sidebar-active text-white'
-                  : 'text-peak-sidebar-text hover:text-white hover:bg-peak-sidebar-hover'
+                  ? 'bg-peak-sidebar-active text-white border-peak-accent'
+                  : 'text-peak-sidebar-text hover:text-white hover:bg-peak-sidebar-hover border-transparent'
               }`}
             >
-              <span className="text-base leading-none">◈</span>
+              <TrophyIcon className="w-4 h-4 shrink-0" />
               Arena
             </button>
             <div className="ml-4 border-l border-peak-sidebar-border pl-2 space-y-0.5">
-              {ARENA_SLUGS.map(({ slug, label }) => (
+              {ARENA_SLUGS.map(({ slug, label, Icon }) => (
                 <NavLink
                   key={slug}
                   to={`/arena/${slug}`}
                   onClick={handleNavClick}
                   className={({ isActive }) =>
-                    `block px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                    `flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-colors border-l-2 ${
                       isActive
-                        ? 'bg-peak-sidebar-active text-white'
-                        : 'text-peak-sidebar-text hover:text-white hover:bg-peak-sidebar-hover'
+                        ? 'bg-peak-sidebar-active text-white border-peak-accent'
+                        : 'text-peak-sidebar-text hover:text-white hover:bg-peak-sidebar-hover border-transparent'
                     }`
                   }
                 >
+                  <Icon className="w-3.5 h-3.5 shrink-0" />
                   {label}
                 </NavLink>
               ))}
             </div>
           </div>
 
-          {NAV_ITEMS_AFTER.map(({ to, label, icon }) => (
+          {NAV_ITEMS_AFTER.map(({ to, label, Icon }) => (
             <NavLink
               key={to}
               to={to}
               onClick={handleNavClick}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 px-3 py-2 rounded-md mb-0.5 text-sm font-medium transition-colors ${
+                `flex items-center gap-2.5 px-3 py-2 rounded-md mb-0.5 text-sm font-medium transition-colors border-l-2 ${
                   isActive
-                    ? 'bg-peak-sidebar-active text-white'
-                    : 'text-peak-sidebar-text hover:text-white hover:bg-peak-sidebar-hover'
+                    ? 'bg-peak-sidebar-active text-white border-peak-accent'
+                    : 'text-peak-sidebar-text hover:text-white hover:bg-peak-sidebar-hover border-transparent'
                 }`
               }
             >
-              <span className="text-base leading-none">{icon}</span>
+              <Icon className="w-4 h-4 shrink-0" />
               {label}
             </NavLink>
           ))}
@@ -162,14 +177,14 @@ export default function Sidebar() {
               to="/settings"
               onClick={handleNavClick}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                `flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors border-l-2 ${
                   isActive
-                    ? 'bg-peak-sidebar-active text-white'
-                    : 'text-peak-sidebar-text hover:text-white hover:bg-peak-sidebar-hover'
+                    ? 'bg-peak-sidebar-active text-white border-peak-accent'
+                    : 'text-peak-sidebar-text hover:text-white hover:bg-peak-sidebar-hover border-transparent'
                 }`
               }
             >
-              <span className="text-base leading-none">⚙</span>
+              <Cog6ToothIcon className="w-4 h-4 shrink-0" />
               Settings
             </NavLink>
           </div>
@@ -185,29 +200,31 @@ export default function Sidebar() {
               <p className="text-white text-xs font-semibold truncate">
                 {profile?.display_name || (user?.email?.split('@')[0] ?? 'User')}
               </p>
-              <p className="text-peak-sidebar-text text-[10px]">Level {profile?.level ?? 1}</p>
+              <p className="text-peak-sidebar-text text-[11px]">Level {profile?.level ?? 1}</p>
             </div>
             {profile?.current_streak > 0 && (
-              <span className="bg-peak-sidebar-active text-peak-accent text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0">
+              <span className="bg-peak-sidebar-active text-peak-accent text-[11px] font-bold px-2 py-0.5 rounded-md shrink-0">
                 🔥 {profile.current_streak}
               </span>
             )}
           </div>
-          <div className="bg-peak-sidebar-border rounded-full h-[3px] mb-1">
+          <div className="bg-peak-sidebar-border rounded-full h-[5px] mb-2">
             <div
-              className="bg-peak-accent h-[3px] rounded-full transition-all duration-700"
+              className="bg-gradient-to-r from-amber-400 to-amber-500 h-[5px] rounded-full transition-all duration-700"
               style={{ width: `${xpPct}%` }}
             />
           </div>
-          <div className="flex justify-between">
-            <span className="text-[9px] text-peak-sidebar-text">{profile?.total_xp ?? 0} XP</span>
-            <button
-              onClick={handleLogout}
-              className="text-[9px] text-peak-sidebar-text hover:text-white transition-colors"
-            >
-              Sign out
-            </button>
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-[11px] text-peak-sidebar-text">{profile?.total_xp ?? 0} XP</span>
           </div>
+          {/* Sign out button */}
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 text-xs text-peak-sidebar-text hover:text-white px-3 py-2 rounded-lg hover:bg-peak-sidebar-hover w-full transition-colors mt-1"
+          >
+            <ArrowRightOnRectangleIcon className="w-4 h-4 shrink-0" />
+            Sign out
+          </button>
         </div>
       </aside>
     </>

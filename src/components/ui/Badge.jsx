@@ -6,7 +6,7 @@ export default function Badge({ priority }) {
   }
   const { label, className } = config[priority] ?? config.optional
   return (
-    <span className={`text-[9px] font-semibold px-2.5 py-0.5 rounded-full ${className}`}>
+    <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${className}`}>
       {label}
     </span>
   )

@@ -165,7 +165,7 @@ function OKRCard({ okr, onUpdateProgress, onAddKR, onDeleteKR, onDeleteOKR, onAr
   }
 
   return (
-    <div className="bg-peak-surface border border-peak-border rounded-xl p-6 shadow-sm">
+    <div className="bg-peak-surface border border-peak-border rounded-xl shadow-sm p-6 shadow-sm">
       {/* Card header */}
       <div className="flex items-start justify-between mb-1">
         <div className="flex-1 min-w-0 pr-4">
@@ -312,7 +312,7 @@ function ArchivedOKRCard({ okr, onRestore }) {
   const progress = avgProgress(okr.key_results)
 
   return (
-    <div className="bg-peak-surface border border-peak-border rounded-xl p-4 opacity-60">
+    <div className="bg-peak-surface border border-peak-border rounded-xl shadow-sm p-4 opacity-60">
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0 pr-4">
           <h3 className="text-sm font-bold text-peak-text line-through leading-snug">{okr.title}</h3>

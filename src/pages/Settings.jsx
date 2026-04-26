@@ -103,7 +103,7 @@ export default function Settings() {
         <div className="max-w-lg mx-auto space-y-6">
 
           {/* ── Profile ── */}
-          <section className="bg-peak-surface border border-peak-border rounded-xl p-5">
+          <section className="bg-peak-surface border border-peak-border rounded-xl shadow-sm p-5">
             <h2 className="text-sm font-bold text-peak-text mb-4">Profile</h2>
             <form onSubmit={handleSaveProfile} className="space-y-3">
               <div>
@@ -137,7 +137,7 @@ export default function Settings() {
           </section>
 
           {/* ── Change Password ── */}
-          <section className="bg-peak-surface border border-peak-border rounded-xl p-5">
+          <section className="bg-peak-surface border border-peak-border rounded-xl shadow-sm p-5">
             <h2 className="text-sm font-bold text-peak-text mb-4">Change Password</h2>
             <form onSubmit={handleChangePassword} className="space-y-3">
               <div>
@@ -180,7 +180,7 @@ export default function Settings() {
           </section>
 
           {/* ── Preferences ── */}
-          <section className="bg-peak-surface border border-peak-border rounded-xl p-5">
+          <section className="bg-peak-surface border border-peak-border rounded-xl shadow-sm p-5">
             <h2 className="text-sm font-bold text-peak-text mb-4">Preferences</h2>
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-peak-muted mb-1">Timezone</p>

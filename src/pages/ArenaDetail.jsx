@@ -155,7 +155,7 @@ export default function ArenaDetail() {
         )}
 
         {/* Day tab bar */}
-        <div className="flex gap-1 mb-4 bg-peak-surface border border-peak-border rounded-xl p-1.5">
+        <div className="flex gap-1 mb-4 bg-peak-surface border border-peak-border rounded-xl shadow-sm p-1.5">
           {weekDays.map((dateStr, i) => {
             const date = new Date(dateStr + 'T12:00:00')
             const isSelected = selectedDay === dateStr
@@ -189,7 +189,7 @@ export default function ArenaDetail() {
           </div>
         )}
 
-        <div className="bg-peak-surface border border-peak-border rounded-xl overflow-hidden">
+        <div className="bg-peak-surface border border-peak-border rounded-xl shadow-sm overflow-hidden">
           {tasks.length === 0 && !showAddForm ? (
             <div className="text-center py-16">
               <p className="text-peak-muted text-sm mb-3">No tasks yet.</p>
@@ -228,7 +228,7 @@ export default function ArenaDetail() {
                       <button
                         onClick={() => handleComplete(task)}
                         disabled={completing === task.id || done}
-                        className={`text-[9px] font-bold w-8 h-8 rounded-full border flex items-center justify-center transition-colors shrink-0 ${
+                        className={`text-[11px] font-bold w-8 h-8 rounded-full border flex items-center justify-center transition-colors shrink-0 ${
                           done
                             ? 'bg-green-500 border-green-500 text-white'
                             : completing === task.id

@@ -10,7 +10,7 @@ export default {
           'sidebar-active': '#27272A',
           'sidebar-text':   '#71717A',
           'sidebar-border': '#27272A',
-          bg:               '#F8F9FA',
+          bg:               '#EEEFF2',
           surface:          '#FFFFFF',
           border:           '#E4E4E7',
           text:             '#09090B',

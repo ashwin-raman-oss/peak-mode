@@ -73,7 +73,7 @@ export default function MonthlyTracker() {
         }
       />
       <main className="flex-1 overflow-y-auto bg-peak-bg px-4 py-4 lg:px-6">
-        <div className="bg-peak-surface border border-peak-border rounded-xl overflow-hidden">
+        <div className="bg-peak-surface border border-peak-border rounded-xl shadow-sm overflow-hidden">
           {/* Day-of-week headers */}
           <div className="grid grid-cols-7 border-b border-peak-border">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (

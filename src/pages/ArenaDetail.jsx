@@ -155,7 +155,7 @@ export default function ArenaDetail() {
         )}
 
         {/* Day tab bar */}
-        <div className="flex gap-1 mb-4 bg-peak-surface border border-peak-border rounded-xl shadow-sm p-1.5">
+        <div className="flex overflow-x-auto scrollbar-hide gap-1 mb-4 bg-peak-surface border border-peak-border rounded-xl shadow-sm p-1.5">
           {weekDays.map((dateStr, i) => {
             const date = new Date(dateStr + 'T12:00:00')
             const isSelected = selectedDay === dateStr
@@ -166,7 +166,7 @@ export default function ArenaDetail() {
                 key={dateStr}
                 onClick={() => !isFuture && setSelectedDay(dateStr)}
                 disabled={isFuture}
-                className={`flex-1 flex flex-col items-center py-2 rounded-lg transition-colors ${
+                className={`min-w-[52px] shrink-0 flex flex-col items-center py-2 rounded-lg transition-colors ${
                   isSelected
                     ? 'bg-peak-accent text-black'
                     : isFuture
@@ -243,7 +243,7 @@ export default function ArenaDetail() {
                       <button
                         onClick={() => handleComplete(task)}
                         disabled={completing === task.id}
-                        className={`w-5 h-5 rounded border flex items-center justify-center transition-colors shrink-0 ${
+                        className={`w-6 h-6 rounded border flex items-center justify-center transition-colors shrink-0 touch-manipulation ${
                           done
                             ? 'bg-peak-text border-peak-text'
                             : completing === task.id

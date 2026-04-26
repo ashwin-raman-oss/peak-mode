@@ -253,8 +253,10 @@ export default function Dashboard() {
   const todayBig3AllDone = isBig3AllDone(todayBig3)
   const displayStreak = streak + (todayBig3AllDone ? 1 : 0)
   const streakSub = displayStreak > 0
-    ? `🔥 ${displayStreak} day streak`
-    : 'Complete today\'s Big 3 to start'
+    ? '🔥 Keep it going'
+    : todayBig3AllDone
+    ? '✓ Big 3 done today'
+    : "Complete today's Big 3 to start"
 
   async function handleComplete(task) {
     if (isTaskDone(task) || completing === task.id) return

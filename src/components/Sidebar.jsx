@@ -107,7 +107,7 @@ export default function Sidebar() {
               end
               onClick={handleNavClick}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 px-3 py-2 rounded-md mb-0.5 text-sm font-medium transition-colors border-l-2 ${
+                `flex items-center gap-2.5 pr-3 pl-[11px] py-2 rounded-md mb-0.5 text-sm font-medium transition-colors border-l-2 ${
                   isActive
                     ? 'bg-peak-sidebar-active text-white border-peak-accent'
                     : 'text-peak-sidebar-text hover:text-white hover:bg-peak-sidebar-hover border-transparent'
@@ -123,7 +123,7 @@ export default function Sidebar() {
           <div className="mb-0.5">
             <button
               onClick={() => { navigate('/arena/career'); close() }}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md mb-0.5 text-sm font-medium transition-colors border-l-2 ${
+              className={`w-full flex items-center gap-2.5 pr-3 pl-[11px] py-2 rounded-md mb-0.5 text-sm font-medium transition-colors border-l-2 ${
                 isArenaActive
                   ? 'bg-peak-sidebar-active text-white border-peak-accent'
                   : 'text-peak-sidebar-text hover:text-white hover:bg-peak-sidebar-hover border-transparent'
@@ -139,7 +139,7 @@ export default function Sidebar() {
                   to={`/arena/${slug}`}
                   onClick={handleNavClick}
                   className={({ isActive }) =>
-                    `flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-colors border-l-2 ${
+                    `flex items-center gap-2 pr-3 pl-[11px] py-1.5 rounded-md text-xs font-medium transition-colors border-l-2 ${
                       isActive
                         ? 'bg-peak-sidebar-active text-white border-peak-accent'
                         : 'text-peak-sidebar-text hover:text-white hover:bg-peak-sidebar-hover border-transparent'
@@ -159,7 +159,7 @@ export default function Sidebar() {
               to={to}
               onClick={handleNavClick}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 px-3 py-2 rounded-md mb-0.5 text-sm font-medium transition-colors border-l-2 ${
+                `flex items-center gap-2.5 pr-3 pl-[11px] py-2 rounded-md mb-0.5 text-sm font-medium transition-colors border-l-2 ${
                   isActive
                     ? 'bg-peak-sidebar-active text-white border-peak-accent'
                     : 'text-peak-sidebar-text hover:text-white hover:bg-peak-sidebar-hover border-transparent'
@@ -177,7 +177,7 @@ export default function Sidebar() {
               to="/settings"
               onClick={handleNavClick}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors border-l-2 ${
+                `flex items-center gap-2.5 pr-3 pl-[11px] py-2 rounded-md text-sm font-medium transition-colors border-l-2 ${
                   isActive
                     ? 'bg-peak-sidebar-active text-white border-peak-accent'
                     : 'text-peak-sidebar-text hover:text-white hover:bg-peak-sidebar-hover border-transparent'

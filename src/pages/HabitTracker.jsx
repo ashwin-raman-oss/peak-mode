@@ -95,7 +95,7 @@ function HabitCard({ habit, getHabitCompletions, getFormationProgress, getHabitS
       </div>
 
       {/* 66-day grid */}
-      <div className="flex flex-wrap gap-1 mb-2">
+      <div className="flex flex-nowrap overflow-x-auto scrollbar-hide gap-1.5 mb-2">
         {Array.from({ length: 66 }).map((_, i) => {
           const squareDate = addDaysToDate(habit.start_date, i)
           const dateStr = toDateStr(squareDate)
@@ -107,7 +107,7 @@ function HabitCard({ habit, getHabitCompletions, getFormationProgress, getHabitS
           return (
             <div
               key={i}
-              className={`w-[10px] h-[10px] rounded-sm ${
+              className={`w-3 h-3 rounded-sm shrink-0 ${
                 isCompleted ? 'bg-peak-accent' :
                 isWeekendSquare ? 'bg-[#F3F4F6]' :
                 'bg-peak-border'

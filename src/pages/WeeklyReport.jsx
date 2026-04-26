@@ -227,7 +227,7 @@ export default function WeeklyReport() {
         }
       />
       <main className="flex-1 overflow-y-auto bg-peak-bg px-4 py-4 lg:px-6">
-        <div className="max-w-3xl mx-auto space-y-5">
+        <div className="max-w-2xl mx-auto space-y-6">
           {generateError && (
             <p role="alert" className="text-[#DC2626] text-xs font-medium bg-[#FEF2F2] border border-[#FCA5A5] rounded-lg px-3 py-2">
               {generateError}
@@ -332,7 +332,7 @@ export default function WeeklyReport() {
               {/* Arena breakdown with Dig Deeper */}
               <div className="bg-peak-surface border border-peak-border rounded-xl shadow-sm p-4">
                 <p className="text-[10px] font-semibold tracking-widest uppercase text-peak-muted mb-3">Arena Breakdown</p>
-                <div className="space-y-1">
+                <div>
                   {Object.entries(report.arena_breakdown || {}).map(([name, stats]) => {
                     const isExpanded = expandedArena === name
                     const dive = deepDiveData[name]
@@ -340,8 +340,8 @@ export default function WeeklyReport() {
                     const diveError = deepDiveErrors[name]
                     const weekStats = { completed: stats.completed, total: stats.total, xpEarned: stats.xp }
                     return (
-                      <div key={name}>
-                        <div className="py-2">
+                      <div key={name} className="border-b border-peak-border last:border-0">
+                        <div className="py-3">
                           <div className="flex items-center justify-between mb-1.5">
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-medium text-peak-text">{name}</span>

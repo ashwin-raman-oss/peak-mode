@@ -81,7 +81,7 @@ function HabitCard({ habit, getHabitCompletions, getFormationProgress, getHabitS
         <div>
           <p className="text-[11px] font-semibold text-peak-muted uppercase tracking-widest">Streak</p>
           {currentStreak > 0 ? (
-            <p className="text-sm font-bold text-peak-text">🔥 {currentStreak} day{currentStreak !== 1 ? 's' : ''}</p>
+            <p className="text-sm font-bold text-peak-xp">🔥 {currentStreak} day{currentStreak !== 1 ? 's' : ''}</p>
           ) : (
             <p className="text-[10px] text-peak-muted mt-0.5">Start your streak today</p>
           )}
@@ -89,7 +89,7 @@ function HabitCard({ habit, getHabitCompletions, getFormationProgress, getHabitS
         {longestStreak > 0 && (
           <div>
             <p className="text-[11px] font-semibold text-peak-muted uppercase tracking-widest">Best</p>
-            <p className="text-sm font-bold text-peak-text">{longestStreak} day{longestStreak !== 1 ? 's' : ''}</p>
+            <p className="text-sm font-bold text-peak-xp">{longestStreak} day{longestStreak !== 1 ? 's' : ''}</p>
           </div>
         )}
       </div>
@@ -154,13 +154,13 @@ function HabitCard({ habit, getHabitCompletions, getFormationProgress, getHabitS
             if (isBefore) {
               pillClass += 'opacity-40 cursor-not-allowed border border-peak-border text-peak-muted'
             } else if (isToday && isDone) {
-              pillClass += 'bg-amber-600 text-white ring-2 ring-amber-300 ring-offset-1'
+              pillClass += 'bg-peak-accent text-white ring-2 ring-peak-accent/30 ring-offset-1'
             } else if (isToday && !isDone) {
-              pillClass += 'border-2 border-amber-400 text-amber-600 cursor-pointer hover:bg-amber-50'
+              pillClass += 'border-2 border-peak-accent text-peak-accent cursor-pointer hover:bg-peak-accent-light'
             } else if (isDone) {
-              pillClass += 'bg-amber-500 text-white cursor-pointer hover:opacity-90'
+              pillClass += 'bg-peak-accent text-white cursor-pointer hover:opacity-90'
             } else {
-              pillClass += 'border border-peak-border text-peak-muted cursor-pointer hover:border-amber-400'
+              pillClass += 'border border-peak-border text-peak-muted cursor-pointer hover:border-peak-accent'
             }
 
             return (

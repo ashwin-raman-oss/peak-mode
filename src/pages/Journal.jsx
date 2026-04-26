@@ -61,7 +61,7 @@ export default function Journal() {
         action={
           <button
             onClick={() => setShowPastEntry(true)}
-            className="text-xs font-semibold bg-peak-accent text-white px-3 py-1.5 rounded-lg hover:bg-amber-500 transition-colors"
+            className="text-xs font-semibold bg-peak-accent text-white px-3 py-1.5 rounded-lg hover:bg-[#1D4ED8] transition-colors"
           >
             + Log Past Entry
           </button>
@@ -76,7 +76,7 @@ export default function Journal() {
             className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${
               eveningDone
                 ? 'bg-peak-bg border border-peak-border text-peak-muted cursor-default'
-                : 'bg-peak-accent text-white hover:bg-amber-500'
+                : 'bg-peak-accent text-white hover:bg-[#1D4ED8]'
             }`}
           >
             {eveningDone ? '✓ Evening Done' : 'Evening Check-in'}

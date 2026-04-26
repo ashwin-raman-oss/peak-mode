@@ -71,7 +71,7 @@ export default function OKRs() {
         action={
           <button
             onClick={() => setShowAdd(true)}
-            className="text-xs font-semibold bg-peak-accent text-white px-3 py-1.5 rounded-lg hover:bg-amber-500 transition-colors"
+            className="text-xs font-semibold bg-peak-accent text-white px-3 py-1.5 rounded-lg hover:bg-[#1D4ED8] transition-colors"
           >
             + Add Objective
           </button>
@@ -84,7 +84,7 @@ export default function OKRs() {
             <p className="text-peak-muted text-sm mb-4">No objectives yet. Add your first OKR to get started.</p>
             <button
               onClick={() => setShowAdd(true)}
-              className="text-sm font-semibold bg-peak-accent text-white px-5 py-2.5 rounded-lg hover:bg-amber-500 transition-colors"
+              className="text-sm font-semibold bg-peak-accent text-white px-5 py-2.5 rounded-lg hover:bg-[#1D4ED8] transition-colors"
             >
               + Add Objective
             </button>
@@ -217,7 +217,7 @@ function OKRCard({ okr, onUpdateProgress, onAddKR, onDeleteKR, onDeleteOKR, onAr
         <div className="h-[3px] bg-peak-border rounded-full overflow-hidden">
           <div
             className="h-full rounded-full transition-all duration-500"
-            style={{ width: `${progress}%`, backgroundColor: '#F59E0B' }}
+            style={{ width: `${progress}%`, backgroundColor: '#2D5BE3' }}
           />
         </div>
       </div>
@@ -271,7 +271,7 @@ function OKRCard({ okr, onUpdateProgress, onAddKR, onDeleteKR, onDeleteOKR, onAr
           <button
             onClick={handleAddKR}
             disabled={savingKR || !newKRTitle.trim()}
-            className="text-xs font-semibold bg-peak-accent text-white px-3 py-1.5 rounded-lg hover:bg-amber-500 disabled:opacity-50"
+            className="text-xs font-semibold bg-peak-accent text-white px-3 py-1.5 rounded-lg hover:bg-[#1D4ED8] disabled:opacity-50"
           >
             {savingKR ? '…' : 'Add'}
           </button>
@@ -444,7 +444,7 @@ function AddOKRModal({ onClose, onSave }) {
         <button
           type="submit"
           disabled={submitting || !title.trim()}
-          className="w-full bg-peak-accent text-white text-sm font-semibold py-2.5 rounded-lg hover:bg-amber-500 transition-colors disabled:opacity-50"
+          className="w-full bg-peak-accent text-white text-sm font-semibold py-2.5 rounded-lg hover:bg-[#1D4ED8] transition-colors disabled:opacity-50"
         >
           {submitting ? 'Saving…' : 'Save Objective'}
         </button>

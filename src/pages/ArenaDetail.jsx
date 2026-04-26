@@ -168,7 +168,7 @@ export default function ArenaDetail() {
                 disabled={isFuture}
                 className={`min-w-[52px] shrink-0 flex flex-col items-center py-2 rounded-lg transition-colors ${
                   isSelected
-                    ? 'bg-peak-accent text-black'
+                    ? 'bg-peak-accent text-white'
                     : isFuture
                     ? 'text-peak-muted opacity-40 cursor-not-allowed'
                     : 'text-peak-muted hover:text-peak-text hover:bg-peak-bg'
@@ -230,7 +230,7 @@ export default function ArenaDetail() {
                         disabled={completing === task.id || done}
                         className={`text-[11px] font-bold w-8 h-8 rounded-full border flex items-center justify-center transition-colors shrink-0 ${
                           done
-                            ? 'bg-green-500 border-green-500 text-white'
+                            ? 'bg-peak-accent/20 border-peak-accent text-peak-accent'
                             : completing === task.id
                             ? 'opacity-50 border-peak-border text-peak-muted'
                             : 'border-peak-border text-peak-muted hover:border-peak-accent hover:text-peak-accent'
@@ -245,7 +245,7 @@ export default function ArenaDetail() {
                         disabled={completing === task.id}
                         className={`w-6 h-6 rounded border flex items-center justify-center transition-colors shrink-0 touch-manipulation ${
                           done
-                            ? 'bg-peak-text border-peak-text'
+                            ? 'bg-peak-accent border-peak-accent'
                             : completing === task.id
                             ? 'opacity-50 border-peak-border'
                             : 'border-peak-border hover:border-peak-accent'
@@ -538,7 +538,7 @@ function AddTaskForm({ onSave, onCancel }) {
         <button
           type="submit"
           disabled={!title.trim()}
-          className="text-xs font-semibold bg-peak-accent text-white px-4 py-1.5 rounded-lg hover:bg-amber-500 disabled:opacity-50"
+          className="text-xs font-semibold bg-peak-accent text-white px-4 py-1.5 rounded-lg hover:bg-[#1D4ED8] disabled:opacity-50"
         >
           Add Task
         </button>

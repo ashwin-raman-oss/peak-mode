@@ -60,9 +60,9 @@ export default function LevelUpModal({ newLevel, onClose }) {
         ))}
 
         <div className="text-6xl mb-4">⚡</div>
-        <p className="text-2xl font-black tracking-widest text-peak-accent mb-1">LEVEL UP!</p>
-        <p className="text-4xl font-black text-peak-text mb-1">{newLevel}</p>
-        <p className="text-sm font-bold text-peak-accent mb-3">{title}</p>
+        <p className="text-2xl font-black tracking-widest text-peak-xp mb-1">LEVEL UP!</p>
+        <p className="text-4xl font-black text-peak-xp mb-1">{newLevel}</p>
+        <p className="text-sm font-bold text-peak-xp mb-3">{title}</p>
         <p className="text-sm text-peak-muted mb-6 leading-relaxed">{message}</p>
 
         {/* Progress bar at 0% — fresh start for new level */}
@@ -72,13 +72,13 @@ export default function LevelUpModal({ newLevel, onClose }) {
             <span>1,000 XP to Level {newLevel + 1}</span>
           </div>
           <div className="h-2 bg-peak-border rounded-full overflow-hidden">
-            <div className="h-full w-0 bg-peak-accent rounded-full" />
+            <div className="h-full w-0 bg-peak-xp rounded-full" />
           </div>
         </div>
 
         <button
           onClick={() => { setVisible(false); onClose?.() }}
-          className="text-xs font-semibold text-peak-accent hover:underline"
+          className="text-xs font-semibold bg-peak-accent text-white px-4 py-2 rounded-lg hover:bg-[#1D4ED8] transition-colors"
         >
           Let's go →
         </button>

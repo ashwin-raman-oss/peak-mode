@@ -183,7 +183,7 @@ export default function PastEntryModal({ userId, onClose, onSuccess }) {
           <button
             type="submit"
             disabled={submitting || (type === 'morning' ? !intention.trim() : !dayRating)}
-            className="w-full bg-peak-accent text-white text-sm font-semibold py-2.5 rounded-lg hover:bg-amber-500 transition-colors disabled:opacity-50"
+            className="w-full bg-peak-accent text-white text-sm font-semibold py-2.5 rounded-lg hover:bg-[#1D4ED8] transition-colors disabled:opacity-50"
           >
             {submitting ? 'Saving...' : 'Save Entry'}
           </button>

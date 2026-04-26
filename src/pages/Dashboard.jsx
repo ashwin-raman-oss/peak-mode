@@ -131,7 +131,7 @@ function Big3Card({ todayBig3, onSave, onMarkDone, loading }) {
                 <button
                   onClick={() => handleMark(num, !done)}
                   className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
-                    done ? 'bg-peak-text border-peak-text' : 'border-peak-border hover:border-peak-accent'
+                    done ? 'bg-peak-accent border-peak-accent' : 'border-peak-border hover:border-peak-accent'
                   }`}
                   aria-label={done ? 'Unmark done' : 'Mark done'}
                 >
@@ -167,7 +167,7 @@ function Big3Card({ todayBig3, onSave, onMarkDone, loading }) {
               <button
                 onClick={handleSave}
                 disabled={saving || !items.some(i => i.trim())}
-                className="text-xs font-semibold bg-peak-accent text-white px-4 py-1.5 rounded-lg hover:bg-amber-600 active:scale-[0.98] disabled:opacity-50 transition-all"
+                className="text-xs font-semibold bg-peak-accent text-white px-4 py-1.5 rounded-lg hover:bg-[#1D4ED8] active:scale-[0.98] disabled:opacity-50 transition-all"
               >
                 {saving ? 'Saving…' : 'Save Big 3'}
               </button>
@@ -306,7 +306,7 @@ export default function Dashboard() {
             value={displayStreak}
             sub={streakSub}
             borderColor="border-peak-accent"
-            valueColor="text-peak-text"
+            valueColor="text-peak-xp"
           />
 
           <StatCard
@@ -322,15 +322,15 @@ export default function Dashboard() {
             value={`+${weekXp}`}
             sub="earned"
             borderColor="border-peak-accent"
-            valueColor="text-peak-accent"
+            valueColor="text-peak-xp"
           />
 
           {/* Level card */}
           <div className="bg-peak-surface border border-peak-border border-l-[3px] border-l-peak-accent rounded-xl px-4 py-4 shadow-sm">
             <p className="text-[11px] font-semibold text-peak-muted uppercase tracking-widest mb-1">Level</p>
             <div className="flex items-baseline gap-2">
-              <p className="text-2xl font-bold tracking-tight text-peak-text">{level}</p>
-              <p className="text-xs font-bold text-peak-accent">{levelTitle}</p>
+              <p className="text-2xl font-bold tracking-tight text-peak-xp">{level}</p>
+              <p className="text-xs font-bold text-peak-xp">{levelTitle}</p>
             </div>
             <p className="text-[10px] text-peak-muted mt-0.5">{xpToNext} XP to Level {level + 1}</p>
           </div>
@@ -356,7 +356,7 @@ export default function Dashboard() {
                     <p className="text-peak-text font-medium text-sm mb-1">No tasks for today</p>
                     <p className="text-peak-muted text-xs mb-4">Add tasks to an arena to see your daily focus here.</p>
                     <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                      <Link to="/arena/career" className="text-xs font-semibold text-white bg-peak-accent hover:bg-amber-600 active:scale-[0.98] px-4 py-2 rounded-lg transition-all">
+                      <Link to="/arena/career" className="text-xs font-semibold text-white bg-peak-accent hover:bg-[#1D4ED8] active:scale-[0.98] px-4 py-2 rounded-lg transition-all">
                         Set up Career tasks →
                       </Link>
                       <Link to="/arena/health" className="text-xs font-semibold text-peak-accent border border-peak-accent hover:bg-peak-accent-light px-4 py-2 rounded-lg transition-colors">
@@ -379,7 +379,7 @@ export default function Dashboard() {
                     }`}
                   >
                     <div className={`w-4 h-4 rounded flex items-center justify-center shrink-0 border transition-colors ${
-                      done ? 'bg-peak-text border-peak-text' : 'border-peak-border'
+                      done ? 'bg-peak-accent border-peak-accent' : 'border-peak-border'
                     }`}>
                       {done && (
                         <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>

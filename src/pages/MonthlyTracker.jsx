@@ -106,12 +106,12 @@ export default function MonthlyTracker() {
                   key={day.dateStr}
                   onClick={() => isClickable ? setSelectedDay(day.dateStr) : null}
                   className={`relative border-b border-r border-peak-border min-h-[80px] p-1.5 flex flex-col transition-colors ${
-                    isClickable ? 'cursor-pointer hover:bg-amber-50' : 'cursor-default'
-                  } ${isToday ? 'ring-2 ring-inset ring-amber-400' : ''} ${isWeekend || isBeforeStart ? 'bg-[#F9FAFB]' : ''}`}
-                  style={isToday ? { backgroundColor: '#FFFBEB' } : undefined}
+                    isClickable ? 'cursor-pointer hover:bg-peak-accent-light' : 'cursor-default'
+                  } ${isToday ? 'ring-2 ring-inset ring-peak-accent' : ''} ${isWeekend || isBeforeStart ? 'bg-[#F9FAFB]' : ''}`}
+                  style={isToday ? { backgroundColor: '#EEF2FF' } : undefined}
                 >
                   <span className={`text-xs font-semibold leading-none ${
-                    isToday ? 'text-amber-600' : isWeekend || isFuture || isBeforeStart ? 'text-peak-muted' : 'text-peak-text'
+                    isToday ? 'text-peak-accent' : isWeekend || isFuture || isBeforeStart ? 'text-peak-muted' : 'text-peak-text'
                   }`}>
                     {day.day}
                   </span>
@@ -123,7 +123,7 @@ export default function MonthlyTracker() {
                           <p
                             key={idx}
                             className={`text-[10px] leading-tight truncate font-medium ${
-                              t.isDone ? 'text-amber-600' : 'text-amber-400 italic'
+                              t.isDone ? 'text-peak-accent' : 'text-peak-accent/40 italic'
                             }`}
                           >
                             ★ {t.title}

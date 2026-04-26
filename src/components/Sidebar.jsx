@@ -200,10 +200,10 @@ export default function Sidebar() {
               <p className="text-white text-xs font-semibold truncate">
                 {profile?.display_name || (user?.email?.split('@')[0] ?? 'User')}
               </p>
-              <p className="text-peak-sidebar-text text-[11px]">Level {profile?.level ?? 1}</p>
+              <p className="text-peak-xp text-[11px]">Level {profile?.level ?? 1}</p>
             </div>
             {profile?.current_streak > 0 && (
-              <span className="bg-peak-sidebar-active text-peak-accent text-[11px] font-bold px-2 py-0.5 rounded-md shrink-0">
+              <span className="bg-peak-sidebar-active text-peak-xp text-[11px] font-bold px-2 py-0.5 rounded-md shrink-0">
                 🔥 {profile.current_streak}
               </span>
             )}
@@ -215,7 +215,7 @@ export default function Sidebar() {
             />
           </div>
           <div className="flex justify-between items-center mb-1">
-            <span className="text-[11px] text-peak-sidebar-text">{profile?.total_xp ?? 0} XP</span>
+            <span className="text-[11px] text-peak-xp font-semibold">{profile?.total_xp ?? 0} XP</span>
           </div>
           {/* Sign out button */}
           <button

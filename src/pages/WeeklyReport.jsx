@@ -473,7 +473,7 @@ export default function WeeklyReport() {
             <button
               onClick={handleRegenerate}
               disabled={generating}
-              className="flex-1 bg-peak-accent text-white text-sm font-semibold py-2.5 rounded-lg hover:bg-amber-500 transition-colors disabled:opacity-50"
+              className="flex-1 bg-peak-accent text-white text-sm font-semibold py-2.5 rounded-lg hover:bg-[#1D4ED8] transition-colors disabled:opacity-50"
             >
               Regenerate
             </button>

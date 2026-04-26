@@ -129,7 +129,7 @@ export default function Settings() {
               <button
                 type="submit"
                 disabled={profileSaving}
-                className="text-xs font-semibold bg-peak-accent text-white px-4 py-2 rounded-lg hover:bg-amber-500 transition-colors disabled:opacity-50"
+                className="text-xs font-semibold bg-peak-accent text-white px-4 py-2 rounded-lg hover:bg-[#1D4ED8] transition-colors disabled:opacity-50"
               >
                 {profileSaving ? 'Saving…' : 'Save Profile'}
               </button>
@@ -172,7 +172,7 @@ export default function Settings() {
               <button
                 type="submit"
                 disabled={pwSaving}
-                className="text-xs font-semibold bg-peak-accent text-white px-4 py-2 rounded-lg hover:bg-amber-500 transition-colors disabled:opacity-50"
+                className="text-xs font-semibold bg-peak-accent text-white px-4 py-2 rounded-lg hover:bg-[#1D4ED8] transition-colors disabled:opacity-50"
               >
                 {pwSaving ? 'Updating…' : 'Update Password'}
               </button>

@@ -173,17 +173,17 @@ export default function DayDetailModal({ date, userId, onClose }) {
               ].filter(item => item.text)
               if (items.length === 0) return null
               return (
-                <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-3">
-                  <p className="text-[10px] font-semibold text-amber-600 uppercase tracking-widest mb-2">★ Big 3</p>
+                <div className="mb-4 bg-peak-accent-light border border-peak-accent/20 rounded-xl p-3">
+                  <p className="text-[10px] font-semibold text-peak-accent uppercase tracking-widest mb-2">★ Big 3</p>
                   <div className="space-y-1.5">
                     {items.map((item, i) => (
                       <div key={i} className="flex items-center gap-2">
-                        <span className={`text-sm shrink-0 ${item.done ? 'text-amber-500' : 'text-amber-300'}`}>★</span>
+                        <span className={`text-sm shrink-0 ${item.done ? 'text-peak-accent' : 'text-peak-border'}`}>★</span>
                         <span className={`text-sm flex-1 ${item.done ? 'text-peak-text' : 'text-peak-muted italic'}`}>
                           {item.text}
                         </span>
                         {item.done && (
-                          <span className="text-[10px] font-semibold text-amber-600 shrink-0">✓</span>
+                          <span className="text-[10px] font-semibold text-peak-accent shrink-0">✓</span>
                         )}
                       </div>
                     ))}
@@ -341,7 +341,7 @@ function InlineMorningForm({ existing, onSave }) {
       <button
         type="submit"
         disabled={submitting || !intention.trim()}
-        className="bg-peak-accent text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-amber-500 disabled:opacity-50"
+        className="bg-peak-accent text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-[#1D4ED8] disabled:opacity-50"
       >
         {submitting ? 'Saving...' : 'Save'}
       </button>
@@ -396,7 +396,7 @@ function InlineEveningForm({ existing, onSave }) {
       <button
         type="submit"
         disabled={submitting || !dayRating}
-        className="bg-peak-accent text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-amber-500 disabled:opacity-50"
+        className="bg-peak-accent text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-[#1D4ED8] disabled:opacity-50"
       >
         {submitting ? 'Saving...' : 'Save'}
       </button>

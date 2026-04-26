@@ -43,6 +43,7 @@ export function useProfile(userId) {
             .maybeSingle()
 
           streakUpdate = computeNewStreakFromBig3(profileData, big3Row, prevDayStr)
+          console.log('[streak]', { yesterdayStr: prevDayStr, big3Row, streakResult: streakUpdate })
         }
 
         const newLevel = getLevel(profileData.total_xp)

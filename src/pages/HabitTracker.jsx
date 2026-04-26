@@ -133,6 +133,51 @@ function HabitCard({ habit, getHabitCompletions, getFormationProgress, getHabitS
       >
         {completedToday ? 'Completed today ✓' : 'Mark today complete'}
       </button>
+
+      {/* Retroactive 7-day pill row */}
+      <div className="mt-3">
+        <p className="text-[9px] font-semibold text-peak-muted uppercase tracking-widest mb-1.5">Log past days</p>
+        <div className="flex gap-1 flex-wrap">
+          {Array.from({ length: 7 }, (_, i) => {
+            const d = new Date()
+            d.setDate(d.getDate() - (6 - i))
+            const dateStr = toDateStr(d)
+            const dayLabel = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()] + ' ' + d.getDate()
+            const isToday = dateStr === todayStr
+            const isDone = completions.includes(dateStr)
+            const isBefore = dateStr < habit.start_date
+            const isFuture = dateStr > todayStr
+
+            if (isFuture) return null
+
+            let pillClass = 'px-2 py-1 rounded-md text-[10px] font-semibold transition-colors '
+            if (isBefore) {
+              pillClass += 'opacity-40 cursor-not-allowed border border-peak-border text-peak-muted'
+            } else if (isToday && isDone) {
+              pillClass += 'bg-amber-600 text-white ring-2 ring-amber-300 ring-offset-1'
+            } else if (isToday && !isDone) {
+              pillClass += 'border-2 border-amber-400 text-amber-600 cursor-pointer hover:bg-amber-50'
+            } else if (isDone) {
+              pillClass += 'bg-amber-500 text-white cursor-pointer hover:opacity-90'
+            } else {
+              pillClass += 'border border-peak-border text-peak-muted cursor-pointer hover:border-amber-400'
+            }
+
+            return (
+              <button
+                key={dateStr}
+                disabled={isBefore}
+                onClick={() => !isBefore && toggleHabitDay(habit.id, dateStr)}
+                className={pillClass}
+                title={isDone ? `Unmark ${dayLabel}` : `Mark ${dayLabel} complete`}
+              >
+                {dayLabel}
+                {isDone && ' ✓'}
+              </button>
+            )
+          })}
+        </div>
+      </div>
     </div>
   )
 }

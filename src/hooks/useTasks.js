@@ -313,14 +313,19 @@ export function useTasks(userId, arenaSlug = null) {
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
 
     if (isWeekend) {
-      // On weekends show the weekly count since no daily tasks are expected
-      return { completedToday: completions.length, totalDailyToday: tasks.length, isWeekend: true }
+      // Weekends: count this week's completions against weekly + misc tasks only
+      const weekendTasks = tasks.filter(t => t.recurrence === 'weekly' || t.task_type === 'misc')
+      const completedWeekend = completions.filter(c => {
+        if (!c.completed_at) return false
+        return weekendTasks.some(t => t.id === c.task_id)
+      }).length
+      return { completedToday: completedWeekend, totalDailyToday: weekendTasks.length, isWeekend: true }
     }
 
-    const completedToday = completions.filter(c =>
-      typeof c.completed_at === 'string' &&
-      c.completed_at.slice(0, 10) === todayStr
-    ).length
+    const completedToday = completions.filter(c => {
+      if (!c.completed_at) return false
+      return c.completed_at.slice(0, 10) === todayStr
+    }).length
 
     const totalDailyToday = tasks.length
 

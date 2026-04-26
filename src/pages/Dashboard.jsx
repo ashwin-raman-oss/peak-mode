@@ -182,6 +182,16 @@ function Big3Card({ todayBig3, onSave, onMarkDone, loading }) {
   )
 }
 
+function isBig3AllDone(big3) {
+  if (!big3?.task_1) return false
+  const items = [
+    { text: big3.task_1, done: big3.task_1_done },
+    { text: big3.task_2, done: big3.task_2_done },
+    { text: big3.task_3, done: big3.task_3_done },
+  ].filter(t => t.text)
+  return items.length > 0 && items.every(t => t.done)
+}
+
 function StatCard({ label, value, sub, borderColor, valueColor }) {
   return (
     <div className={`bg-peak-surface border border-peak-border border-l-[3px] ${borderColor} rounded-xl px-4 py-4`}>
@@ -236,9 +246,11 @@ export default function Dashboard() {
   const xpToNext = profile ? getXpToNextLevel(profile.total_xp) : XP_PER_LEVEL
   const levelTitle = getLevelTitle(level)
 
-  // Streak sub-label
+  // Streak — add 1 optimistically if today's Big 3 is all done but profile not yet updated
   const streak = profile?.current_streak ?? 0
-  const streakSub = streak > 0 ? '🔥 Keep it going' : showBig3 ? 'Start today — set your Big 3' : 'Starts Apr 24'
+  const todayBig3AllDone = isBig3AllDone(todayBig3)
+  const displayStreak = streak + (todayBig3AllDone ? 1 : 0)
+  const streakSub = displayStreak > 0 ? '🔥 Keep it going' : showBig3 ? 'Start today — set your Big 3' : 'Starts Apr 24'
 
   async function handleComplete(task) {
     if (isTaskDone(task) || completing === task.id) return
@@ -285,7 +297,7 @@ export default function Dashboard() {
           {/* FIX 1: Streak card — tied to Big 3 */}
           <StatCard
             label="Big 3 Streak"
-            value={streak}
+            value={displayStreak}
             sub={streakSub}
             borderColor="border-peak-accent"
             valueColor="text-peak-text"
@@ -294,7 +306,7 @@ export default function Dashboard() {
           <StatCard
             label="Today's Tasks"
             value={`${completedToday}/${totalDailyToday}`}
-            sub={isWeekend ? 'tasks this week' : 'tasks done today'}
+            sub="done today"
             borderColor="border-peak-success"
             valueColor="text-peak-text"
           />

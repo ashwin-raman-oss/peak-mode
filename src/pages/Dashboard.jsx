@@ -195,12 +195,13 @@ function isBig3AllDone(big3) {
   return true
 }
 
-function StatCard({ label, value, sub, borderColor, valueColor }) {
+function StatCard({ label, value, sub, note, borderColor, valueColor }) {
   return (
     <div className={`bg-peak-surface border border-peak-border border-l-[3px] ${borderColor} rounded-xl px-4 py-4 shadow-sm`}>
       <p className="text-[11px] font-semibold text-peak-muted uppercase tracking-widest mb-1">{label}</p>
       <p className={`text-2xl font-bold tracking-tight ${valueColor}`}>{value}</p>
       <p className="text-[10px] text-peak-muted mt-0.5">{sub}</p>
+      {note && <p className="text-[10px] text-peak-muted mt-0.5">{note}</p>}
     </div>
   )
 }
@@ -343,9 +344,8 @@ export default function Dashboard() {
         {/* FTUE onboarding banner — shown only when user has no tasks */}
         {allArenasEmpty && <OnboardingBanner />}
 
-        {/* Stats row — 2 cols on mobile, 4 on desktop */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-          {/* Streak card — tied to Big 3, weekends included */}
+        {/* Stats row — 2 cols on mobile, 3 on desktop */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
           <StatCard
             label="BIG 3 STREAK"
             value={displayStreak}
@@ -365,20 +365,11 @@ export default function Dashboard() {
           <StatCard
             label="XP This Week"
             value={`+${weekXp}`}
-            sub="earned"
+            sub="earned this week"
+            note={profile ? `Total: ${profile.total_xp} XP` : undefined}
             borderColor="border-peak-accent"
             valueColor="text-peak-xp"
           />
-
-          {/* Level card */}
-          <div className="bg-peak-surface border border-peak-border border-l-[3px] border-l-peak-accent rounded-xl px-4 py-4 shadow-sm">
-            <p className="text-[11px] font-semibold text-peak-muted uppercase tracking-widest mb-1">Level</p>
-            <div className="flex items-baseline gap-2">
-              <p className="text-2xl font-bold tracking-tight text-peak-xp">{level}</p>
-              <p className="text-xs font-bold text-peak-xp">{levelTitle}</p>
-            </div>
-            <p className="text-[10px] text-peak-muted mt-0.5">{xpToNext} XP to Level {level + 1}</p>
-          </div>
         </div>
 
         {/* Journey Preview */}
@@ -389,6 +380,9 @@ export default function Dashboard() {
                 <div>
                   <p className="text-[11px] font-bold tracking-widest uppercase text-peak-muted">MY JOURNEY</p>
                   <p className="text-sm font-semibold text-peak-primary">Chapter 1 — The Basecamp</p>
+                  {profile && (
+                    <p className="text-[11px] text-peak-muted mt-0.5">Level {profile.level} · {profile.total_xp} XP total</p>
+                  )}
                 </div>
                 <div className="text-right">
                   <p className="text-2xl font-bold text-peak-accent">Day {journey.scene_day}</p>

@@ -2,6 +2,7 @@
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
+import { useJourney } from '../hooks/useJourney'
 import { useSidebar } from '../context/SidebarContext'
 import { getXpInLevel, XP_PER_LEVEL } from '../lib/xp'
 import { supabase } from '../lib/supabase'
@@ -45,6 +46,7 @@ const NAV_ITEMS_AFTER = [
 export default function Sidebar() {
   const { user } = useAuth()
   const { profile } = useProfile(user?.id)
+  const { journey } = useJourney(user?.id, null, null, false)
   const { isOpen, close } = useSidebar()
   const navigate = useNavigate()
   const location = useLocation()
@@ -202,7 +204,9 @@ export default function Sidebar() {
               <p className="text-white text-xs font-semibold truncate">
                 {profile?.display_name || (user?.email?.split('@')[0] ?? 'User')}
               </p>
-              <p className="text-peak-xp text-[11px]">Level {profile?.level ?? 1}</p>
+              <p className="text-peak-xp text-[11px]">
+                {journey ? `Chapter 1 · Day ${journey.scene_day}` : `Level ${profile?.level ?? 1}`}
+              </p>
             </div>
             {profile?.current_streak > 0 && (
               <span className="bg-peak-sidebar-active text-peak-xp text-[11px] font-bold px-2 py-0.5 rounded-md shrink-0">

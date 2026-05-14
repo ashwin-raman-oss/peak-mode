@@ -14,6 +14,7 @@ import HabitTracker from './pages/HabitTracker'
 import Journal from './pages/Journal'
 import OKRs from './pages/OKRs'
 import Settings from './pages/Settings'
+import Journey from './pages/Journey'
 import NotFound from './pages/NotFound'
 
 function WeeklyReportRoute() {
@@ -70,6 +71,7 @@ export default function App() {
           <Route path="/habits" element={<ProtectedRoute><AppLayout><HabitTracker /></AppLayout></ProtectedRoute>} />
           <Route path="/journal" element={<ProtectedRoute><AppLayout><Journal /></AppLayout></ProtectedRoute>} />
           <Route path="/okrs" element={<ProtectedRoute><AppLayout><OKRs /></AppLayout></ProtectedRoute>} />
+          <Route path="/journey" element={<ProtectedRoute><AppLayout><Journey /></AppLayout></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><AppLayout><Settings /></AppLayout></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>

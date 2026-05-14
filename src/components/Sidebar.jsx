@@ -18,11 +18,13 @@ import {
   BoltIcon,
   Cog6ToothIcon,
   TrophyIcon,
+  MapIcon,
   ArrowRightOnRectangleIcon,
 } from '@heroicons/react/24/outline'
 
 const NAV_ITEMS_BEFORE = [
-  { to: '/', label: 'Dashboard', Icon: Squares2X2Icon },
+  { to: '/',        label: 'Dashboard', Icon: Squares2X2Icon },
+  { to: '/journey', label: 'Journey',   Icon: MapIcon },
 ]
 
 const ARENA_SLUGS = [

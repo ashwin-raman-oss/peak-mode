@@ -5,6 +5,8 @@ import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 import { useTasks } from '../hooks/useTasks'
 import { useBig3, BIG3_START_DATE } from '../hooks/useBig3'
+import { useCheckin } from '../hooks/useCheckin'
+import { useJourney } from '../hooks/useJourney'
 import { supabase } from '../lib/supabase'
 import TopBar from '../components/TopBar'
 import XPToast from '../components/XPToast'
@@ -213,13 +215,47 @@ export default function Dashboard() {
   const { user } = useAuth()
   const { profile, addXp } = useProfile(user?.id)
   const {
-    tasks, arenas,
+    tasks, arenas, completions,
     getTodaysFocusTasks, getArenaStats, getWeekXp, getTodayCompletionCount,
     isTaskDone, completeTask, refetch: refetchTasks,
   } = useTasks(user?.id)
   const todayStr = localTodayStr()
   const showBig3 = todayStr >= BIG3_START_DATE
   const { todayBig3, loading: big3Loading, saveBig3, markItemDone } = useBig3(showBig3 ? user?.id : null)
+  const { eveningDone } = useCheckin(user?.id)
+
+  // Per-arena task completions for today (used by journey progression)
+  function completedOnDate(completedAt, dateStr) {
+    if (!completedAt) return false
+    const d = new Date(completedAt)
+    const yyyy = d.getFullYear()
+    const mm   = String(d.getMonth() + 1).padStart(2, '0')
+    const dd   = String(d.getDate()).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}` === dateStr
+  }
+  const tasksCompletedToday = {
+    career: completions.filter(c => {
+      const task = tasks.find(t => t.id === c.task_id)
+      return task?.arenas?.slug === 'career' && completedOnDate(c.completed_at, todayStr)
+    }).length,
+    health: completions.filter(c => {
+      const task = tasks.find(t => t.id === c.task_id)
+      return task?.arenas?.slug === 'health' && completedOnDate(c.completed_at, todayStr)
+    }).length,
+    other: completions.filter(c => {
+      const task = tasks.find(t => t.id === c.task_id)
+      const slug = task?.arenas?.slug
+      return (slug === 'learning' || slug === 'misc') && completedOnDate(c.completed_at, todayStr)
+    }).length,
+  }
+
+  const { journey, loading: journeyLoading, updateJourneyProgress } = useJourney(
+    user?.id,
+    todayBig3,
+    tasksCompletedToday,
+    eveningDone,
+  )
+
   const [toast, setToast] = useState(null)
   const [levelUpLevel, setLevelUpLevel] = useState(null)
 
@@ -231,6 +267,15 @@ export default function Dashboard() {
     window.addEventListener('peak-task-changed', handleTaskChanged)
     return () => window.removeEventListener('peak-task-changed', handleTaskChanged)
   }, [refetchTasks])
+
+  // Advance journey once per day when data is ready
+  useEffect(() => {
+    if (!user?.id || big3Loading || journeyLoading) return
+    const todayDateStr = new Date().toLocaleDateString('en-CA')
+    if (journey?.last_active_date === todayDateStr) return
+    updateJourneyProgress()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, big3Loading, journeyLoading, journey?.last_active_date])
 
   const focusTasks = getTodaysFocusTasks()
   const weekXp = getWeekXp()
@@ -299,7 +344,7 @@ export default function Dashboard() {
         {allArenasEmpty && <OnboardingBanner />}
 
         {/* Stats row — 2 cols on mobile, 4 on desktop */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           {/* Streak card — tied to Big 3, weekends included */}
           <StatCard
             label="BIG 3 STREAK"
@@ -335,6 +380,63 @@ export default function Dashboard() {
             <p className="text-[10px] text-peak-muted mt-0.5">{xpToNext} XP to Level {level + 1}</p>
           </div>
         </div>
+
+        {/* Journey Preview */}
+        {journey && (
+          <Link to="/journey" className="block mb-4">
+            <div className="bg-peak-surface border border-peak-border rounded-xl shadow-sm p-4 hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <p className="text-[11px] font-bold tracking-widest uppercase text-peak-muted">MY JOURNEY</p>
+                  <p className="text-sm font-semibold text-peak-primary">Chapter 1 — The Basecamp</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-peak-accent">Day {journey.scene_day}</p>
+                  <p className="text-[11px] text-peak-muted">of 30</p>
+                </div>
+              </div>
+              {/* Mini scene preview */}
+              <div className="h-20 rounded-lg overflow-hidden bg-[#1a365d] relative mb-2">
+                <svg viewBox="0 0 300 80" className="w-full h-full">
+                  <defs>
+                    <linearGradient id="dashSkyGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#1a365d"/>
+                      <stop offset="100%" stopColor="#2b6cb0"/>
+                    </linearGradient>
+                  </defs>
+                  <rect width="300" height="80" fill="url(#dashSkyGrad)"/>
+                  <polygon points="150,10 220,70 80,70" fill="#4A5568"/>
+                  <polygon points="80,25 130,70 30,70" fill="#718096"/>
+                  <polygon points="220,30 260,70 180,70" fill="#718096"/>
+                  <rect x="0" y="65" width="300" height="15" fill="#276749"/>
+                  {journey.scene_day >= 1 && (
+                    <>
+                      <polygon points="130,45 145,65 115,65" fill="#DD6B20"/>
+                      <circle cx="150" cy="62" r="3" fill="#F6AD55"/>
+                    </>
+                  )}
+                  {journey.scene_day >= 7 && (
+                    <polygon points="165,48 178,65 152,65" fill="#C05621"/>
+                  )}
+                  {journey.deterioration_level > 0 && (
+                    <rect width="300" height="80" fill="rgba(100,100,100,0.3)"/>
+                  )}
+                </svg>
+              </div>
+              {/* Progress bar */}
+              <div className="h-1.5 bg-peak-border rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-peak-accent rounded-full transition-all duration-500"
+                  style={{ width: `${(journey.scene_day / 30) * 100}%` }}
+                />
+              </div>
+              {journey.deterioration_level > 0 && (
+                <p className="text-[11px] text-amber-600 mt-2">⚠️ Your camp needs attention</p>
+              )}
+              <p className="text-[11px] text-peak-muted mt-1 text-right">View your journey →</p>
+            </div>
+          </Link>
+        )}
 
         {/* Two-column — stacked on mobile, side-by-side on desktop */}
         <div className="flex flex-col lg:flex-row gap-4">

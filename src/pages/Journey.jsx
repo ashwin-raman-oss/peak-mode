@@ -3,6 +3,8 @@ import { useJourney } from '../hooks/useJourney'
 import TopBar from '../components/TopBar'
 import BasecampScene from '../components/journey/BasecampScene'
 
+const isDebug = new URLSearchParams(window.location.search).get('debug') === 'true'
+
 function getNarrative(sceneDay) {
   if (sceneDay >= 30) return 'Chapter 1 complete. The summit awaits. What\'s your next adventure?'
   if (sceneDay >= 28) return 'Almost there. One more push.'
@@ -17,7 +19,7 @@ const MILESTONES = [7, 14, 22, 30]
 
 export default function Journey() {
   const { user } = useAuth()
-  const { journey, loading } = useJourney(user?.id, null, null, false)
+  const { journey, loading, debugAdvanceDay } = useJourney(user?.id, null, null, false)
 
   const sceneDay         = journey?.scene_day         ?? 0
   const deterioration    = journey?.deterioration_level ?? 0
@@ -117,6 +119,19 @@ export default function Journey() {
               "{getNarrative(sceneDay)}"
             </p>
           </div>
+
+          {/* Debug panel — only visible at /journey?debug=true */}
+          {isDebug && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 mb-4 flex items-center justify-between">
+              <p className="text-xs text-yellow-700 font-medium">Debug mode — scene day: {sceneDay}</p>
+              <button
+                onClick={debugAdvanceDay}
+                className="text-xs font-semibold text-yellow-800 bg-yellow-100 border border-yellow-300 px-3 py-1 rounded-lg hover:bg-yellow-200 transition-colors"
+              >
+                Force +1 Day
+              </button>
+            </div>
+          )}
 
           {/* Chapter timeline */}
           <div className="bg-peak-surface border border-peak-border rounded-xl shadow-sm px-5 py-4">

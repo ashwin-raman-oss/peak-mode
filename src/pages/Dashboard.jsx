@@ -269,14 +269,31 @@ export default function Dashboard() {
     return () => window.removeEventListener('peak-task-changed', handleTaskChanged)
   }, [refetchTasks])
 
-  // Advance journey once per day when data is ready
+  // Advance journey when todayBig3 or eveningDone changes (re-fires on each completion)
   useEffect(() => {
-    if (!user?.id || big3Loading || journeyLoading) return
+    if (!user?.id || !journey || big3Loading) return
     const todayDateStr = new Date().toLocaleDateString('en-CA')
-    if (journey?.last_active_date === todayDateStr) return
-    updateJourneyProgress()
+    if (journey.last_active_date === todayDateStr) return
+
+    // Recompute tasks inside the effect so values are always current
+    const todayComps = completions.filter(c => {
+      if (!c.completed_at) return false
+      const d = new Date(c.completed_at)
+      const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+      return ds === todayDateStr
+    })
+    const careerArena = arenas.find(a => a.slug === 'career')
+    const healthArena = arenas.find(a => a.slug === 'health')
+    const careerIds = tasks.filter(t => t.arena_id === careerArena?.id).map(t => t.id)
+    const healthIds = tasks.filter(t => t.arena_id === healthArena?.id).map(t => t.id)
+
+    updateJourneyProgress({
+      career: todayComps.filter(c =>  careerIds.includes(c.task_id)).length,
+      health: todayComps.filter(c =>  healthIds.includes(c.task_id)).length,
+      other:  todayComps.filter(c => !careerIds.includes(c.task_id) && !healthIds.includes(c.task_id)).length,
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, big3Loading, journeyLoading, journey?.last_active_date])
+  }, [user?.id, journey?.last_active_date, big3Loading, todayBig3, eveningDone])
 
   const focusTasks = getTodaysFocusTasks()
   const weekXp = getWeekXp()

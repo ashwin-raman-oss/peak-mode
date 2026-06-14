@@ -184,6 +184,12 @@ function JournalEntry({ entry, type }) {
             <p key={i} className="text-sm text-peak-text">· {g}</p>
           ))}
           {entry.reflection && <p className="text-sm text-peak-muted italic mt-1">{entry.reflection}</p>}
+          {entry.conflict_occurred && (
+            <div className="flex items-center gap-1.5 mt-2 text-[11px] text-red-500 font-medium">
+              <span>⚠️</span>
+              <span>Conflict{entry.conflict_severity ? ` (severity ${entry.conflict_severity}/5)` : ''}</span>
+            </div>
+          )}
         </div>
       )}
     </div>

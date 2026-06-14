@@ -33,8 +33,13 @@ const PROGRESS_STEPS = [0, 25, 50, 75, 100]
 
 function getCurrentPeriod() {
   const now = new Date()
+  const year = now.getFullYear()
+  // H2 2026 started May 18, 2026 (custom half-year boundary)
+  if (year === 2026 && (now.getMonth() > 4 || (now.getMonth() === 4 && now.getDate() >= 18))) {
+    return 'H2 2026'
+  }
   const half = now.getMonth() < 6 ? 'H1' : 'H2'
-  return `${half} ${now.getFullYear()}`
+  return `${half} ${year}`
 }
 
 function avgProgress(keyResults) {

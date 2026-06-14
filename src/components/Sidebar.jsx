@@ -10,8 +10,7 @@ import {
   Squares2X2Icon,
   BriefcaseIcon,
   HeartIcon,
-  AcademicCapIcon,
-  InboxIcon,
+  ShieldCheckIcon,
   FireIcon,
   BookOpenIcon,
   ChartBarIcon,
@@ -29,10 +28,9 @@ const NAV_ITEMS_BEFORE = [
 ]
 
 const ARENA_SLUGS = [
-  { slug: 'career',   label: 'Career',   Icon: BriefcaseIcon },
-  { slug: 'health',   label: 'Health',   Icon: HeartIcon },
-  { slug: 'learning', label: 'Learning', Icon: AcademicCapIcon },
-  { slug: 'misc',     label: 'Misc',     Icon: InboxIcon },
+  { slug: 'career',       label: 'Career',       Icon: BriefcaseIcon },
+  { slug: 'relationship', label: 'Relationship', Icon: HeartIcon },
+  { slug: 'health',       label: 'Health',       Icon: ShieldCheckIcon },
 ]
 
 const NAV_ITEMS_AFTER = [

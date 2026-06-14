@@ -44,6 +44,8 @@ export function EveningForm({ saveCheckin, onSuccess }) {
   const [gratitude2, setGratitude2] = useState('')
   const [gratitude3, setGratitude3] = useState('')
   const [reflection, setReflection] = useState('')
+  const [conflictOccurred, setConflictOccurred] = useState(null)
+  const [conflictSeverity, setConflictSeverity] = useState(null)
   const [submitting, setSubmitting] = useState(false)
 
   async function handleSubmit(e) {
@@ -57,6 +59,8 @@ export function EveningForm({ saveCheckin, onSuccess }) {
         gratitude_2: gratitude2.trim() || null,
         gratitude_3: gratitude3.trim() || null,
         reflection: reflection.trim() || null,
+        conflict_occurred: conflictOccurred === true,
+        conflict_severity: conflictOccurred === true ? conflictSeverity : null,
       })
       onSuccess?.()
     } catch {
@@ -110,6 +114,49 @@ export function EveningForm({ saveCheckin, onSuccess }) {
         placeholder="One thing I learned or want to remember..."
         className="w-full text-sm border border-peak-border rounded-md p-2.5 resize-none h-16 focus:outline-none focus:ring-2 focus:ring-peak-accent/30 mt-1"
       />
+      {/* Conflict check */}
+      <div className="mt-3">
+        <p className="text-[10px] font-bold tracking-widest uppercase text-peak-muted mb-2">Conflict check</p>
+        <div className="flex items-center gap-2 mb-2">
+          {[true, false].map(val => (
+            <button
+              key={String(val)}
+              type="button"
+              onClick={() => { setConflictOccurred(val); if (!val) setConflictSeverity(null) }}
+              className={`text-xs px-3 py-1.5 rounded-lg font-medium border transition-colors ${
+                conflictOccurred === val
+                  ? val ? 'bg-red-500 border-red-500 text-white' : 'bg-peak-accent border-peak-accent text-white'
+                  : 'border-peak-border text-peak-muted hover:border-peak-accent hover:text-peak-accent'
+              }`}
+            >
+              {val ? 'Had a conflict' : 'No conflict'}
+            </button>
+          ))}
+        </div>
+        {conflictOccurred === true && (
+          <div>
+            <p className="text-[10px] text-peak-muted mb-1.5">Severity</p>
+            <div className="flex gap-2">
+              {[1, 2, 3, 4, 5].map(n => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setConflictSeverity(n)}
+                  className={`w-8 h-8 rounded-full border-2 text-xs font-semibold flex items-center justify-center cursor-pointer transition-colors ${
+                    conflictSeverity === n
+                      ? 'border-red-500 text-white'
+                      : 'border-peak-border text-peak-muted hover:border-red-300'
+                  }`}
+                  style={conflictSeverity === n ? { background: `hsl(${10 + (n - 1) * 5}, 80%, ${55 - n * 3}%)` } : {}}
+                  title={['Minor disagreement', 'Moderate tension', 'Significant argument', 'Serious conflict', 'Major rupture'][n - 1]}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
       <button
         type="submit"
         disabled={submitting || !dayRating}

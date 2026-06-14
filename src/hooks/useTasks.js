@@ -6,6 +6,7 @@ import { getWeekStart, toDateStr, isCompletedToday, isCompletedThisWeek, getWeek
 export function useTasks(userId, arenaSlug = null) {
   const [tasks, setTasks] = useState([])
   const [completions, setCompletions] = useState([])
+  const [monthlyCompletions, setMonthlyCompletions] = useState([])
   const [arenas, setArenas] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -13,16 +14,39 @@ export function useTasks(userId, arenaSlug = null) {
   const weekStart = getWeekStart(new Date())
   const weekStartStr = toDateStr(weekStart)
 
+  // Returns true when this biweekly task is in an "on" week (based on creation week anchor)
+  function isBiweeklyOnWeek(task) {
+    if (!task.created_at) return true
+    const created = new Date(task.created_at)
+    const createdWeek = getWeekStart(created)
+    const msPerWeek = 7 * 24 * 60 * 60 * 1000
+    const weeksSince = Math.round((weekStart.getTime() - createdWeek.getTime()) / msPerWeek)
+    return weeksSince % 2 === 0
+  }
+
+  function getMonthlyCompletionCount(taskId) {
+    return monthlyCompletions.filter(c => c.task_id === taskId).length
+  }
+
   const fetchData = useCallback(async () => {
     if (!userId) return
     try {
       setLoading(true)
 
-      // Fetch arenas
-      const { data: arenaData } = await supabase
-        .from('arenas')
-        .select('*')
-        .order('name')
+      // Fetch non-archived arenas; fall back to all if is_archived column doesn't exist yet
+      let arenaData
+      try {
+        const { data, error } = await supabase
+          .from('arenas')
+          .select('*')
+          .eq('is_archived', false)
+          .order('name')
+        if (error) throw error
+        arenaData = data || []
+      } catch {
+        const { data } = await supabase.from('arenas').select('*').order('name')
+        arenaData = data || []
+      }
 
       setArenas(arenaData || [])
 
@@ -50,15 +74,25 @@ export function useTasks(userId, arenaSlug = null) {
       })
       setTasks(activeTaskData)
 
-      // Fetch this week's completions
+      // Fetch this week's completions (week_start_date filter preserved to keep getWeekXp accurate)
       const { data: compData, error: compErr } = await supabase
         .from('task_completions')
-        .select('id, task_id, completed_at, xp_earned, week_start_date')
+        .select('*')
         .eq('user_id', userId)
         .eq('week_start_date', weekStartStr)
 
       if (compErr) throw compErr
       setCompletions(compData || [])
+
+      // Separate fetch for current-month completions (used by monthly recurrence tasks)
+      const now2 = new Date()
+      const monthStartStr = `${now2.getFullYear()}-${String(now2.getMonth() + 1).padStart(2, '0')}-01`
+      const { data: monthlyCompData } = await supabase
+        .from('task_completions')
+        .select('id, task_id, completed_at')
+        .eq('user_id', userId)
+        .gte('completed_at', monthStartStr + 'T00:00:00.000Z')
+      setMonthlyCompletions(monthlyCompData || [])
     } catch (err) {
       setError(err.message)
     } finally {
@@ -76,6 +110,13 @@ export function useTasks(userId, arenaSlug = null) {
         c.completed_at.slice(0, 10) === dateStr
       )
     }
+    if (task.recurrence === 'biweekly') {
+      if (!isBiweeklyOnWeek(task)) return false
+      return isCompletedThisWeek(completions, task.id, 1, weekStartStr)
+    }
+    if (task.recurrence === 'monthly') {
+      return getMonthlyCompletionCount(task.id) >= (task.monthly_target ?? 1)
+    }
     return isCompletedThisWeek(completions, task.id, task.weekly_target, weekStartStr)
   }
 
@@ -87,10 +128,13 @@ export function useTasks(userId, arenaSlug = null) {
         c.completed_at.slice(0, 10) === dateStr
       ) ? 1 : 0
     }
+    if (task.recurrence === 'monthly') {
+      return getMonthlyCompletionCount(task.id)
+    }
     return getWeeklyCompletionCount(completions, task.id, weekStartStr)
   }
 
-  async function completeTask(task, dateStr = toDateStr(new Date())) {
+  async function completeTask(task, dateStr = toDateStr(new Date()), notes = null) {
     if (!userId) throw new Error('No authenticated user')
     const todayStr = toDateStr(new Date())
     const isRetroactive = dateStr !== todayStr
@@ -116,6 +160,7 @@ export function useTasks(userId, arenaSlug = null) {
         xp_earned: xp,
         week_start_date: weekStartStr,
         completed_at: completedAt,
+        ...(notes ? { notes } : {}),
       })
       .select()
       .single()
@@ -126,8 +171,28 @@ export function useTasks(userId, arenaSlug = null) {
     }
 
     setCompletions(prev => prev.map(c => c.id === optimisticCompletion.id ? data : c))
+    if (task.recurrence === 'monthly') {
+      setMonthlyCompletions(prev => [...prev, { id: data.id, task_id: task.id, completed_at: data.completed_at }])
+    }
     window.dispatchEvent(new CustomEvent('peak-task-changed'))
     return xp
+  }
+
+  async function updateCompletionNote(taskId, dateStr, notes) {
+    const match = completions.find(c =>
+      c.task_id === taskId &&
+      typeof c.completed_at === 'string' &&
+      c.completed_at.slice(0, 10) === dateStr
+    )
+    if (!match) return
+    const { error } = await supabase
+      .from('task_completions')
+      .update({ notes })
+      .eq('id', match.id)
+      .eq('user_id', userId)
+    if (!error) {
+      setCompletions(prev => prev.map(c => c.id === match.id ? { ...c, notes } : c))
+    }
   }
 
   async function uncompleteTask(taskId, dateStr) {
@@ -162,6 +227,7 @@ export function useTasks(userId, arenaSlug = null) {
       task_type = 'misc',
       recurrence = 'none',
       weekly_target = 1,
+      monthly_target = 1,
       is_one_time = false,
     } = options
     const { data, error: insertErr } = await supabase
@@ -174,6 +240,7 @@ export function useTasks(userId, arenaSlug = null) {
         recurrence,
         priority,
         weekly_target,
+        monthly_target,
         is_one_time,
       })
       .select('*, arenas(id, name, emoji, slug, default_priority)')
@@ -184,7 +251,7 @@ export function useTasks(userId, arenaSlug = null) {
     return data
   }
 
-  async function updateTask(taskId, { title, priority_override, is_one_time, recurrence, weekly_target, task_type }) {
+  async function updateTask(taskId, { title, priority_override, is_one_time, recurrence, weekly_target, monthly_target, task_type }) {
     if (!userId) throw new Error('No authenticated user')
     const updates = {}
     if (title !== undefined) updates.title = title
@@ -192,6 +259,7 @@ export function useTasks(userId, arenaSlug = null) {
     if (is_one_time !== undefined) updates.is_one_time = is_one_time
     if (recurrence !== undefined) updates.recurrence = recurrence
     if (weekly_target !== undefined) updates.weekly_target = weekly_target
+    if (monthly_target !== undefined) updates.monthly_target = monthly_target
     if (task_type !== undefined) updates.task_type = task_type
 
     if (Object.keys(updates).length === 0) return
@@ -276,24 +344,25 @@ export function useTasks(userId, arenaSlug = null) {
 
   function getTodaysFocusTasks() {
     const today = new Date()
-    const dayOfWeek = today.getDay() // local: 0=Sun, 6=Sat
+    const dayOfWeek = today.getDay()
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
 
     if (isWeekend) {
-      // Weekends: skip daily recurring (weekday-only), show weekly + misc that aren't done
       return tasks.filter(t => {
         const effectivePriority = t.priority_override ?? t.priority
         if (effectivePriority !== 'high') return false
         if (isTaskDone(t)) return false
-        return t.recurrence === 'weekly' || t.task_type === 'misc'
+        if (t.recurrence === 'biweekly' && !isBiweeklyOnWeek(t)) return false
+        return t.recurrence === 'weekly' || t.recurrence === 'biweekly' ||
+               t.recurrence === 'monthly' || t.task_type === 'misc'
       }).slice(0, 3)
     }
 
-    // Weekdays: all high-priority undone tasks, daily first
     const highTasks = tasks.filter(t => {
       const effectivePriority = t.priority_override ?? t.priority
       if (effectivePriority !== 'high') return false
       if (isTaskDone(t)) return false
+      if (t.recurrence === 'biweekly' && !isBiweeklyOnWeek(t)) return false
       return true
     })
 
@@ -330,8 +399,11 @@ export function useTasks(userId, arenaSlug = null) {
     }).length
 
     const totalForToday = isWeekend
-      ? tasks.filter(t => t.recurrence === 'weekly' || t.task_type === 'misc').length
-      : tasks.length
+      ? tasks.filter(t => {
+          if (t.recurrence === 'biweekly') return isBiweeklyOnWeek(t)
+          return t.recurrence === 'weekly' || t.recurrence === 'monthly' || t.task_type === 'misc'
+        }).length
+      : tasks.filter(t => t.recurrence !== 'biweekly' || isBiweeklyOnWeek(t)).length
 
     return { completedToday, totalDailyToday: totalForToday, isWeekend }
   }
@@ -339,13 +411,16 @@ export function useTasks(userId, arenaSlug = null) {
   return {
     tasks,
     completions,
+    monthlyCompletions,
     arenas,
     loading,
     error,
     isTaskDone,
     getCompletionCount,
+    getMonthlyCompletionCount,
     completeTask,
     uncompleteTask,
+    updateCompletionNote,
     addMiscTask,
     updateTask,
     deleteTask,
@@ -354,6 +429,7 @@ export function useTasks(userId, arenaSlug = null) {
     getTodaysFocusTasks,
     getWeekXp,
     getTodayCompletionCount,
+    isBiweeklyOnWeek,
     weekStartStr,
     refetch: fetchData,
   }

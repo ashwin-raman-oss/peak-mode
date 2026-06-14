@@ -14,13 +14,14 @@ import OnboardingBanner from '../components/OnboardingBanner'
 import LevelUpModal from '../components/LevelUpModal'
 import { getXpInLevel, getXpToNextLevel, XP_PER_LEVEL } from '../lib/xp'
 
-const ARENA_SLUGS = ['career', 'health', 'learning', 'misc']
+const ARENA_SLUGS = ['career', 'relationship', 'health']
 
 const ARENA_META = {
-  career:   { label: 'Career',   color: '#2563EB', bg: '#EFF6FF' },
-  health:   { label: 'Health',   color: '#22C55E', bg: '#F0FDF4' },
-  learning: { label: 'Learning', color: '#F97316', bg: '#FFF7ED' },
-  misc:     { label: 'Misc',     color: '#A1A1AA', bg: '#F4F4F5' },
+  career:       { label: 'Career',       color: '#2563EB', bg: '#EFF6FF' },
+  relationship: { label: 'Relationship', color: '#EC4899', bg: '#FDF2F8' },
+  health:       { label: 'Health',       color: '#22C55E', bg: '#F0FDF4' },
+  learning:     { label: 'Learning',     color: '#F97316', bg: '#FFF7ED' },
+  misc:         { label: 'Misc',         color: '#A1A1AA', bg: '#F4F4F5' },
 }
 
 function todayLabel() {
@@ -129,6 +130,7 @@ function Big3Card({ todayBig3, onSave, onMarkDone, loading }) {
               <p className="text-xs text-red-500 mb-1">{markError}</p>
             )}
             {itemEntries.map(({ num, text, done }) => (
+
               <div key={num} className="flex items-start gap-3">
                 <button
                   onClick={() => handleMark(num, !done)}
@@ -149,6 +151,13 @@ function Big3Card({ todayBig3, onSave, onMarkDone, loading }) {
           </div>
         ) : (
           <div className="space-y-2">
+            {/* Arena hint pills — remind user to connect Big 3 to scored KRs */}
+            <div className="flex flex-wrap items-center gap-1.5 mb-1">
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: '#EFF6FF', color: '#2563EB' }}>Career</span>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: '#FDF2F8', color: '#EC4899' }}>Relationship</span>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: '#F0FDF4', color: '#22C55E' }}>Health</span>
+              <span className="text-[10px] text-peak-muted ml-0.5">← connect to a KR</span>
+            </div>
             {[0, 1, 2].map(i => (
               <div key={i} className="flex items-center gap-3">
                 <span className="w-5 h-5 rounded-full bg-peak-accent-light text-peak-accent text-[10px] font-bold flex items-center justify-center shrink-0">
@@ -246,7 +255,7 @@ export default function Dashboard() {
     other: completions.filter(c => {
       const task = tasks.find(t => t.id === c.task_id)
       const slug = task?.arenas?.slug
-      return (slug === 'learning' || slug === 'misc') && completedOnDate(c.completed_at, todayStr)
+      return !['career', 'health'].includes(slug) && completedOnDate(c.completed_at, todayStr)
     }).length,
   }
 

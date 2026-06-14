@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, Fragment } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
@@ -31,6 +31,7 @@ export default function ArenaDetail() {
     tasks, arenas, loading,
     deleteTask, addMiscTask, updateTask,
     completeTask, uncompleteTask, isTaskDone, getCompletionCount,
+    updateCompletionNote, isBiweeklyOnWeek,
   } = useTasks(user?.id, slug)
 
   const todayStr = toDateStr(new Date())
@@ -44,6 +45,9 @@ export default function ArenaDetail() {
   const [actionError, setActionError] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(null) // { id, title }
   const [levelUpLevel, setLevelUpLevel] = useState(null)
+  const [notePromptTaskId, setNotePromptTaskId] = useState(null)
+  const [noteText, setNoteText] = useState('')
+  const [noteSaving, setNoteSaving] = useState(false)
 
   const arena = arenas.find(a => a.slug === slug)
 
@@ -104,11 +108,27 @@ export default function ArenaDetail() {
         } catch { /* hype is optional */ }
 
         if (xp > 0) setToast({ xp, hypeMessage: message, id: Date.now() })
+        setNotePromptTaskId(task.id)
+        setNoteText('')
       }
     } catch (err) {
       console.error('Complete error:', err)
     } finally {
       setCompleting(null)
+    }
+  }
+
+  async function handleSaveNote(taskId) {
+    if (!noteText.trim()) { setNotePromptTaskId(null); return }
+    setNoteSaving(true)
+    try {
+      await updateCompletionNote(taskId, selectedDay, noteText.trim())
+    } catch (err) {
+      console.error('Failed to save note:', err)
+    } finally {
+      setNoteSaving(false)
+      setNotePromptTaskId(null)
+      setNoteText('')
     }
   }
 
@@ -121,14 +141,17 @@ export default function ArenaDetail() {
     }
   }
 
-  async function handleAddTask({ title, priority, taskType, weeklyTarget }) {
+  async function handleAddTask({ title, priority, taskType, weeklyTarget, monthlyTarget }) {
     let options
     if (taskType === 'daily') {
       options = { task_type: 'recurring', recurrence: 'daily', weekly_target: 1, is_one_time: false }
     } else if (taskType === 'weekly') {
       options = { task_type: 'recurring', recurrence: 'weekly', weekly_target: weeklyTarget, is_one_time: false }
+    } else if (taskType === 'biweekly') {
+      options = { task_type: 'recurring', recurrence: 'biweekly', weekly_target: 1, is_one_time: false }
+    } else if (taskType === 'monthly') {
+      options = { task_type: 'recurring', recurrence: 'monthly', weekly_target: 1, monthly_target: monthlyTarget, is_one_time: false }
     } else {
-      // one-time
       options = { task_type: 'misc', recurrence: 'none', weekly_target: 1, is_one_time: true }
     }
     try {
@@ -217,10 +240,11 @@ export default function ArenaDetail() {
                 const count = getCompletionCount(task, selectedDay)
                 const target = task.weekly_target ?? 1
                 const isEditing = editingId === task.id
+                const isOffBiweeklyWeek = task.recurrence === 'biweekly' && !isBiweeklyOnWeek(task)
 
                 return (
+                  <Fragment key={task.id}>
                   <div
-                    key={task.id}
                     className="group grid grid-cols-[36px_1fr_56px] lg:grid-cols-[36px_1fr_80px_60px_56px] gap-3 items-center px-5 py-3 border-b border-peak-border last:border-0 hover:bg-peak-bg transition-colors"
                   >
                     {/* Completion toggle */}
@@ -275,8 +299,14 @@ export default function ArenaDetail() {
                         <span className={`text-sm ${done ? 'line-through text-peak-muted' : 'text-peak-text'}`}>
                           {task.title}
                         </span>
-                        {isWeeklyCount && (
+                        {isWeeklyCount && task.recurrence !== 'monthly' && (
                           <span className="ml-2 text-[10px] text-peak-muted">{count}/{target} this week</span>
+                        )}
+                        {task.recurrence === 'monthly' && (
+                          <span className="ml-2 text-[10px] text-peak-muted">{count}/{task.monthly_target ?? 1} this month</span>
+                        )}
+                        {isOffBiweeklyWeek && (
+                          <span className="ml-2 text-[10px] text-amber-500">off week</span>
                         )}
                         {/* Mobile-only: compact priority + XP indicator */}
                         <div className="flex items-center gap-1.5 mt-0.5 lg:hidden">
@@ -309,6 +339,36 @@ export default function ArenaDetail() {
                       </button>
                     </div>
                   </div>
+                  {notePromptTaskId === task.id && (
+                    <div className="px-5 py-2 bg-peak-bg border-b border-peak-border flex items-center gap-2">
+                      <span className="text-[10px] text-peak-muted shrink-0">Note:</span>
+                      <input
+                        autoFocus
+                        value={noteText}
+                        onChange={e => setNoteText(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') handleSaveNote(task.id)
+                          if (e.key === 'Escape') { setNotePromptTaskId(null); setNoteText('') }
+                        }}
+                        placeholder="What did you do? (optional)"
+                        className="flex-1 text-xs border border-peak-border rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-peak-accent/30"
+                      />
+                      <button
+                        onClick={() => handleSaveNote(task.id)}
+                        disabled={noteSaving || !noteText.trim()}
+                        className="text-[11px] font-semibold text-peak-accent hover:underline disabled:opacity-50 shrink-0"
+                      >
+                        {noteSaving ? 'Saving…' : 'Save'}
+                      </button>
+                      <button
+                        onClick={() => { setNotePromptTaskId(null); setNoteText('') }}
+                        className="text-[11px] text-peak-muted hover:text-peak-text shrink-0"
+                      >
+                        Skip
+                      </button>
+                    </div>
+                  )}
+                  </Fragment>
                 )
               })}
 
@@ -360,18 +420,20 @@ function EditTaskForm({ task, onSave, onCancel }) {
   const [priority, setPriority] = useState(task.priority_override ?? task.priority)
   const [saving, setSaving] = useState(false)
 
-  // Determine initial task type from task fields
   function getInitialType() {
     if (task.is_one_time) return 'onetime'
     if (task.recurrence === 'daily') return 'daily'
     if (task.recurrence === 'weekly') return 'weekly'
+    if (task.recurrence === 'biweekly') return 'biweekly'
+    if (task.recurrence === 'monthly') return 'monthly'
     return 'onetime'
   }
 
   const [taskType, setTaskType] = useState(getInitialType)
   const [weeklyTarget, setWeeklyTarget] = useState(task.weekly_target ?? 1)
+  const [monthlyTarget, setMonthlyTarget] = useState(task.monthly_target ?? 1)
 
-  const isCurrentlyRecurring = task.recurrence === 'daily' || task.recurrence === 'weekly'
+  const isCurrentlyRecurring = ['daily', 'weekly', 'biweekly', 'monthly'].includes(task.recurrence)
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -383,6 +445,10 @@ function EditTaskForm({ task, onSave, onCancel }) {
         updates = { ...updates, task_type: 'recurring', recurrence: 'daily', weekly_target: 1, is_one_time: false }
       } else if (taskType === 'weekly') {
         updates = { ...updates, task_type: 'recurring', recurrence: 'weekly', weekly_target: Number(weeklyTarget), is_one_time: false }
+      } else if (taskType === 'biweekly') {
+        updates = { ...updates, task_type: 'recurring', recurrence: 'biweekly', weekly_target: 1, is_one_time: false }
+      } else if (taskType === 'monthly') {
+        updates = { ...updates, task_type: 'recurring', recurrence: 'monthly', weekly_target: 1, monthly_target: Number(monthlyTarget), is_one_time: false }
       } else {
         updates = { ...updates, task_type: 'misc', recurrence: 'none', weekly_target: 1, is_one_time: true }
       }
@@ -453,15 +519,30 @@ function EditTaskForm({ task, onSave, onCancel }) {
             />
           </div>
         )}
+        {taskType === 'monthly' && (
+          <div className="flex items-center gap-1 ml-1">
+            <span className="text-[10px] text-peak-muted">×/month:</span>
+            <input
+              type="number"
+              min={1}
+              max={31}
+              value={monthlyTarget}
+              onChange={e => setMonthlyTarget(e.target.value)}
+              className="w-12 text-xs border border-peak-border rounded-lg px-1.5 py-1 focus:outline-none focus:ring-2 focus:ring-peak-accent/30"
+            />
+          </div>
+        )}
       </div>
     </form>
   )
 }
 
 const TASK_TYPES = [
-  { value: 'onetime', label: 'One-time' },
-  { value: 'daily',   label: 'Daily' },
-  { value: 'weekly',  label: 'Weekly' },
+  { value: 'onetime',  label: 'One-time' },
+  { value: 'daily',    label: 'Daily' },
+  { value: 'weekly',   label: 'Weekly' },
+  { value: 'biweekly', label: 'Bi-weekly' },
+  { value: 'monthly',  label: 'Monthly' },
 ]
 
 function AddTaskForm({ onSave, onCancel }) {
@@ -469,11 +550,12 @@ function AddTaskForm({ onSave, onCancel }) {
   const [priority, setPriority] = useState('medium')
   const [taskType, setTaskType] = useState('onetime')
   const [weeklyTarget, setWeeklyTarget] = useState(1)
+  const [monthlyTarget, setMonthlyTarget] = useState(2)
 
   function handleSubmit(e) {
     e.preventDefault()
     if (!title.trim()) return
-    onSave({ title: title.trim(), priority, taskType, weeklyTarget: Number(weeklyTarget) })
+    onSave({ title: title.trim(), priority, taskType, weeklyTarget: Number(weeklyTarget), monthlyTarget: Number(monthlyTarget) })
   }
 
   return (
@@ -527,6 +609,19 @@ function AddTaskForm({ onSave, onCancel }) {
               max={7}
               value={weeklyTarget}
               onChange={e => setWeeklyTarget(e.target.value)}
+              className="w-14 text-xs border border-peak-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-peak-accent/30"
+            />
+          </div>
+        )}
+        {taskType === 'monthly' && (
+          <div className="flex items-center gap-1.5 ml-1">
+            <span className="text-[11px] text-peak-muted">×/month:</span>
+            <input
+              type="number"
+              min={1}
+              max={31}
+              value={monthlyTarget}
+              onChange={e => setMonthlyTarget(e.target.value)}
               className="w-14 text-xs border border-peak-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-peak-accent/30"
             />
           </div>

@@ -81,7 +81,7 @@ export default function ArenaDetail() {
 
   async function handleComplete(task) {
     if (completing === task.id) return
-    const isWeeklyCount = (task.weekly_target ?? 1) > 1
+    const isWeeklyCount = task.recurrence === 'weekly'
     const done = isTaskDone(task, selectedDay)
 
     setCompleting(task.id)
@@ -235,7 +235,7 @@ export default function ArenaDetail() {
               </div>
 
               {tasks.map(task => {
-                const isWeeklyCount = (task.weekly_target ?? 1) > 1
+                const isWeeklyCount = task.recurrence === 'weekly'
                 const done = isTaskDone(task, selectedDay)
                 const count = getCompletionCount(task, selectedDay)
                 const target = task.weekly_target ?? 1

@@ -65,12 +65,16 @@ export function useTasks(userId, arenaSlug = null) {
       const { data: taskData, error: taskErr } = await taskQuery.order('created_at')
       if (taskErr) throw taskErr
 
-      // Filter out expired one-time tasks (created/due before this week)
+      // Filter out expired one-time tasks and future-gated tasks
+      const todayFilter = toDateStr(new Date())
       const activeTaskData = (taskData || []).filter(task => {
-        if (!task.is_one_time) return true
-        // Prefer explicit due_date; fall back to local interpretation of created_at
-        const expiryStr = task.due_date ?? toDateStr(new Date(task.created_at))
-        return expiryStr >= weekStartStr
+        if (task.is_one_time) {
+          const expiryStr = task.due_date ?? toDateStr(new Date(task.created_at))
+          if (expiryStr < weekStartStr) return false
+        }
+        // Hide therapy sessions until July 2026
+        if (task.title.startsWith('Therapy session') && todayFilter < '2026-07-01') return false
+        return true
       })
       setTasks(activeTaskData)
 

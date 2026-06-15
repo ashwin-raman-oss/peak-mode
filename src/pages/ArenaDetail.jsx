@@ -81,15 +81,15 @@ export default function ArenaDetail() {
 
   async function handleComplete(task) {
     if (completing === task.id) return
-    const isWeeklyCount = task.recurrence === 'weekly'
+    const showCounter = task.recurrence === 'weekly' || task.recurrence === 'monthly' || task.recurrence === 'biweekly'
     const done = isTaskDone(task, selectedDay)
 
     setCompleting(task.id)
     try {
-      if (done && !isWeeklyCount) {
+      if (done && !showCounter) {
         // Daily/one-time toggle off
         await uncompleteTask(task.id, selectedDay)
-      } else if (!done || isWeeklyCount) {
+      } else if (!done || showCounter) {
         const xp = await completeTask(task, selectedDay)
         if (xp > 0) {
           const levelResult = await addXp(xp)
@@ -235,10 +235,14 @@ export default function ArenaDetail() {
               </div>
 
               {tasks.map(task => {
-                const isWeeklyCount = task.recurrence === 'weekly'
+                const showCounter = task.recurrence === 'weekly' || task.recurrence === 'monthly' || task.recurrence === 'biweekly'
                 const done = isTaskDone(task, selectedDay)
                 const count = getCompletionCount(task, selectedDay)
-                const target = task.weekly_target ?? 1
+                const counterLabel = task.recurrence === 'monthly'
+                  ? `${count}/${task.monthly_target ?? 1} this month`
+                  : task.recurrence === 'biweekly'
+                  ? `${count}/${task.weekly_target ?? 1} this cycle`
+                  : `${count}/${task.weekly_target ?? 1} this week`
                 const isEditing = editingId === task.id
                 const isOffBiweeklyWeek = task.recurrence === 'biweekly' && !isBiweeklyOnWeek(task)
 
@@ -248,7 +252,7 @@ export default function ArenaDetail() {
                     className="group grid grid-cols-[36px_1fr_56px] lg:grid-cols-[36px_1fr_80px_60px_56px] gap-3 items-center px-5 py-3 border-b border-peak-border last:border-0 hover:bg-peak-bg transition-colors"
                   >
                     {/* Completion toggle */}
-                    {isWeeklyCount ? (
+                    {showCounter ? (
                       <button
                         onClick={() => handleComplete(task)}
                         disabled={completing === task.id || done}
@@ -259,7 +263,7 @@ export default function ArenaDetail() {
                             ? 'opacity-50 border-peak-border text-peak-muted'
                             : 'border-peak-border text-peak-muted hover:border-peak-accent hover:text-peak-accent'
                         }`}
-                        title={`${count}/${target} done this week`}
+                        title={counterLabel}
                       >
                         {done ? '✓' : '+1'}
                       </button>
@@ -299,11 +303,8 @@ export default function ArenaDetail() {
                         <span className={`text-sm ${done ? 'line-through text-peak-muted' : 'text-peak-text'}`}>
                           {task.title}
                         </span>
-                        {isWeeklyCount && task.recurrence !== 'monthly' && (
-                          <span className="ml-2 text-[10px] text-peak-muted">{count}/{target} this week</span>
-                        )}
-                        {task.recurrence === 'monthly' && (
-                          <span className="ml-2 text-[10px] text-peak-muted">{count}/{task.monthly_target ?? 1} this month</span>
+                        {showCounter && !isOffBiweeklyWeek && (
+                          <span className="ml-2 text-[10px] text-peak-muted">{counterLabel}</span>
                         )}
                         {isOffBiweeklyWeek && (
                           <span className="ml-2 text-[10px] text-amber-500">off week</span>

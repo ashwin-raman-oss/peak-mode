@@ -1,5 +1,6 @@
 import { useAuth } from '../context/AuthContext'
 import { useJourney } from '../hooks/useJourney'
+import { useOKRs } from '../hooks/useOKRs'
 import TopBar from '../components/TopBar'
 import BasecampScene from '../components/journey/BasecampScene'
 
@@ -20,6 +21,7 @@ const MILESTONES = [7, 14, 22, 30]
 export default function Journey() {
   const { user } = useAuth()
   const { journey, loading, debugAdvanceDay } = useJourney(user?.id, null, null, false)
+  const { archivedOKRs } = useOKRs(user?.id)
 
   const sceneDay         = journey?.scene_day         ?? 0
   const deterioration    = journey?.deterioration_level ?? 0
@@ -57,7 +59,7 @@ export default function Journey() {
                 <p className="text-blue-300 text-sm">Loading your journey…</p>
               </div>
             ) : (
-              <BasecampScene sceneDay={sceneDay} deteriorationLevel={deterioration} />
+              <BasecampScene sceneDay={sceneDay} deteriorationLevel={deterioration} completedOkrCount={archivedOKRs.length} />
             )}
           </div>
 

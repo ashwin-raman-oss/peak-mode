@@ -3,20 +3,21 @@ import { useAuth } from '../context/AuthContext'
 import { useOKRs } from '../hooks/useOKRs'
 import TopBar from '../components/TopBar'
 import Modal from '../components/ui/Modal'
+import OKRCompletionModal from '../components/OKRCompletionModal'
 
-function ConfirmDeleteModal({ title, description, onConfirm, onClose }) {
+function ConfirmDeleteModal({ title, description, onConfirm, onClose, confirmLabel = 'Delete', confirmClassName = 'bg-red-500 hover:bg-red-600' }) {
   return (
-    <Modal title="Confirm Delete" onClose={onClose}>
+    <Modal title="Confirm" onClose={onClose}>
       <p className="text-sm text-peak-text mb-1">
-        Are you sure you want to delete <span className="font-semibold">"{title}"</span>?
+        Are you sure you want to {confirmLabel === 'Delete' ? 'delete' : 'mark as complete'} <span className="font-semibold">"{title}"</span>?
       </p>
       <p className="text-xs text-peak-muted mb-5">{description}</p>
       <div className="flex gap-2">
         <button
           onClick={onConfirm}
-          className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold py-2.5 rounded-lg transition-colors"
+          className={`flex-1 text-white text-sm font-semibold py-2.5 rounded-lg transition-colors ${confirmClassName}`}
         >
-          Delete
+          {confirmLabel}
         </button>
         <button
           onClick={onClose}
@@ -47,6 +48,11 @@ function avgProgress(keyResults) {
   return Math.round(keyResults.reduce((s, kr) => s + kr.progress, 0) / keyResults.length)
 }
 
+function formatArchivedDate(dateStr) {
+  if (!dateStr) return ''
+  return new Date(dateStr).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+}
+
 export default function OKRs() {
   const { user } = useAuth()
   const {
@@ -55,7 +61,13 @@ export default function OKRs() {
     archiveOKR, restoreOKR, deleteOKR, deleteKeyResult,
   } = useOKRs(user?.id)
   const [showAdd, setShowAdd] = useState(false)
-  const [showArchived, setShowArchived] = useState(false)
+  const [completionModal, setCompletionModal] = useState(null)
+
+  async function handleArchiveOKR(okrId) {
+    const okr = okrs.find(o => o.id === okrId)
+    await archiveOKR(okrId)
+    if (okr) setCompletionModal(okr)
+  }
 
   if (loading) {
     return (
@@ -104,27 +116,19 @@ export default function OKRs() {
                 onAddKR={addKeyResult}
                 onDeleteKR={deleteKeyResult}
                 onDeleteOKR={deleteOKR}
-                onArchiveOKR={archiveOKR}
+                onArchiveOKR={handleArchiveOKR}
               />
             ))}
 
-            {/* Completed OKRs collapsible section */}
+            {/* Trophy Room */}
             {archivedOKRs.length > 0 && (
-              <div>
-                <button
-                  onClick={() => setShowArchived(v => !v)}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-peak-muted hover:text-peak-text mb-3 transition-colors"
-                >
-                  <span>{showArchived ? '▾' : '▸'}</span>
-                  Completed OKRs ({archivedOKRs.length})
-                </button>
-                {showArchived && (
-                  <div className="space-y-3">
-                    {archivedOKRs.map(okr => (
-                      <ArchivedOKRCard key={okr.id} okr={okr} onRestore={restoreOKR} />
-                    ))}
-                  </div>
-                )}
+              <div className="mt-8">
+                <p className="text-[11px] font-bold tracking-widest uppercase text-amber-500 mb-4">🏆 Trophy Room</p>
+                <div className="space-y-3">
+                  {archivedOKRs.map(okr => (
+                    <TrophyCard key={okr.id} okr={okr} onRestore={restoreOKR} />
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -143,6 +147,13 @@ export default function OKRs() {
           }}
         />
       )}
+
+      {completionModal && (
+        <OKRCompletionModal
+          objective={completionModal}
+          onClose={() => setCompletionModal(null)}
+        />
+      )}
     </div>
   )
 }
@@ -153,7 +164,8 @@ function OKRCard({ okr, onUpdateProgress, onAddKR, onDeleteKR, onDeleteOKR, onAr
   const [savingKR, setSavingKR] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const [confirmDeleteOKR, setConfirmDeleteOKR] = useState(false)
-  const [confirmDeleteKR, setConfirmDeleteKR] = useState(null) // { id, title }
+  const [confirmArchiveOKR, setConfirmArchiveOKR] = useState(false)
+  const [confirmDeleteKR, setConfirmDeleteKR] = useState(null)
 
   const progress = avgProgress(okr.key_results)
 
@@ -195,7 +207,7 @@ function OKRCard({ okr, onUpdateProgress, onAddKR, onDeleteKR, onDeleteOKR, onAr
                 <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
                 <div className="absolute right-0 top-6 z-20 bg-peak-surface border border-peak-border rounded-lg shadow-lg py-1 min-w-[170px]">
                   <button
-                    onClick={() => { setShowMenu(false); onArchiveOKR(okr.id) }}
+                    onClick={() => { setShowMenu(false); setConfirmArchiveOKR(true) }}
                     className="w-full text-left text-xs text-peak-success px-3 py-2 hover:bg-peak-bg transition-colors"
                   >
                     Mark as Complete ✓
@@ -291,6 +303,17 @@ function OKRCard({ okr, onUpdateProgress, onAddKR, onDeleteKR, onDeleteOKR, onAr
         </button>
       )}
 
+      {confirmArchiveOKR && (
+        <ConfirmDeleteModal
+          title={okr.title}
+          description="This will mark the objective as achieved and move it to your Trophy Room."
+          confirmLabel="Mark as Achieved ✓"
+          confirmClassName="bg-amber-500 hover:bg-amber-600"
+          onConfirm={() => { onArchiveOKR(okr.id); setConfirmArchiveOKR(false) }}
+          onClose={() => setConfirmArchiveOKR(false)}
+        />
+      )}
+
       {confirmDeleteOKR && (
         <ConfirmDeleteModal
           title={okr.title}
@@ -312,51 +335,66 @@ function OKRCard({ okr, onUpdateProgress, onAddKR, onDeleteKR, onDeleteOKR, onAr
   )
 }
 
-function ArchivedOKRCard({ okr, onRestore }) {
+function TrophyCard({ okr, onRestore }) {
   const [showMenu, setShowMenu] = useState(false)
-  const progress = avgProgress(okr.key_results)
 
   return (
-    <div className="bg-peak-surface border border-peak-border rounded-xl shadow-sm p-4 opacity-60">
-      <div className="flex items-start justify-between">
-        <div className="flex-1 min-w-0 pr-4">
-          <h3 className="text-sm font-bold text-peak-text line-through leading-snug">{okr.title}</h3>
-          {okr.period && (
-            <span className="text-[10px] text-peak-muted">{okr.period}</span>
-          )}
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-[10px] font-semibold text-peak-success bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
-            Completed ✓
-          </span>
-          <div className="relative">
-            <button
-              onClick={() => setShowMenu(v => !v)}
-              className="text-peak-muted hover:text-peak-text text-sm px-1 transition-colors"
-            >
-              ···
-            </button>
-            {showMenu && (
-              <>
-                <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                <div className="absolute right-0 top-6 z-20 bg-peak-surface border border-peak-border rounded-lg shadow-lg py-1 min-w-[140px]">
-                  <button
-                    onClick={() => { setShowMenu(false); onRestore(okr.id) }}
-                    className="w-full text-left text-xs text-peak-text px-3 py-2 hover:bg-peak-bg transition-colors"
-                  >
-                    ↩ Restore
-                  </button>
-                </div>
-              </>
+    <div
+      className="border border-peak-border rounded-xl shadow-sm p-4"
+      style={{ borderLeft: '4px solid #F59E0B', background: 'rgba(245, 158, 11, 0.07)' }}
+    >
+      <div className="flex items-start gap-3">
+        <span className="text-2xl shrink-0">🏆</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-0.5">
+            <span className="text-sm font-semibold text-peak-text leading-snug">{okr.title}</span>
+            <span className="text-[10px] bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 px-2 py-0.5 rounded-full font-semibold shrink-0">
+              Achieved ✓
+            </span>
+          </div>
+          <div className="flex items-center gap-2 mb-2">
+            {okr.period && (
+              <span className="text-[10px] text-peak-muted">{okr.period}</span>
+            )}
+            {okr.archived_at && (
+              <span className="text-[10px] text-peak-muted">· {formatArchivedDate(okr.archived_at)}</span>
             )}
           </div>
+          {okr.why && (
+            <p className="text-xs italic text-peak-muted mb-2 leading-relaxed">{okr.why}</p>
+          )}
+          {okr.key_results?.length > 0 && (
+            <ul className="space-y-0.5">
+              {okr.key_results.map(kr => (
+                <li key={kr.id} className="flex items-start gap-1.5 text-xs text-peak-muted">
+                  <span className="text-amber-500 shrink-0">✓</span>
+                  <span>{kr.title}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
-      </div>
-      <div className="mt-2 h-[3px] bg-peak-border rounded-full overflow-hidden">
-        <div
-          className="h-full rounded-full"
-          style={{ width: `${progress}%`, backgroundColor: '#22C55E' }}
-        />
+        <div className="relative shrink-0">
+          <button
+            onClick={() => setShowMenu(v => !v)}
+            className="text-peak-muted hover:text-peak-text text-sm px-1 transition-colors"
+          >
+            ···
+          </button>
+          {showMenu && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+              <div className="absolute right-0 top-6 z-20 bg-peak-surface border border-peak-border rounded-lg shadow-lg py-1 min-w-[140px]">
+                <button
+                  onClick={() => { setShowMenu(false); onRestore(okr.id) }}
+                  className="w-full text-left text-xs text-peak-text px-3 py-2 hover:bg-peak-bg transition-colors"
+                >
+                  ↩ Restore
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )

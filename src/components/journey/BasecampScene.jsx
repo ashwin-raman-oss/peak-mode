@@ -1,6 +1,6 @@
 // Layered SVG illustration for the Basecamp chapter.
 // Renders safely with journey === null (defaults to day 0, no deterioration).
-export default function BasecampScene({ sceneDay = 0, deteriorationLevel = 0 }) {
+export default function BasecampScene({ sceneDay = 0, deteriorationLevel = 0, completedOkrCount = 0 }) {
   const fireActive = deteriorationLevel === 0
   const desat = deteriorationLevel === 3
 
@@ -45,6 +45,10 @@ export default function BasecampScene({ sceneDay = 0, deteriorationLevel = 0 }) 
             0%   { opacity: 1;   transform: translate(0, 0) scale(1); }
             100% { opacity: 0;   transform: translate(var(--tx), var(--ty)) scale(0.3); }
           }
+          @keyframes bcFlagWave {
+            0%, 100% { transform: skewX(0deg) scaleX(1); }
+            50%       { transform: skewX(4deg) scaleX(0.94); }
+          }
           .bc-fire      { transform-origin: 268px 302px; }
           .bc-fire-anim { animation: bcFlicker  0.35s ease-in-out infinite alternate; }
           .bc-fire2-anim{ animation: bcFlicker2 0.45s ease-in-out infinite alternate; }
@@ -52,6 +56,8 @@ export default function BasecampScene({ sceneDay = 0, deteriorationLevel = 0 }) 
           .bc-star-2    { animation: bcTwinkle 3.1s ease-in-out infinite 0.4s; }
           .bc-star-3    { animation: bcTwinkle 2.0s ease-in-out infinite 1.1s; }
           .bc-glow      { animation: bcGlow    2.5s ease-in-out infinite; }
+          .bc-flag-gold-1 { transform-origin: 530px 270px; animation: bcFlagWave 2.1s ease-in-out infinite; }
+          .bc-flag-gold-2 { transform-origin: 70px  270px; animation: bcFlagWave 2.5s ease-in-out infinite reverse; }
         `}</style>
         {/* Summit glow (layer 8) */}
         <radialGradient id="bcTentGlow1" cx="50%" cy="50%" r="50%">
@@ -366,6 +372,41 @@ export default function BasecampScene({ sceneDay = 0, deteriorationLevel = 0 }) 
             <line x1="-2" y1="6"  x2="-4" y2="16" stroke="#1A202C" strokeWidth="2.5" strokeLinecap="round" />
             <line x1="2"  y1="6"  x2="4"  y2="16" stroke="#1A202C" strokeWidth="2.5" strokeLinecap="round" />
           </g>
+        </g>
+      )}
+
+      {/* ── GOLDEN FLAGS: Achievement flags for completed OKRs ─────────── */}
+      {completedOkrCount >= 1 && (
+        <g>
+          {/* Right golden flag */}
+          <line x1="530" y1="258" x2="530" y2="312" stroke="#92400E" strokeWidth="2.5" />
+          <polygon
+            points="530,260 504,270 530,280"
+            fill="#F59E0B"
+            className="bc-flag-gold-1"
+          />
+          <text x="515" y="274" textAnchor="middle" fontSize="9" fill="#FEF3C7">★</text>
+        </g>
+      )}
+      {completedOkrCount >= 2 && (
+        <g>
+          {/* Left golden flag */}
+          <line x1="70" y1="258" x2="70" y2="312" stroke="#92400E" strokeWidth="2.5" />
+          <polygon
+            points="70,260 96,270 70,280"
+            fill="#F59E0B"
+            className="bc-flag-gold-2"
+          />
+          <text x="83" y="274" textAnchor="middle" fontSize="9" fill="#FEF3C7">★</text>
+        </g>
+      )}
+      {completedOkrCount >= 3 && (
+        <g opacity="0.85">
+          {/* Golden pennant bunting between the two flag poles */}
+          <line x1="70" y1="262" x2="530" y2="262" stroke="#F59E0B" strokeWidth="1" opacity="0.5" />
+          {[145, 222, 300, 378, 455].map((x, i) => (
+            <polygon key={i} points={`${x},262 ${x - 9},278 ${x + 9},278`} fill="#F59E0B" opacity="0.7" />
+          ))}
         </g>
       )}
 

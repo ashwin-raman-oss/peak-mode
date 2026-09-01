@@ -7,6 +7,7 @@ import { useTasks } from '../hooks/useTasks'
 import { useBig3, BIG3_START_DATE } from '../hooks/useBig3'
 import { useCheckin } from '../hooks/useCheckin'
 import { useJourney } from '../hooks/useJourney'
+import { useOKRs } from '../hooks/useOKRs'
 import { supabase } from '../lib/supabase'
 import TopBar from '../components/TopBar'
 import XPToast from '../components/XPToast'
@@ -259,6 +260,8 @@ export default function Dashboard() {
     }).length,
   }
 
+  const { archivedOKRs } = useOKRs(user?.id)
+
   const { journey, loading: journeyLoading, updateJourneyProgress } = useJourney(
     user?.id,
     todayBig3,
@@ -440,6 +443,13 @@ export default function Dashboard() {
                   )}
                   {journey.deterioration_level > 0 && (
                     <rect width="300" height="80" fill="rgba(100,100,100,0.3)"/>
+                  )}
+                  {archivedOKRs.length >= 1 && (
+                    <>
+                      <line x1="265" y1="18" x2="265" y2="52" stroke="#92400E" strokeWidth="1.5"/>
+                      <polygon points="265,20 278,27 265,34" fill="#F59E0B"/>
+                      <text x="272" y="31" textAnchor="middle" fontSize="5" fill="#FEF3C7">★</text>
+                    </>
                   )}
                 </svg>
               </div>

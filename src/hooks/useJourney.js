@@ -53,6 +53,17 @@ export function useJourney(userId, todayBig3, tasksCompletedToday, journalDoneTo
       daysMissed = Math.round((today - last) / (1000 * 60 * 60 * 24)) - 1
     }
 
+    // After a very long absence, reset cleanly instead of applying a crushing penalty
+    if (daysMissed > 30) {
+      const { data: reset } = await supabase
+        .from('journey')
+        .update({ scene_day: 0, deterioration_level: 0, last_active_date: null })
+        .eq('user_id', userId)
+        .select().single()
+      if (reset) setJourney(reset)
+      return
+    }
+
     let newSceneDay = current.scene_day
     let newDeteriorationLevel = 0
 

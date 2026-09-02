@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 import { useTasks } from '../hooks/useTasks'
 import { useBig3, BIG3_START_DATE } from '../hooks/useBig3'
+import { useBig3Streak } from '../hooks/useBig3Streak'
 import { useCheckin } from '../hooks/useCheckin'
 import { useJourney } from '../hooks/useJourney'
 import { useOKRs } from '../hooks/useOKRs'
@@ -194,16 +195,6 @@ function Big3Card({ todayBig3, onSave, onMarkDone, loading }) {
   )
 }
 
-function isBig3AllDone(big3) {
-  if (!big3) return false
-  // At least one task must be set
-  if (!big3.task_1 && !big3.task_2 && !big3.task_3) return false
-  // All SET tasks must be done
-  if (big3.task_1 && !big3.task_1_done) return false
-  if (big3.task_2 && !big3.task_2_done) return false
-  if (big3.task_3 && !big3.task_3_done) return false
-  return true
-}
 
 function StatCard({ label, value, sub, note, borderColor, valueColor }) {
   return (
@@ -233,6 +224,7 @@ export default function Dashboard() {
   const todayStr = localTodayStr()
   const showBig3 = todayStr >= BIG3_START_DATE
   const { todayBig3, loading: big3Loading, saveBig3, markItemDone } = useBig3(showBig3 ? user?.id : null)
+  const { streak: big3Streak, refresh: big3StreakRefresh } = useBig3Streak(showBig3 ? user?.id : null)
   const { eveningDone } = useCheckin(user?.id)
 
   // Per-arena task completions for today (used by journey progression)
@@ -323,15 +315,7 @@ export default function Dashboard() {
   const xpToNext = profile ? getXpToNextLevel(profile.total_xp) : XP_PER_LEVEL
   const levelTitle = getLevelTitle(level)
 
-  // Streak — add 1 optimistically if today's Big 3 is already complete
-  const streak = profile?.current_streak ?? 0
-  const todayBig3AllDone = isBig3AllDone(todayBig3)
-  const displayStreak = streak + (todayBig3AllDone ? 1 : 0)
-  const streakSub = displayStreak > 0
-    ? '🔥 Keep it going'
-    : todayBig3AllDone
-    ? '✓ Big 3 done today'
-    : "Complete today's Big 3 to start"
+  const streakSub = big3Streak > 0 ? '🔥 Keep it going' : "Complete today's Big 3 to start"
 
   async function handleComplete(task) {
     if (isTaskDone(task) || completing === task.id) return
@@ -377,7 +361,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
           <StatCard
             label="BIG 3 STREAK"
-            value={displayStreak}
+            value={big3Streak}
             sub={streakSub}
             borderColor="border-peak-accent"
             valueColor="text-peak-xp"
@@ -582,7 +566,7 @@ export default function Dashboard() {
           <Big3Card
             todayBig3={todayBig3}
             onSave={saveBig3}
-            onMarkDone={markItemDone}
+            onMarkDone={async (num, done) => { await markItemDone(num, done); big3StreakRefresh() }}
             loading={big3Loading}
           />
         )}

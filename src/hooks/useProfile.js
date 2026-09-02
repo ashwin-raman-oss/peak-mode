@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { getLevel } from '../lib/xp'
-import { isBig3Complete, BIG3_STREAK_START } from '../lib/streak'
 import { toDateStr } from '../lib/dates'
 
 export function useProfile(userId) {
@@ -9,8 +8,8 @@ export function useProfile(userId) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const fetchAndEvaluateStreak = useCallback(async () => {
-    if (!userId) return
+  const fetchProfile = useCallback(async () => {
+    if (!userId) { setLoading(false); return }
     try {
       const { data: profileData, error: profileErr } = await supabase
         .from('profiles')
@@ -22,77 +21,12 @@ export function useProfile(userId) {
 
       const today = toDateStr(new Date())
 
+      // On first visit each day, sync level and last_active_date
       if (profileData.last_active_date !== today) {
-        const yesterday = new Date()
-        yesterday.setDate(yesterday.getDate() - 1)
-        const yesterdayStr = toDateStr(yesterday)
-
-        let streakUpdate
-        if (today < BIG3_STREAK_START) {
-          // Pre-launch: don't evaluate streak at all, leave unchanged
-          streakUpdate = {
-            current_streak: profileData.current_streak,
-            longest_streak: profileData.longest_streak,
-          }
-        } else {
-          // Post-launch: fetch both today's and yesterday's Big 3 rows
-          const [{ data: todayRow }, { data: yesterdayRow }] = await Promise.all([
-            supabase
-              .from('daily_big3')
-              .select('task_1, task_2, task_3, task_1_done, task_2_done, task_3_done')
-              .eq('user_id', userId)
-              .eq('date', today)
-              .maybeSingle(),
-            supabase
-              .from('daily_big3')
-              .select('task_1, task_2, task_3, task_1_done, task_2_done, task_3_done')
-              .eq('user_id', userId)
-              .eq('date', yesterdayStr)
-              .maybeSingle(),
-          ])
-
-          if (isBig3Complete(todayRow)) {
-            // Today's Big 3 is fully done — increment streak
-            const newStreak = profileData.current_streak + 1
-            streakUpdate = {
-              current_streak: newStreak,
-              longest_streak: Math.max(profileData.longest_streak, newStreak),
-            }
-          } else if (isBig3Complete(yesterdayRow) && profileData.last_active_date === yesterdayStr) {
-            // Yesterday was done and already counted — keep streak, just refresh last_active_date
-            streakUpdate = {
-              current_streak: profileData.current_streak,
-              longest_streak: profileData.longest_streak,
-            }
-          } else {
-            // Neither today nor a valid yesterday continuation — reset
-            streakUpdate = {
-              current_streak: 0,
-              longest_streak: profileData.longest_streak,
-            }
-          }
-
-          console.log('[streak]', {
-            today,
-            yesterdayStr,
-            todayRow,
-            yesterdayRow,
-            lastActiveDate: profileData.last_active_date,
-            streakResult: streakUpdate,
-          })
-        }
-
         const newLevel = getLevel(profileData.total_xp)
-
-        const updates = {
-          ...streakUpdate,
-          level: newLevel,
-          last_active_date: today,
-        }
-
         const { data: updated, error: updateErr } = await supabase
           .from('profiles')
-          .update(updates)
+          .update({ level: newLevel, last_active_date: today })
           .eq('user_id', userId)
           .select()
           .single()
@@ -112,8 +46,8 @@ export function useProfile(userId) {
   }, [userId])
 
   useEffect(() => {
-    fetchAndEvaluateStreak()
-  }, [fetchAndEvaluateStreak])
+    fetchProfile()
+  }, [fetchProfile])
 
   async function addXp(xpAmount) {
     if (!profile) return
@@ -137,5 +71,5 @@ export function useProfile(userId) {
     return { leveledUp: newLevel > prevLevel, newLevel }
   }
 
-  return { profile, loading, error, addXp, refetch: fetchAndEvaluateStreak }
+  return { profile, loading, error, addXp, refetch: fetchProfile }
 }

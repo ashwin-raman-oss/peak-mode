@@ -309,6 +309,11 @@ export default function ArenaDetail() {
                         {isOffBiweeklyWeek && (
                           <span className="ml-2 text-[10px] text-amber-500">off week</span>
                         )}
+                        {task.is_one_time && task.due_date && !done && (
+                          <span className="block text-[10px] text-peak-muted mt-0.5">
+                            Due {new Date(task.due_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </span>
+                        )}
                         {/* Mobile-only: compact priority + XP indicator */}
                         <div className="flex items-center gap-1.5 mt-0.5 lg:hidden">
                           <Badge priority={task.priority_override ?? task.priority} />
